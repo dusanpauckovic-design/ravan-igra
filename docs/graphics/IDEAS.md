@@ -1,6 +1,5 @@
-# Grafika — dnevnik ideja
+# Graficke ideje
 
-| Datum | Tiket | Ideja | Korist | Obim/zavisnosti | Odluka |
-|---|---|---|---|---|---|
-
-Nema dodatnih ideja evidentiranih. Nove predloge prijavi u predaji, ne prosiruj samostalno obim.
+| Tiket | Ideja za pregled | Korist | Obim |
+| --- | --- | --- | --- |
+| GFX-01 | Jednokratni pregled heksa sa oznacenim centrom i temenima | Brza provera mapiranja kad se zameni kamera | Mali; van sprinta |
