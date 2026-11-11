@@ -49,6 +49,7 @@ window.RavanReplayPanel=function mountReplay(ui) {
         if(result!=='complete'||stamp!==generation)return 'cancelled';
       }
       $('message').textContent='Probna borba zavrsena.';
+      running=false;
       ui.onPlaybackComplete?.('victory');
       return 'complete';
     } finally {

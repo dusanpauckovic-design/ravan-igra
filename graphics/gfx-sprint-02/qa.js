@@ -93,5 +93,19 @@ window.runRavanQA = async function(stage, check) {
   check('reset prekida sekvencu i brise efekte',await interrupted==='cancelled' && !ui.viewer.getPlayback().event && ui.viewer.getPlayback().seen===0);
   mode('fast');await ui.replay.play();
   document.querySelector('#battle details').open=true;
+  if(stage<14)return;
+  check('pobeda otvara rezime i jedan izbor',ui.screens.get()==='outcome' && $('claim-reward').disabled);
+  check('nedostupna nagrada ima razlog',document.querySelector('[data-reward=gold]').disabled && $('screen').textContent.includes('nedostupna'));
+  document.querySelector('[data-reward=wood]').click();
+  const claim=$('claim-reward'), prior=ui.outcomePort.count();
+  claim.click();claim.click();await Promise.resolve();
+  check('nagrada se belezi jednom',ui.outcomePort.count()===prior+1 && ui.outcomePort.get().claimed==='wood');
+  $('next-encounter').click();await Promise.resolve();
+  check('sledeci susret otvara novi cilj',ui.screens.get()==='battle' && $('objective').textContent.includes('Divlju zver'));
+  $('trial-defeat').click();
+  check('poraz daje checkpoint bez nagrade',!!$('checkpoint')&&!$('claim-reward'));
+  $('checkpoint').click();await Promise.resolve();
+  check('checkpoint vraca pocetnu scenu',ui.viewer.getSnapshot().units[3].hp===58 && $('arena-title').textContent==='Kameni prolaz');
+  ui.outcome.show('victory');
 
 };

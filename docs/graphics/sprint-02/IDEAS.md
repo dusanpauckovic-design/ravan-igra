@@ -8,3 +8,4 @@ Ideje se beleze uz predaju, van aktivnog obima.
 - GFX-11 · Proveriti kako oznaciti spoljne ivice arene kad stigne veca mapa.
 - GFX-12 · Kasnije razmotriti posebne poze za oruzje pri promeni opreme.
 - GFX-13 · Kasnije proveriti ritam uz stvarne duge animacije i prebacivanje aktivnog borca.
+- GFX-14 · Proveriti da li stvarni pregled treba da istakne poslednji odlucujuci potez.

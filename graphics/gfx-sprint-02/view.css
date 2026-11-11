@@ -37,3 +37,4 @@ footer{display:flex;justify-content:space-between;color:var(--muted);font-size:1
 .node{display:flex;justify-content:space-between;align-items:center;text-align:left;margin-left:calc(13px * var(--depth));min-height:37px;border-left:3px solid #748574}
 .node.learned{border-left-color:#9ed0a9}.node.open{border-left-color:#e1bc80}.node.locked{border-left-style:dashed}.skill-state{color:var(--sage);margin-bottom:8px}.skill-compare{display:grid;grid-template-columns:90px minmax(0,1fr);gap:8px;line-height:1.4}.skill-compare dt{color:var(--muted)}.skill-compare dd{margin:0}
 @media(max-width:650px){.skills-layout{grid-template-columns:1fr}}
+.result-kind{color:var(--sage);font-weight:bold;font-size:12px;margin:5px 0 7px}.outcome-paper{max-width:870px;margin-top:20px}.outcome-paper h2{margin-top:0}.reward-list{margin:10px 0 16px}.reward-list .build{min-height:76px}

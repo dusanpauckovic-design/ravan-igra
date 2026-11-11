@@ -110,6 +110,8 @@
     reset(group);select('a_iva');
   },{id:'figure-group'}));
   view.replay=RavanReplayPanel(view);
+  view.outcomePort=RavanFixtureOutcome();
+  view.outcome=RavanOutcomePanel(view,view.outcomePort);
   reset();
   window.ravanSprint = view;
 })();
