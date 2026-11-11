@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="sr-Latn">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ravan · Kameni prolaz · @VERSION@</title>
+<style>/*STYLE*/</style>
+<main>
+  <header><span class="brand">RAVAN</span><span class="version">@VERSION@</span><span class="demo">Graficka demonstracija · probni dogadjaji</span></header>
+  <section class="layout">
+    <div class="scene">
+      <div class="scenehead"><div><span class="label">BORBENA ARENA</span><h1>Kameni prolaz</h1></div><button id="view" type="button" aria-pressed="false">Prikazi 2D osnovu</button></div>
+      <canvas id="arena" width="960" height="570" aria-label="Borbena tabla, kameni prolaz"></canvas>
+      <div class="scenebottom"><span id="hex">Hex —</span><span id="message" role="status">Izaberi borca ili pokreni napad.</span></div>
+    </div>
+    <aside><h2>Druzina</h2><div id="roster"></div><h2>Proba prikaza</h2><div id="actions"></div><p id="sequence-note">Romb: oznaka · krug: trag · trougao: opasnost</p></aside>
+  </section>
+  <footer>2D hex koordinate · RV-03 @BASE@ <span>Izvor @SOURCE@</span></footer>
+</main>
+<script>/*ASSETS*/</script>
+<script>/*RENDERER*/</script>
+<script>/*DEMO*/</script>
+</html>
