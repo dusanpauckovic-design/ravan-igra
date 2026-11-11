@@ -59,7 +59,7 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
       }
       panel.append(rewards);
       panel.append(model.claimed
-        ? button('Sledeci susret',()=>send(root,'nextEncounter'),{className:'primary',id:'next-encounter',disabled:busy})
+        ? button(ui.expeditionActive?'Povratak u kamp':'Sledeci susret',()=>send(root,'nextEncounter'),{className:'primary',id:'next-encounter',disabled:busy})
         : button('Potvrdi nagradu',()=>send(root,'claimReward'),{className:'primary',id:'claim-reward',disabled:!selected||busy}));
     }else {
       panel.append(text('h2','Checkpoint · '+ui.getEncounter().title),text('p','Vraca pocetno stanje susreta.','screen-desc'),
@@ -82,6 +82,7 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
       notice='Izbor prihvacen u probi.'; if(screens.get()==='outcome')draw(root); return;
     }
     if(type==='nextEncounter'){
+      if(ui.expeditionActive){ui.completeExpedition();return;}
       const next=copy(scene);
       Object.assign(next.units[3],{name:'Divlja zver',x:4,y:4,hp:37,hpMax:37});
       ui.loadEncounter('Patrola doline','Savladaj Divlju zver.',next);

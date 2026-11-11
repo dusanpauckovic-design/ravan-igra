@@ -39,8 +39,29 @@ def run(widget, results, done, *, stage=16):
         ('click',click('#reset'),120,'reset aktivnog susreta'),
         ('assert',assertion("document.getElementById('arena-title').textContent==='Patrola doline' && ravanSprint.viewer.getSnapshot().units[3].hp===37 && window.__trusted>=10 && window.__trustedEnter===2"),10,'native klikovi, dva Entera i reset aktivnog susreta'),
     ]
-    if stage>=18:
+    if 18<=stage<25:
         steps.insert(0,('click',click('#opening-party'),120,'Pocetak → druzina'))
+    if stage==25:
+        steps=[
+            ('click',click('#camp-map'),110,'Kamp → mapa'),
+            ('click',click('[data-location=river]'),110,'Odabir obale'),
+            ('click',click('#world-travel'),110,'Putovanje na obalu'),
+            ('click',click('[data-location=pass]'),110,'Odabir prolaza'),
+            ('click',click('#world-travel'),110,'Putovanje na prolaz'),
+            ('click',click('#world-activity'),110,'Ulaz u borbu'),
+            ('assert',assertion("ravanSprint.screens.get()==='battle' && ravanSprint.expeditionActive"),10,'native mapa otvara borbu'),
+            ('click',click('#attack'),110,'Napad'),
+            ('click',click('',cell=True),110,'Meta'),
+            ('key','',820,'Prvi Enter'),
+            ('click',click('#attack'),110,'Napad drugi put'),
+            ('click',click('',cell=True),110,'Drugi izbor mete'),
+            ('key','',820,'Drugi Enter'),
+            ('assert',assertion("ravanSprint.screens.get()==='outcome'"),10,'native borba otvara nagradu'),
+            ('click',click('[data-reward=stone]'),110,'Izbor kamena'),
+            ('click',click('#claim-reward'),110,'Preuzimanje'),
+            ('click',click('#next-encounter'),110,'Povratak u kamp'),
+            ('assert',assertion("ravanSprint.screens.get()==='camp' && ravanSprint.worldPort.get().resolved.includes('pass') && ravanSprint.outcomePort.get().claimed==='stone' && window.__trusted>=12 && window.__trustedEnter===2"),10,'native klikovi i Enter zatvaraju RPG petlju')
+        ]
     iterator=iter(steps)
 
     def next_step():

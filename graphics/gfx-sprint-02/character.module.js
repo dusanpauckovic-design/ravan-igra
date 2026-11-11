@@ -1,30 +1,32 @@
 /* Read-only snapshots and commands for the phase-03 UI preview. */
 window.RavanCharacterFixture=function createCharacterFixture(){
   const copy=x=>JSON.parse(JSON.stringify(x));
+  const attributes={hp:'Izdrzljivost',atk:'Snaga',def:'Odbrana',speed:'Okretnost'};
+  const budget=4,limit=2;
   const catalog={
-    look:[['figure_guard','Putnik','Krzneni plast'],['figure_archer','Izvidjac','Kozna oprema'],['figure_caster','Ucenjak','Putnicka odora']],
-    origin:[['road','Putnik','Poznaje staze i sigurna mesta.'],['camp','Zanatlija','Razume alat i opremu.'],['field','Travar','Prepoznaje korisne biljke.'],['archive','Pisac','Lakse tumaci zapise.']],
-    talent:[['guard','Mirna ruka','Priprema za odbranu.'],['run','Brz korak','Naglasak na kretanju.'],['eye','Ostro oko','Naglasak na osmatranju.'],['craft','Vest zanat','Naglasak na popravci.'],['care','Prva pomoc','Naglasak na oporavku.'],['study','Pamcenje','Naglasak na ucenju.']],
-    flaw:[['heavy','Tezak korak','Otezava prikradanje.'],['rest','Slab san','Oporavak trazi vise odmora.'],['fear','Nervoza','Prvi susret je tezi.'],['burden','Slaba ledja','Teze je nositi punu torbu.']],
+    look:[['figure_guard','Putnik','Krzneni plast'],['figure_archer','Izvidjac','Kozna oprema']],
+    origin:[['hunter','Lovac','Napad +1'],['mason','Zidar','HP +6'],['runner','Glasnik','Inicijativa +2'],['sentry','Strazar','Odbrana +1']],
+    talent:[['steady','Siguran zamah','Napad +2'],['brace','Cvrst oslonac','Odbrana +1'],['stamina','Zilavost','HP +8'],['quick','Brza reakcija','Inicijativa +2'],['stride','Dug korak','Kretanje +1'],['focus','Sabranost','Energija +1']],
+    flaw:[['fragile','Stara povreda','HP −8'],['open','Otvoren gard','Odbrana −1'],['weak','Slabiji stisak','Napad −2'],['heavy','Tezak korak','Kretanje −1']],
     skill:[['marksmanship','Mirna tetiva','Pocetna vestina luka.'],['strength','Siguran udarac','Pocetna vestina bliske borbe.'],['vitality','Cvrsto telo','Pocetna vestina izdrzljivosti.']],
-    kit:[['blade','Putnicki paket','Noz i zavoj.'],['bow','Izvidjacki paket','Luk i zavoj.'],['camp','Zanatski paket','Alat i zalihe za kamp.']]
+    kit:[['leather','Putni prsluk','Prsluk.'],['guard','Oprema strazara','Stit i rukavice.'],['field','Poljska torba','Kapa i obloga.']]
   };
-  const fresh=()=>({name:'',look:'',origin:'',talent:'',flaw:'',skill:'',kit:'',mode:'story',attributes:{Snaga:0,Spretnost:0,Volja:0}});
+  const fresh=()=>({name:'',look:'',origin:'',talent:'',flaw:'',skill:'',kit:'',mode:'story',attributes:{hp:0,atk:0,def:0,speed:0}});
   let draft=fresh(),hero=null,scene=null;
-  const remaining=()=>5-Object.values(draft.attributes).reduce((sum,n)=>sum+n,0);
-  const errors=()=>[!draft.name.trim()||!draft.look?'Unesi ime i izaberi izgled.':'',!draft.origin?'Izaberi poreklo.':'',!draft.talent||!draft.flaw||remaining()!==0?'Raspodeli svih 5 poena i izaberi talenat i slabost.':'',!draft.skill||!draft.kit?'Izaberi vestinu i paket opreme.':''];
+  const remaining=()=>budget-Object.values(draft.attributes).reduce((sum,n)=>sum+n,0);
+  const errors=()=>[!draft.name.trim()||!draft.look?'Unesi ime i izaberi izgled.':'',!draft.origin?'Izaberi poreklo.':'',!draft.talent||!draft.flaw||remaining()!==0?'Raspodeli svih '+budget+' poena i izaberi talenat i slabost.':'',!draft.skill||!draft.kit?'Izaberi vestinu i paket opreme.':''];
   function command(cmd){
     if(cmd.type==='newDraft'){draft=fresh();return {ok:true};}
     if(cmd.type==='set'){
       const {field,value}=cmd;
-      if(field==='name'&&typeof value==='string')draft.name=value.slice(0,42);
+      if(field==='name'&&typeof value==='string')draft.name=value.slice(0,24);
       else if(field==='mode'&&['story','skip'].includes(value))draft.mode=value;
       else if(catalog[field]?.some(item=>item[0]===value))draft[field]=value;
       else return {ok:false,reason:'Izbor nije dostupan.'};
     }
     if(cmd.type==='attribute'){
       const previous=draft.attributes[cmd.key], next=previous+cmd.delta;
-      if(!Number.isInteger(previous)||![-1,1].includes(cmd.delta)||next<0||next>3||cmd.delta>remaining())return {ok:false,reason:'Granica je 3 po atributu i 5 ukupno.'};
+      if(!Number.isInteger(previous)||![-1,1].includes(cmd.delta)||next<0||next>limit||cmd.delta>remaining())return {ok:false,reason:'Granica je '+limit+' po atributu i '+budget+' ukupno.'};
       draft.attributes[cmd.key]=next;
     }
     if(cmd.type==='create'){
@@ -39,7 +41,7 @@ window.RavanCharacterFixture=function createCharacterFixture(){
     }
     return {ok:true};
   }
-  return {get:()=>copy({draft,hero,scene,remaining:remaining(),errors:errors()}),catalog,command};
+  return {get:()=>copy({draft,hero,scene,remaining:remaining(),budget,limit,attributes,errors:errors()}),catalog,command};
 };
 window.RavanCharacterCreation=function mountCreation(ui,port){
   const {text,button,screens}=ui;
@@ -74,7 +76,7 @@ window.RavanCharacterCreation=function mountCreation(ui,port){
     panel.append(text('h2',labels[step]));
     if(step===0){
       const label=text('label','Ime lika','rpg-input');
-      const input=document.createElement('input');input.id='creator-name';input.maxLength=42;input.value=d.name;
+      const input=document.createElement('input');input.id='creator-name';input.maxLength=24;input.value=d.name;
       input.oninput=()=>port.command({type:'set',field:'name',value:input.value});label.append(input);
       panel.append(label,cards(root,'look','Izgled · bez bonusa',state,draw));
     }
@@ -83,15 +85,15 @@ window.RavanCharacterCreation=function mountCreation(ui,port){
       const attrs=text('div','','attribute-row');
       for(const [key,n] of Object.entries(d.attributes)){
         const cell=text('div','','attribute');
-        cell.append(text('strong',key),button('−',()=>setAttribute(key,-1),{disabled:n===0}),text('output',String(n)),button('+',()=>setAttribute(key,1),{disabled:n===3||state.remaining===0}));
+        cell.append(text('strong',state.attributes[key]),button('−',()=>setAttribute(key,-1),{disabled:n===0}),text('output',String(n)),button('+',()=>setAttribute(key,1),{disabled:n===state.limit||state.remaining===0}));
         attrs.append(cell);
       }
-      panel.append(text('p','Preostalo: '+state.remaining+' / 5','points'),attrs,cards(root,'talent','Talenat',state,draw),cards(root,'flaw','Slabost',state,draw));
+      panel.append(text('p','Preostalo: '+state.remaining+' / '+state.budget,'points'),attrs,cards(root,'talent','Talenat',state,draw),cards(root,'flaw','Slabost',state,draw));
     }
     if(step===3)panel.append(cards(root,'skill','Pocetna vestina',state,draw),cards(root,'kit','Paket opreme',state,draw));
     if(step===4){
       const summary=text('dl','','skill-compare');
-      for(const [label,value] of [['Ime',d.name],['Poreklo',caption('origin',d.origin)],['Atributi',Object.entries(d.attributes).map(([k,v])=>k+' '+v).join(' · ')],['Talenat',caption('talent',d.talent)],['Slabost',caption('flaw',d.flaw)],['Vestina',caption('skill',d.skill)],['Oprema',caption('kit',d.kit)]])summary.append(text('dt',label),text('dd',value));
+      for(const [label,value] of [['Ime',d.name],['Poreklo',caption('origin',d.origin)],['Atributi',Object.entries(d.attributes).map(([k,v])=>state.attributes[k]+' '+v).join(' · ')],['Talenat',caption('talent',d.talent)],['Slabost',caption('flaw',d.flaw)],['Vestina',caption('skill',d.skill)],['Oprema',caption('kit',d.kit)]])summary.append(text('dt',label),text('dd',value));
       const mode=text('div','','action-controls');
       for(const [id,label] of [['story','Sa pricom'],['skip','Bez dijaloga']]){
         const b=button(label,()=>{port.command({type:'set',field:'mode',value:id});draw(root);root.querySelector('[data-mode="'+id+'"]').focus();});b.dataset.mode=id;b.setAttribute('aria-pressed',String(d.mode===id));mode.append(b);
@@ -106,7 +108,7 @@ window.RavanCharacterCreation=function mountCreation(ui,port){
         if(error){notice=error;feedback.textContent=error;return;}
         if(step<4){go(step+1);return;}
         const result=port.command({type:'create'});
-        if(result.ok)screens.open('intro');else {notice=result.reason;feedback.textContent=notice;}
+        if(result.ok){ui.newCampaign?.();screens.open('intro');}else {notice=result.reason;feedback.textContent=notice;}
       },{id:'creator-next',className:'primary'}));
     panel.append(feedback,controls);root.append(panel);
     function setAttribute(key,delta){port.command({type:'attribute',key,delta});draw(root);root.querySelectorAll('.attribute button:not(:disabled)')[0]?.focus();}

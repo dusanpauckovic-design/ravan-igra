@@ -14,19 +14,19 @@ window.RavanSheetFixture=function createSheetFixture(ui){
     const catalog=ui.characterPort.catalog;
     const option=(key,id)=>catalog[key].find(row=>row[0]===id)?.[1];
     const item=ui.inventoryPort?.get().items.find(x=>x.equipped==='weapon');
-    const startAttack={blade:3,bow:2,camp:0}[kit] || 0;
+    const startAttack=2;
     const held=item?bonus(item.name,item.attack):bonus(option('kit',kit),startAttack);
     const preview=ui.inventoryPort ? ui.inventoryPort.get().items.find(x=>x.id==='iron-knife'&&x.id!==item?.id) : {name:'Gvozdeni noz (proba)',attack:4};
     members.unshift({id:'hero',name,sprite:look,role:'Glavni lik',profession:option('origin',origin),
       stats:[
-        entry('Maksimalni HP',60,[bonus('Snaga',attributes.Snaga*2)]),
-        entry('Napad',10,[bonus('Snaga',attributes.Snaga),...(held?[held]:[])]),
-        entry('Fokus',4,[bonus('Volja',attributes.Volja)]),
-        entry('Korak',3,[bonus('Spretnost',attributes.Spretnost)])
+        entry('Maksimalni HP',60,[bonus('Izdrzljivost',attributes.hp*3)]),
+        entry('Napad',10,[bonus('Snaga',attributes.atk),...(held?[held]:[])]),
+        entry('Odbrana',2,[bonus('Odbrana',attributes.def)]),
+        entry('Inicijativa',3,[bonus('Okretnost',attributes.speed)])
       ],
       equipment:[item?.name||option('kit',kit)],techniques:[{id:skill,name:option('skill',skill)}],slots:[skill],
       status:'Spreman',advancement:{tier,points,locked:'Sledeci tier jos nije otkljucan.'},
-      comparison:preview?{label:preview.name,before:10+attributes.Snaga+(held?.value||0),after:10+attributes.Snaga+preview.attack}:null});
+      comparison:preview?{label:preview.name,before:10+attributes.atk+(held?.value||0),after:10+attributes.atk+preview.attack}:null});
     return {members};
   }};
 };

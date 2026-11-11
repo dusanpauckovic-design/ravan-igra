@@ -149,11 +149,20 @@
   view.creator=RavanCharacterCreation(view,view.characterPort);
   view.sheetPort=RavanSheetFixture(view);
   RavanSheet(view,view.sheetPort);
+  view.feedback=RavanFeedback(view);
   view.inventoryPort=RavanInventoryFixture(view.characterPort);
   view.inventory=RavanInventory(view,view.inventoryPort);
   view.worldPort=RavanWorldFixture();
   view.world=RavanWorld(view,view.worldPort);
-  view.enterWorld=view.world.openCamp;
+  view.enterWorld=view.world.openCurrent;
+  view.startQuickArena=()=>{view.expeditionActive=false;view.startEncounter();};
+  view.completeExpedition=()=>{
+    view.expeditionActive=false;view.worldPort.finish();view.world.openCurrent();
+    view.feedback.announce('Druzina se vratila u kamp.');
+  };
+  view.newCampaign=()=>{
+    view.expeditionActive=false;view.worldPort.reset();view.inventoryPort.reset();
+  };
   RavanOpening(view);
   reset();
   window.ravanSprint = view;

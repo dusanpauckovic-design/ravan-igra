@@ -206,3 +206,10 @@ body{min-height:100vh}
 .camp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:9px;margin:14px 0}
 .camp-grid h2{margin:0}
 @media(max-width:750px){.map-layout{grid-template-columns:1fr}}
+.rpg-dialog{max-width:min(420px,90vw);padding:19px;border:1px solid var(--brass);border-radius:8px;background:var(--surface-dark);color:var(--ink)}
+.rpg-dialog::backdrop{background:#111915bc}
+.rpg-toast{position:fixed;bottom:15px;right:15px;max-width:340px;padding:10px 13px;background:#293f31;border:1px solid #789b7d;border-radius:7px;z-index:5}
+.rpg-toast[data-kind=error]{background:#4a3129;border-color:#c28b7d}
+#screen-back{margin-left:auto}
+#screen-back:not([hidden])+nav{margin-left:0}
+@media(max-width:900px){.mast nav button{padding-inline:7px}}

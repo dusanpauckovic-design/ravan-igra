@@ -39,7 +39,12 @@ window.RavanWorldFixture=function createWorldFixture(){
     return {ok:true,enterBattle:type==='activity'&&id==='pass'};
   }
   return {get:()=>copy({locations,roads,current,supplies,rested,prepared,discovered:[...discovered],visited:[...visited],resolved:[...resolved]}),reason,command,
-    finish(){resolved.add('pass');current='camp';},};
+    finish(){resolved.add('pass');current='camp';},
+    reset(){
+      current='camp';supplies=3;rested=false;prepared=false;
+      discovered.clear();['camp','river','ridge'].forEach(x=>discovered.add(x));
+      visited.clear();visited.add('camp');resolved.clear();
+    },};
 };
 window.RavanWorld=function mountWorld(ui,port){
   const {text,button,screens}=ui;
@@ -101,11 +106,14 @@ window.RavanWorld=function mountWorld(ui,port){
   function act(type,id,root,draw){
     if(type==='activity'&&id==='camp'){screens.open('camp');return;}
     const result=port.command({type,id});
-    if(result.enterBattle){ui.startEncounter();return;}
+    if(result.enterBattle){ui.expeditionActive=true;ui.startEncounter();return;}
     notice=result.ok?'Radnja prihvacena u probi.':result.reason;
     draw(root);
   }
   screens.register('map','Mapa',map);
   screens.register('camp','Kamp',camp);
-  return {openCamp(){screens.open('camp');return true;}};
+  return {openCurrent(){
+    const current=port.get().current;selected=current;notice='';
+    screens.open(current==='camp'?'camp':'map');return true;
+  }};
 };

@@ -12,6 +12,7 @@ window.RavanInventoryFixture=function createInventoryFixture(character){
     {id:'chain-coat',name:'Verizni oklop',kind:'Oklop',slot:'body',quantity:1,price:30,description:'Skuplji oklop trgovca.'}
   ];
   const loot=[{id:'resin',name:'Smola sa prevoja',kind:'Materijal',quantity:1,price:3,description:'Moze da se proda ili odnese u kamp.'}];
+  const initial={items:copy(items),shop:copy(shop),loot:copy(loot)};
   let gold=14,used=0;
   const capacity=6;
   const blocked=(type,item)=>{
@@ -19,7 +20,7 @@ window.RavanInventoryFixture=function createInventoryFixture(character){
     if(type==='buy'&&gold<item.price)return 'Nedovoljno zlata.';
     if(['buy','loot'].includes(type)&&items.length>=capacity)return 'Torba je puna.';
     if(type==='equip'&&!item.slot)return 'Predmet se ne oprema.';
-    if(type==='equip'&&item.requires>(character.get().hero?.attributes.Snaga||0))return 'Potrebna Snaga: '+item.requires+'.';
+    if(type==='equip'&&item.requires>(character.get().hero?.attributes.atk||0))return 'Potrebna Snaga: '+item.requires+'.';
     if(type==='sell'&&item.equipped)return 'Prvo skini predmet sa slota.';
     if(type==='use'&&item.kind!=='Potrosno')return 'Predmet se ne trosi.';
     return '';
@@ -37,11 +38,17 @@ window.RavanInventoryFixture=function createInventoryFixture(character){
     if(type==='buy'||type==='loot'){if(type==='buy')gold-=item.price;items.push(item);source.splice(source.indexOf(item),1);}
     return {ok:true};
   }
-  return {get:()=>copy({items,shop,loot,gold,capacity,used}),blocked,command};
+  return {get:()=>copy({items,shop,loot,gold,capacity,used}),blocked,command,
+    reset(){
+      items.splice(0,items.length,...copy(initial.items));
+      shop.splice(0,shop.length,...copy(initial.shop));
+      loot.splice(0,loot.length,...copy(initial.loot));
+      gold=14;used=0;
+    }};
 };
 window.RavanInventory=function mountInventory(ui,port){
   const {text,button,screens}=ui;
-  let tab='bag',category='',query='',sort='name',selected=null,notice='',pending=false,confirmation=null;
+  let tab='bag',category='',query='',sort='name',selected=null,notice='',pending=false;
   const verbs={favorite:'Omiljeno',equip:'Opremi',unequip:'Skini',use:'Upotrebi',sell:'Prodaj',buy:'Kupi',loot:'Uzmi'};
   const tabs=[['bag','Torba'],['shop','Trgovac'],['loot','Plen']];
   function draw(root){
@@ -52,7 +59,7 @@ window.RavanInventory=function mountInventory(ui,port){
     root.append(heading);
     const nav=text('nav','','skill-tabs');
     for(const [id,label] of tabs){
-      const el=button(label,()=>{tab=id;category='';query='';selected=null;notice='';confirmation=null;draw(root);},{id:'inventory-'+id});
+      const el=button(label,()=>{tab=id;category='';query='';selected=null;notice='';draw(root);},{id:'inventory-'+id});
       el.setAttribute('aria-pressed',String(tab===id));nav.append(el);
     }
     root.append(nav);
@@ -74,7 +81,7 @@ window.RavanInventory=function mountInventory(ui,port){
       const item=filtered.find(i=>i.id===selected)||filtered[0];selected=item?.id||null;
       if(!item){list.append(text('p','Nema predmeta za ovaj prikaz.','screen-desc'));return;}
       for(const i of filtered){
-        const el=button('',()=>{selected=i.id;notice='';confirmation=null;refresh();list.querySelector('[data-item="'+i.id+'"]').focus();},{className:'node'});
+        const el=button('',()=>{selected=i.id;notice='';refresh();list.querySelector('[data-item="'+i.id+'"]').focus();},{className:'node'});
         el.dataset.item=i.id;el.setAttribute('aria-pressed',String(i===item));
         el.append(text('strong',i.name),text('small',[i.equipped?'Opremljeno':'',i.favorite?'Omiljeno':'','×'+i.quantity].filter(Boolean).join(' · ')));
         list.append(el);
@@ -90,34 +97,37 @@ window.RavanInventory=function mountInventory(ui,port){
         const reason=port.blocked(action,item);
         const label=action==='favorite'&&item.favorite?'Ukloni omiljeno':verbs[action]+(['buy','sell'].includes(action)?' · '+item.price+' zlata':'');
         const el=button(label,()=>request(action,item),{id:'item-'+action,disabled:pending||!!reason});
-        controls.append(el);
+        controls.append(ui.feedback.tooltip(el,reason));
         if(reason)detail.append(text('p',label+' · '+reason,'inventory-block'));
       }
       detail.append(controls);
-      if(confirmation){
-        const warning=text('div','','inventory-confirm');
-        warning.append(text('strong',confirmation.text),button('Potvrdi',()=>send(confirmation.action,confirmation.id),{id:'item-confirm',className:'primary',disabled:pending}),button('Odustani',()=>{confirmation=null;refresh();},{id:'item-cancel',disabled:pending}));detail.append(warning);
-      }
       const feedback=text('p',notice,'screen-desc');feedback.setAttribute('role','status');detail.append(feedback);
     }
-    search.oninput=()=>{query=search.value;confirmation=null;refresh();};
-    categories.onchange=()=>{category=categories.value;confirmation=null;refresh();};
+    search.oninput=()=>{query=search.value;refresh();};
+    categories.onchange=()=>{category=categories.value;refresh();};
     sorting.onchange=()=>{sort=sorting.value;refresh();};
-    function request(action,item){
-      if(pending)return;
-      if(['buy','sell','use'].includes(action)){
-        confirmation={action,id:item.id,text:action==='buy'?'Potrosices '+item.price+' zlata.':action==='sell'?'Prodajes jedan primerak za '+item.price+' zlata.':'Potrosices jedan primerak.'};refresh();root.querySelector('#item-confirm').focus();
-      }else send(action,item.id);
-    }
-    async function send(type,id){
+    async function request(type,item){
       if(pending)return;
       pending=true;
-      try{const result=await port.command({type,id});notice=result.ok?'Radnja prihvacena u probi.':result.reason;}
-      catch{notice='Radnja trenutno nije dostupna.';}
-      finally{pending=false;confirmation=null;if(screens.get()==='inventory')draw(root);}
+      let result;
+      try{
+        if(['buy','sell','use'].includes(type)){
+          const consequence=type==='buy'?'Potrosices '+item.price+' zlata.':type==='sell'?'Prodajes jedan primerak za '+item.price+' zlata.':'Potrosices jedan primerak.';
+          if(!await ui.feedback.confirm(consequence))return;
+        }
+        result=await ui.feedback.submit(root,()=>port.command({type,id:item.id}));
+        notice=result.ok?'Radnja prihvacena u probi.':result.reason;
+      }finally{
+        pending=false;
+        if(screens.get()==='inventory'){
+          draw(root);
+          if(!result)root.querySelector('#item-'+type)?.focus({preventScroll:true});
+          else root.querySelector('[data-item="'+item.id+'"]')?.focus({preventScroll:true});
+        }
+      }
     }
     refresh();
   }
   screens.register('inventory','Inventar',draw);
-  return {open(next='bag'){tab=next;category='';query='';selected=null;confirmation=null;screens.open('inventory');}};
+  return {open(next='bag'){tab=next;category='';query='';selected=null;screens.open('inventory');}};
 };

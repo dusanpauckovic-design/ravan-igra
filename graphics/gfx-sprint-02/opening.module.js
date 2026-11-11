@@ -13,7 +13,7 @@ window.RavanOpening = function mountOpening(ui) {
     const model=ui.characterPort.get();
     const resume=button('Nastavi',()=>model.scene&&model.scene!=='ready' ? screens.open('intro') : model.hero&&ui.enterWorld ? ui.enterWorld() : ui.enterEncounter(),{id:'opening-resume',disabled:!started&&!model.hero});
     controls.append(button('Nova igra',()=>ui.creator.newGame(),{id:'opening-new',className:'primary'}),resume,
-      button('Brza arena',()=>ui.startEncounter(),{id:'opening-enter'}),
+      button('Brza arena',()=>ui.startQuickArena(),{id:'opening-enter'}),
       button('Pripremi druzinu',()=>screens.open('party'),{id:'opening-party'}));
     if(model.hero || started)intro.append(text('p',model.hero?'Probni nastavak · '+model.hero.name:'Probni nastavak · '+encounter.title,'screen-desc'));
     intro.append(controls);
