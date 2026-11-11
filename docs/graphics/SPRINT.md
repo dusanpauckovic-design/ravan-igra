@@ -8,10 +8,13 @@ Stilizovani 2.5D preko postojece 2D hex logike: fiksni pogled iskosa, figure odr
 Prva predaja mora pokazati jednu reprezentativnu arenu, tri figure i jedan osnovni napad. Dalje iteriraj isti prikaz, ne pravi sest nepovezanih demoa. Dule moze naknadno korigovati pravac; ne cekaj njegov odgovor da nastavis odobren red.
 
 ## Aktuelna baza
-Gameplay izvrsilac radi RV-03 u #7; detaljna ranija specifikacija je #4. RV-02 predaja u #6 navodi commit 28cf617372515d5184a12c658cd6728cf952d26b.
+Tokom postavljanja plana gameplay izvrsilac je predao RV-03 u #4, commit c93005bb24f9592686fb31ecd06fa4ec451eef88. #5/#6/#7 su duplikati; aktuelna evidencija je #1 i #2/#3/#4. Ovo je prijavljena tehnicka predaja, ne nezavisno ponovljena provera.
+- [RV-03 source](https://chatgpt.com/library?file_id=libfile_4c137f9e440c81918f109a2050527155&account_id=personal)
+- [RV-03 HTML](https://chatgpt.com/library?file_id=libfile_d08dfafbd90c8191bc23dfbe6933b0c4&account_id=personal)
+Prednost daj proveri i read-only upotrebi RV-03; RV-02 ispod je rezervna osnova.
 - [RV-02 source](https://chatgpt.com/library?file_id=libfile_2269f7880cb48191b713f1476197cc23&account_id=personal)
 - [RV-02 HTML](https://chatgpt.com/library?file_id=libfile_a60938e134e08191af2b3b3a59250d76&account_id=personal)
-Prvo procitaj aktuelne #1/#6/#7 i proveri noviju predaju. Main pri planiranju sadrzi dokumentaciju, nije dokaz da kod igre postoji na njemu. Naveden SHA je prijavljen u handoffu, proveri dostupnost. Ne koristi basketball-manager materijale.
+Prvo procitaj aktuelne #1/#3/#4 i proveri noviju predaju. Main pri planiranju sadrzi dokumentaciju, nije dokaz da kod igre postoji na njemu. Naveden SHA je prijavljen u handoffu, proveri dostupnost. Ne koristi basketball-manager materijale.
 
 ## Vlasnistvo bez sudaranja
 - Tvoja grana: graphics/gfx-sprint-01.
