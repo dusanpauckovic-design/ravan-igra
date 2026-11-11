@@ -14,6 +14,8 @@
     figure_wolf: { height: 57, foot: .52 }
   };
   const contactAt = event => ({ ranged: .64, mark: .30, trailPlace: .35, trailHit: .25, cover: .43 })[event.type] || .46;
+  const biomeTints={dolina:'#496b5340',suma:'#17493772',prevoj:'#7b6a5c68'};
+  const actorScale={raider:1,shield:1.04,bow:.96,scout:.85,wolf:1,hound:.79,seer:1.05,giant:1.36};
   const attackTypes = new Set(['melee', 'ranged']);
   const SILHOUETTES = {
     figure_guard:{height:104,foot:.55},
@@ -55,7 +57,7 @@
       return {x:rect.left+p.x+point.x*p.scale,y:rect.top+p.y+point.y*p.scale};
     }
     let active = null, frame = 0, cameraEffects = true, reducedMotion = false;
-    let landscape = null, terrainLayer = null, enhancedTerrain = true, enhancedFigures = true;
+    let landscape = null, landscapeBiome, terrainLayer = null, enhancedTerrain = true, enhancedFigures = true;
     const seen = new Set();
     const facings = new Map();
     const ready = Promise.all(Object.entries(sources).map(([key, src]) => new Promise(resolve => {
@@ -124,7 +126,8 @@
     }
 
     function background() {
-      if (!landscape) {
+      if (!landscape || landscapeBiome!==state.biome) {
+        landscapeBiome=state.biome;
         landscape = document.createElement('canvas');
         landscape.width = W; landscape.height = H;
         const base = landscape.getContext('2d');
@@ -143,6 +146,7 @@
           ground.fillStyle = blend; ground.fillRect(0, 0, W, H);
           base.drawImage(layer, 0, 0);
         }
+        if(biomeTints[state.biome]){base.fillStyle=biomeTints[state.biome];base.fillRect(0,0,W,H);}
         const shade = base.createRadialGradient(490, 287, 200, 490, 287, 565);
         shade.addColorStop(0, 'rgba(26,27,15,.04)'); shade.addColorStop(1, 'rgba(8,16,13,.82)');
         base.fillStyle = shade; base.fillRect(0, 0, W, H);
@@ -162,41 +166,64 @@
       return { kind:terrainAt(cell), cover:cover ? { breakable:cover.hpMax>0, hp:cover.hp } : null };
     }
 
+    // These marks describe existing tile types. They never add cover or change passability.
+    const materials = {
+      grass: { center:'#68795183', edge:'#576c3f00', shade:'#35452bc4', light:'#b7b67780' },
+      mud: { center:'#43392fdc', edge:'#59473800', shade:'#251e1894', light:'#bdab8a72' },
+      stone: { center:'#8b8a7a8a', edge:'#7c827500', shade:'#343a36b3', light:'#d1c8aa9e' }
+    };
+
+    function paintMaterial(layer, tile) {
+      const material=materials[tile.kind];
+      if(!material)return;
+      const p=project(tile), corners=polygon(tile);
+      const span=Math.max(...corners.map(c=>Math.abs(c.x-p.x)));
+      const depth=Math.max(...corners.map(c=>Math.abs(c.y-p.y)));
+      let seed=(Math.imul(tile.x+5,73856093)^Math.imul(tile.y+7,19349663))>>>0;
+      const random=()=>{
+        seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+        return seed/4294967296;
+      };
+      layer.save();
+      layer.translate(p.x,p.y);
+      layer.scale(span/48,depth/48);
+      layer.rotate((random()-.5)*.54);
+      const patch=layer.createRadialGradient(0,0,2,0,0,49);
+      patch.addColorStop(0,material.center);
+      patch.addColorStop(1,material.edge);
+      layer.fillStyle=patch;layer.fillRect(-50,-50,100,100);
+      for(let index=0;index<15;index++){
+        const angle=random()*TAU, radius=Math.sqrt(random())*33;
+        const x=Math.cos(angle)*radius,y=Math.sin(angle)*radius;
+        const size=2+random()*6;
+        layer.fillStyle=material.shade;layer.strokeStyle=material.light;layer.lineWidth=1.25;
+        layer.beginPath();
+        if(tile.kind==='grass'){
+          const bend=(random()-.4)*8;
+          layer.moveTo(x-3,y+2);layer.quadraticCurveTo(x-2,y-size/2,x+bend,y-size);
+          layer.quadraticCurveTo(x+2,y-size/2,x+1,y+2);layer.fill();
+          layer.moveTo(x,y+1);layer.quadraticCurveTo(x,y-size*.6,x+bend,y-size);layer.stroke();
+        }else if(tile.kind==='stone'){
+          layer.moveTo(x-size,y+1);layer.lineTo(x-size*.4,y-size*.65);
+          layer.lineTo(x+size*.55,y-size*.5);layer.lineTo(x+size,y);
+          layer.lineTo(x+size*.5,y+size*.28);layer.closePath();layer.fill();
+          layer.beginPath();layer.moveTo(x-size*.8,y);
+          layer.lineTo(x-size*.4,y-size*.65);layer.lineTo(x+size*.55,y-size*.5);layer.stroke();
+        }else{
+          layer.ellipse(x,y,size,size*.32,.13,0,TAU);layer.fill();
+          layer.beginPath();layer.ellipse(x,y,size,size*.32,.13,Math.PI*1.05,Math.PI*1.75);layer.stroke();
+        }
+      }
+      layer.restore();
+    }
+
     function drawMaterials() {
       if(!enhancedTerrain || !state.terrain?.length) return;
       if(!terrainLayer) {
         terrainLayer=document.createElement('canvas');
         terrainLayer.width=W;terrainLayer.height=H;
         const layer=terrainLayer.getContext('2d');
-        const palette={grass:['#73864b99','#53663c00'],mud:['#3b312ad9','#59473800'],stone:['#9d99858c','#a2a49300']};
-        for(const tile of state.terrain){
-          const colors=palette[tile.kind];
-          if(!colors) continue;
-          const p=project(tile);
-          layer.save();
-          layer.translate(p.x,p.y);layer.scale(1,mode==='flat'?.9:.61);
-          const g=layer.createRadialGradient(0,0,2,0,0,48);
-          g.addColorStop(0,colors[0]);g.addColorStop(1,colors[1]);
-          layer.fillStyle=g;layer.fillRect(-50,-50,100,100);
-          for(let i=0;i<13;i++){
-            const dx=((i*31+tile.x*9)%63)-31,dy=((i*17+tile.y*7)%49)-24;
-            if(tile.kind==='grass') {
-              layer.strokeStyle=i%2?'#a0a66f70':'#4a57368c';layer.lineWidth=1.4;
-              layer.beginPath();layer.moveTo(dx,dy);layer.quadraticCurveTo(dx-2,dy-4,dx+(i%2?3:-4),dy-9);layer.stroke();
-            } else if(tile.kind==='stone') {
-              layer.fillStyle=i%2?'#c2c0a55b':'#383d3565';
-              layer.fillRect(dx,dy,2+i%4,1+i%3);
-            }
-          }
-          if(tile.kind==='mud') {
-            layer.strokeStyle='#c6b695a6';layer.lineWidth=1.6;
-            for(let row=-1;row<=1;row++){
-              layer.beginPath();layer.moveTo(-13,row*6);
-              layer.bezierCurveTo(-7,row*6-4,5,row*6+4,13,row*6);layer.stroke();
-            }
-          }
-          layer.restore();
-        }
+        for(const tile of state.terrain)paintMaterial(layer,tile);
       }
       ctx.drawImage(terrainLayer,0,0);
     }
@@ -303,7 +330,7 @@
       }
       const profile = (enhancedFigures && SILHOUETTES[unit.sprite]) || SIZES[unit.sprite] || SIZES.figure_guard;
       const img = images[unit.sprite];
-      const height = profile.height;
+      const height = profile.height*(unit.team==='enemy'?(actorScale[unit.kind]||1):1);
       const width = img?.naturalHeight ? height * img.naturalWidth / img.naturalHeight : height * .75;
       return { x: p.x + offset, y: p.y, width, height, foot: profile.foot, facing, tilt };
     }
@@ -377,17 +404,49 @@
             width * sw / img.naturalWidth + .4, height - top + bob - Math.max(0, stride) * 3);
         }
       }
-      if(enhancedFigures && unit.hp>0) drawGear(unit.sprite);
+      if(enhancedFigures && unit.hp>0){
+        if(unit.team==='enemy')drawEnemyGear(unit, height);
+        else drawGear(unit.sprite);
+      }
       ctx.restore();
+    }
+
+    function drawEnemyGear(unit,height){
+      const anchor=-height*.52;
+      ctx.lineWidth=2.8;
+      ctx.strokeStyle='#d8c8a0';
+      if(unit.kind==='shield'){
+        path([{x:9,y:anchor-14},{x:28,y:anchor-17},{x:33,y:anchor+12},{x:22,y:anchor+23},{x:10,y:anchor+12}]);
+        ctx.fillStyle='#503c31';ctx.fill();ctx.stroke();
+        ellipse(21,anchor+2,4,4,'#d2b685');
+      }else if(unit.kind==='raider'||unit.elite){
+        ctx.beginPath();ctx.moveTo(8,anchor+13);ctx.lineTo(30,anchor-19);ctx.stroke();
+        ctx.fillStyle=unit.elite?'#d8ad72':'#9d9885';
+        ctx.fillRect(25,anchor-24,unit.elite?15:10,unit.elite?12:7);
+      }else if(unit.kind==='seer'){
+        ctx.beginPath();ctx.moveTo(21,0);ctx.lineTo(21,-height*.81);ctx.stroke();
+        ellipse(21,-height*.83,5,5,'#d8b9ee');
+      }else if(unit.kind==='bow'||unit.kind==='scout'){
+        ctx.beginPath();ctx.moveTo(12,anchor-17);
+        ctx.quadraticCurveTo(unit.kind==='bow'?36:28,anchor,12,anchor+17);
+        ctx.lineTo(12,anchor-17);ctx.stroke();
+      }else if(unit.kind==='hound'){
+        ctx.strokeStyle='#c5ad72';ctx.beginPath();ctx.moveTo(7,anchor-6);ctx.lineTo(13,anchor+4);ctx.stroke();
+      }
     }
 
     function drawUnit(unit, pose) {
       const { x, y } = pose;
-      shadow({ x, y }, unit.sprite === 'figure_wolf' ? 41 : 29, 11);
-      if(enhancedFigures && unit.hp>0 && unit.team!=='enemy'){
-        ellipse(x-4,y+1,11,3.1,'#111a1290');
+      if(enhancedFigures){
+        const groundWidth=pose.width*(unit.sprite==='figure_wolf'?.48:.39);
+        const contact=unit.hp>0?.52:.34;
+        shadow({ x:x+groundWidth*.28, y },groundWidth*1.45,groundWidth*.43,contact*.72);
+        shadow({ x:x-7, y:y-3 },groundWidth*.8,groundWidth*.23,contact);
+      }else{
+        shadow({ x, y },unit.sprite==='figure_wolf'?41:29,11);
       }
       if (state.active === unit.id && unit.hp > 0) ellipse(x, y, 29, 10, null, '#b4dec3');
+      if(unit.elite && unit.hp>0)ellipse(x,y,34,12,null,'#e2a65d');
       if (selected === unit.id && unit.hp > 0) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
       drawSprite(unit, pose);
     }
@@ -398,6 +457,7 @@
       ctx.fillStyle = '#131914'; ctx.fillRect(x - 20, y - height - 11, 40, 5);
       ctx.fillStyle = unit.team === 'enemy' ? '#e29276' : '#b4c38a';
       ctx.fillRect(x - 20, y - height - 11, 40 * hp, 5);
+      if(unit.elite && unit.hp>0)ellipse(x,y,34,12,null,'#e2a65d');
       if (selected === unit.id || state.active === unit.id) {
         const name=unit.name.length>22 ? unit.name.slice(0,20)+'…' : unit.name;
         tag(x, y - height - 17, name + '  ' + unit.hp + '/' + unit.hpMax,
@@ -510,7 +570,8 @@
       ctx.save();
       const x = to.x, y = to.y - 26;
       ctx.globalAlpha = 1 - impact / .30;
-      ctx.strokeStyle = '#ffe0a0';
+      const missed=event.outcome==='miss';
+      ctx.strokeStyle = missed?'#b7c7bc':event.guarded?'#a8c9d9':'#ffe0a0';
       ctx.lineWidth = 2;
       for (let i = 0; i < 6; i++) {
         const angle = i * TAU / 6 + .2, radius = 6 + 70 * impact;
@@ -520,6 +581,8 @@
         ctx.stroke();
       }
       const delta = event.result?.hp?.find(h => h.id === event.target)?.delta;
+      if(missed)tag(x+20,y-20,'Promasaj','#cfdfd3');
+      else if(event.guarded&&delta<0)tag(x-25,y-18,'Gard','#b0d4e0');
       if (delta < 0) tag(x + 28, y - 25 - 45 * impact, String(delta), '#ffd098');
       ctx.restore();
     }
@@ -583,7 +646,7 @@
     }
 
     function drawRoleEvent(event,t) {
-      if(event.type!=='guard' && event.type!=='observe')return;
+      if(!['guard','observe','heal'].includes(event.type))return;
       const unit=state.units.find(u=>u.id===(event.type==='guard'?event.actor:event.target));
       if(!unit)return;
       const p=project(unit);
@@ -592,6 +655,10 @@
       if(event.type==='guard'){
         path([{x:-14,y:-14},{x:14,y:-14},{x:12,y:3},{x:0,y:13},{x:-12,y:3}]);
         ctx.fillStyle='#41655685';ctx.fill();ctx.stroke();
+      } else if(event.type==='heal'){
+        const delta=event.result?.hp?.find(change=>change.id===unit.id)?.delta;
+        if(delta>0)tag(0,-16,'+'+delta,'#b9e9ae');
+        ellipse(0,0,14,10,null,'#b9e9ae');
       } else {
         ellipse(0,0,16,16,null,'#e8d6a1');
         for(let i=0;i<4;i++){
@@ -604,6 +671,7 @@
     function applyContact(event) {
       if (active.contacted) return;
       active.contacted = true;
+      root.RavanBattleAudio?.contact(event);
       for (const update of event.result?.hp || []) {
         const unit = state.units.find(u => u.id === update.id);
         if (unit) unit.hp = update.hp;

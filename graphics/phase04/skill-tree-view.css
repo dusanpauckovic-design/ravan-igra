@@ -1,0 +1,24 @@
+.rv20{--metal:#e7c68b;--quiet:#9cb1a1}
+.rv20 .v4-tree{background:linear-gradient(145deg,#182722f0,#0c1514f5),var(--tree-scene) center/cover;padding:14px;border:1px solid #576c60}
+.rv20 .rv20-path{padding:9px 0;border-bottom:1px solid #52655665}
+.rv20 .v4-branch-label{color:#e9d8ae}
+.rv20 .rv20-node{background:transparent;border-color:transparent;color:#e9e7da;min-width:0}
+.rv20 .rv20-node[aria-pressed=true]{border-color:#bfa56c;background:#a2875020}
+.rv20 .rv20-node.open .v4-node-icon{color:var(--metal);border-color:#b99761}
+.rv20 .rv20-node.known .v4-node-icon{color:#a9d5ae;border-color:#79a881}
+.rv20 .rv20-node.locked .v4-node-icon{color:#aab8ae}
+.rv20 .rv20-node small{color:var(--quiet)}
+.rv20-link{align-self:center;width:clamp(9px,2vw,32px);flex:none;border-top:1px dashed #65756a}
+.rv20-link.lit{border-top:2px solid #c7ac76}
+.rv20-plan{border-top:1px solid #607162;margin-top:14px;padding-top:8px}
+.rv20-plan:empty{display:none}
+.rv20-plan p{margin:0 0 5px;color:#dfc697}
+.rv20-reveal .v4-node-icon{animation:rv20-reveal 650ms ease-out}
+@keyframes rv20-reveal{0%{box-shadow:0 0 20px #e9c676aa}100%{box-shadow:none}}
+@media(prefers-reduced-motion:reduce){.rv20-reveal .v4-node-icon{animation:none}}
+@media(max-width:640px){
+ .rv20 .v4-tree{padding:7px}
+ .rv20 .v4-tree-nodes{min-width:0;gap:2px}
+ .rv20 .rv20-node{min-width:0;flex:1;padding:4px 1px;overflow-wrap:anywhere}
+ .rv20 .rv20-link{width:8px}
+}
