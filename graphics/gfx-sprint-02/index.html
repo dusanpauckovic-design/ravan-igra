@@ -9,8 +9,9 @@
 <section id="battle" class="layout">
  <section class="stage" aria-labelledby="arena-title">
   <div class="scene-head"><div><h1 id="arena-title">Kameni prolaz</h1><p id="objective">Cilj · Savladaj Tihog lovca.</p></div><button id="view" aria-pressed="false">2D prikaz</button></div>
-  <div class="frame"><canvas id="arena" width="960" height="570" aria-label="Hex tabla"></canvas></div>
-  <div class="board-foot"><span id="hex">Pomeri pokazivac preko table.</span><span id="selection"></span></div>
+  <div class="frame"><canvas id="arena" width="960" height="570" tabindex="0" aria-label="Hex tabla" aria-describedby="board-controls hex"></canvas></div>
+  <div class="board-foot"><span id="hex" aria-live="polite">Pomeri pokazivac preko table.</span><span id="selection"></span></div>
+  <p id="board-controls" class="board-controls">Tacke oznacavaju dostupne mete. Strelice pomeraju fokus, Enter otvara pregled.</p>
  </section>
  <aside class="panel" aria-label="Borbene komande">
   <div id="turn"></div><h2>Akcije</h2><div id="actions"></div>

@@ -26,6 +26,7 @@
     const ctx = canvas.getContext('2d');
     const images = {};
     let state, mode = 'angled', selected = null, hovered = null, speed = 1;
+    let targeting = null;
     let active = null, frame = 0, cameraEffects = true, reducedMotion = false;
     let landscape = null, terrainLayer = null, enhancedTerrain = true, enhancedFigures = true;
     const seen = new Set();
@@ -384,6 +385,41 @@
       ].sort((a, b) => a.p.y - b.p.y || Number(b.cover) - Number(a.cover));
     }
 
+    function drawTargeting() {
+      if(!targeting) return;
+      const {candidates,target,path:steps,blocked}=targeting;
+      ctx.save();
+      for(const cell of candidates) {
+        const p=project(cell);
+        ellipse(p.x,p.y,5,3,'#d0edd8','#18271e');
+      }
+      if(steps.length) {
+        const actor=state.units.find(u=>u.id===state.active);
+        if(actor) {
+          const [start,...rest]=[actor,...steps].map(project);
+          ctx.beginPath();ctx.moveTo(start.x,start.y);
+          for(const p of rest)ctx.lineTo(p.x,p.y);
+          ctx.setLineDash([6,4]);ctx.strokeStyle='#aee8c5';ctx.lineWidth=2.5;ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+      if(target) {
+        path(polygon(target));
+        ctx.fillStyle=blocked?'#dc795737':'#b1e5bc35';ctx.fill();
+        ctx.strokeStyle=blocked?'#ffc0a6':'#d9ffde';ctx.lineWidth=2.8;
+        if(blocked)ctx.setLineDash([5,4]);
+        ctx.stroke();
+        if(blocked) {
+          ctx.setLineDash([]);
+          const p=project(target);
+          ctx.beginPath();
+          ctx.moveTo(p.x-5,p.y-5);ctx.lineTo(p.x+5,p.y+5);
+          ctx.moveTo(p.x+5,p.y-5);ctx.lineTo(p.x-5,p.y+5);ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
     function draw() {
       if (!state) return;
       const t = active ? Math.min(1, active.elapsed / active.duration) : 0;
@@ -395,6 +431,7 @@
       }
       drawMaterials();
       cells().forEach(drawTile);
+      drawTargeting();
       (state.trails || []).forEach(trail => drawRune(project(trail), '#8ee3da'));
       const entries = sceneEntries(t);
       const chosen = entries.find(e => !e.cover && e.item.id === selected);
@@ -558,6 +595,7 @@
     function renderSnapshot(snapshot) {
       stop();
       state = copy(snapshot);
+      targeting = null;
       terrainLayer = null;
       draw();
       onChange(copy(state));
@@ -610,6 +648,8 @@
 
     return {
       ready, project, hitTest, renderSnapshot, reset, playEvent,
+      setTargeting(guide) { targeting=guide ? copy(guide) : null; draw(); },
+      getTargeting() { return copy(targeting); },
       cancel() { stop(); draw(); },
       skip() { if (active) finishEvent(active.event); },
       select(id) { selected = id; draw(); },
