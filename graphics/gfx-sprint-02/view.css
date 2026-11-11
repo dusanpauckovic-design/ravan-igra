@@ -174,3 +174,15 @@ body{min-height:100vh}
 .brand{margin-right:13px}
 .opening-actions{gap:0}
 .opening-actions button{margin:0 8px 6px 0}
+.creator-steps{display:flex;gap:10px;flex-wrap:wrap;padding:0;list-style:none;margin:16px 0}
+.creator-steps li{border-bottom:2px solid var(--line);padding:6px 10px;color:var(--muted)}
+.creator-steps li[aria-current=step]{border-color:var(--brass);color:var(--ink)}
+.creator-panel h2{margin:0 0 10px;font:26px Georgia,serif}
+.rpg-field{margin:12px 0;padding:0;border:0;min-width:0}
+.rpg-field legend{font-weight:bold;margin-bottom:7px;color:var(--brass)}
+.rpg-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:7px}
+.rpg-option{text-align:left;padding:7px;min-height:48px}.rpg-option strong,.rpg-option small{display:block}
+.rpg-option img{width:46px;height:58px;object-fit:contain;float:left;margin-right:8px}
+.rpg-input{display:grid;gap:6px;max-width:330px}.rpg-input input{font:inherit;color:var(--ink);background:#26322a;border:1px solid var(--line);border-radius:6px;padding:8px}
+.attribute-row{display:flex;flex-wrap:wrap;gap:8px;margin:7px 0}
+.attribute{display:flex;align-items:center;gap:6px}.attribute button{min-height:28px}

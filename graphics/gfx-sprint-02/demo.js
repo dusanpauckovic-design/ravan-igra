@@ -145,6 +145,8 @@
     enteredEncounter=true;
     if(response.outcome) view.outcome.show(response.outcome);
   };
+  view.characterPort=RavanCharacterFixture();
+  view.creator=RavanCharacterCreation(view,view.characterPort);
   RavanOpening(view);
   reset();
   window.ravanSprint = view;
