@@ -1,0 +1,116 @@
+/* The cover art is already embedded in the Ravan build. */
+.rv-title {
+ --rv-gold:#e5bf81;
+ --rv-paper:#f8e8c9;
+ position:relative;
+ display:grid;
+ grid-template-columns:minmax(0,1fr) minmax(350px,42%);
+ grid-template-rows:1fr auto;
+ min-height:100vh;
+ min-height:100dvh;
+ padding:clamp(24px,5vh,55px) clamp(26px,6.5vw,104px) clamp(22px,5vh,50px);
+ isolation:isolate;
+ color:var(--rv-paper);
+ background:#1a1a18;
+ background-image:linear-gradient(90deg,transparent 29%,#1c191859 51%,#201816df 76%,#171311f5),
+  linear-gradient(0deg,#170e0be3,transparent 26%,transparent 75%,#1613127d),var(--rv-cover);
+ background-size:cover;
+ background-position:center,center,45% 51%;
+}
+.rv-title-frame {
+ position:absolute;
+ top:14px;right:14px;bottom:14px;left:14px;
+ z-index:-1;
+ border:1px solid #e5bf816e;
+ pointer-events:none;
+}
+.rv-title-frame::after {
+ content:"";
+ position:absolute;
+ top:0;right:0;bottom:0;width:4px;
+ background:linear-gradient(transparent,#8f423b 36%,#8f423b 65%,transparent);
+}
+.rv-title-cover {
+ grid-column:2;
+ align-self:center;
+ justify-self:center;
+ width:min(100%,455px);
+ text-align:center;
+ padding:24px 0;
+}
+.rv-title-seal {
+ position:relative;
+ display:inline-grid;
+ place-items:center;
+ width:43px;height:43px;
+ border:1px solid #a87e50;
+ transform:rotate(45deg);
+ color:var(--rv-gold);
+ margin-bottom:11px;
+}
+.rv-title-seal i {
+ display:block;
+ width:25px;height:25px;
+ border:1px solid currentColor;
+ border-radius:50%;
+ background:radial-gradient(circle at 39% 33%,#9c4d41 0%,#562a25 60%,#211b19 100%);
+ box-shadow:0 0 16px #cb81693b;
+}
+.rv-title h1 {
+ margin:0;
+ padding-left:.09em;
+ color:var(--rv-paper);
+ font:400 clamp(76px,9.15vw,156px)/.92 Georgia,'Times New Roman',serif;
+ letter-spacing:.09em;
+ text-transform:uppercase;
+ text-shadow:0 3px 25px #120c08;
+}
+.rv-title-subtitle {
+ color:#e4c9a1;
+ font:italic clamp(21px,2.4vw,31px)/1.2 Georgia,serif;
+ margin:8px 0 25px;
+}
+.rv-title-choices {
+ width:min(100%,302px);
+ margin:auto;
+ display:flex;
+ flex-direction:column;
+}
+.rv-title .rv-title-action,.rv-title .rv-title-tools .v3-tool {
+ min-height:44px;
+ background:#241b18cf;
+ border:1px solid #8e7157;
+ border-radius:2px;
+ color:var(--rv-paper);
+ padding:8px 14px;
+ font:16px Georgia,serif;
+ cursor:pointer;
+}
+.rv-title-choices .rv-title-action+.rv-title-action{margin-top:8px}
+.rv-title .rv-title-primary {
+ color:#211511;
+ border-color:#f2d194;
+ background:linear-gradient(#f1d396,#c19759);
+ font-weight:bold;
+}
+.rv-title .rv-title-action:hover,.rv-title .v3-tool:hover {border-color:#f2ce93;filter:brightness(1.15)}
+.rv-title button:focus-visible{outline:2px solid #f8d291;outline-offset:3px}
+.rv-title-save,.rv-title-notice {color:#d8c1a4;font:13px/1.4 Arial,sans-serif;margin:9px 0 0;overflow-wrap:anywhere}
+.rv-title-tools{grid-column:2;display:flex;flex-wrap:wrap;align-items:center;justify-content:center}
+.rv-title .rv-title-tools button{font:13px Georgia,serif;min-height:36px;margin:3px;padding:4px 9px}
+.rv-title .rv-title-tools .v3-tool{display:inline-flex;align-items:center}
+.rv-title .rv-title-tools .v3-tool span{display:inline}
+@media(max-width:800px){
+ .rv-title{grid-template-columns:1fr;grid-template-rows:1fr auto;align-content:end;background-image:
+  linear-gradient(0deg,#1a1211 3%,#241a17eb 39%,#21171648 71%,transparent),var(--rv-cover-narrow);
+  background-position:center,55% center}
+ .rv-title-cover,.rv-title-tools{grid-column:1}
+ .rv-title-cover{align-self:end;margin-top:20vh}
+ .rv-title h1{font-size:clamp(54px,13vw,94px)}
+ .rv-title-subtitle{margin-bottom:16px}
+}
+@media(max-height:580px) and (min-width:801px){
+ .rv-title{padding-top:16px;padding-bottom:16px}
+ .rv-title-cover{padding:12px 0}.rv-title h1{font-size:68px}
+ .rv-title-subtitle{margin-bottom:14px}.rv-title-seal{width:31px;height:31px}
+}
