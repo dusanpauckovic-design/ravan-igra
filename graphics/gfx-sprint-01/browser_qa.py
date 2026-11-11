@@ -42,7 +42,7 @@ def finished(js, value):
         else:
             finish()
     elif value == 'action':
-        qt.QTimer.singleShot(525, lambda: (save('Akcija_1280x800'), finish()))
+        qt.QTimer.singleShot(880 if version == 4 else 525, lambda: (save('Akcija_1280x800'), finish()))
     elif value == 'cover':
         qt.QTimer.singleShot(100, lambda: (save('Iza_Zaklona_1280x800'), finish()))
     elif value == 'flat':

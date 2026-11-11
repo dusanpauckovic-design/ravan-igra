@@ -13,7 +13,10 @@
   };
   const viewer = RavanGraphics.createRenderer(canvas, ART, updateRoster);
   let selected = null, flat = false, behind = false;
-  const melee = { id: 'probe/melee', type: 'melee', actor: 'a_radan', target: 'e_0', path: [], result: {} };
+  const hit = (id, hp, delta) => ({ hp: [{ id, hp, delta }] });
+  const melee = { id: 'probe/melee', type: 'melee', actor: 'a_radan', target: 'e_0', path: [], result: hit('e_0', 44, -14) };
+  const ranged = { id: 'probe/ranged', type: 'ranged', actor: 'a_iva', target: 'e_0', path: [], result: hit('e_0', 46, -12) };
+  const finalHit = { id: 'probe/final', type: 'melee', actor: 'a_radan', target: 'e_0', path: [], result: hit('e_0', 0, -12) };
 
   function updateRoster(state) {
     const roster = $('roster');
@@ -70,10 +73,21 @@
     $('view').setAttribute('aria-pressed', flat);
     $('view').textContent = flat ? 'Prikazi 2.5D' : 'Prikazi 2D osnovu';
   };
-  async function attack() {
+  async function attack(event = melee) {
     reset();
-    $('message').textContent = 'Radan zamahuje.';
-    if (await viewer.playEvent(melee) === 'complete') $('message').textContent = 'Radan se vratio u stav.';
+    if (event === finalHit) {
+      const weakened = JSON.parse(JSON.stringify(scene));
+      weakened.units.find(u => u.id === 'e_0').hp = 12;
+      viewer.renderSnapshot(weakened);
+    }
+    select(event.actor);
+    $('message').textContent = event.type === 'ranged' ? 'Iva zateze luk.' : 'Radan zamahuje.';
+    const outcome = await viewer.playEvent(event);
+    if (outcome === 'complete') {
+      $('message').textContent = event === finalHit ? 'Tihi lovac je pao · 0 HP.' :
+        event.type === 'ranged' ? 'Strela je pogodila metu.' : 'Radan se vratio u stav.';
+    }
+    return outcome;
   }
   function toggleCover() {
     const changed = JSON.parse(JSON.stringify(scene));
@@ -122,13 +136,32 @@
     check('cancelled frames cannot move Radan later', viewer.getSnapshot().units[0].x === scene.units[0].x && viewer.getSnapshot().units[0].y === scene.units[0].y);
     check('movement replays after reset', await walk('Promena smera') === 'complete');
     setSpeed(1);
+    if (stage < 4) return;
+    const hp = () => viewer.getSnapshot().units.find(u => u.id === 'e_0').hp;
+    const shot = attack(ranged);
+    check('preview has no HP change', hp() === 58);
+    await shot;
+    check('normal projectile changes supplied target HP', hp() === 46 && viewer.getSnapshot().units[1].hp === 61);
+    setSpeed(2);
+    await attack(ranged);
+    check('fast shot ends at same HP', hp() === 46);
+    check('duplicate event is ignored', await viewer.playEvent(ranged) === 'ignored' && hp() === 46);
+    const fatal = attack(finalHit);
+    viewer.skip();
+    check('skip applies supplied fatal result once', await fatal === 'complete' && hp() === 0);
+    await attack(finalHit);
+    check('fatal hit replays to same result', hp() === 0);
+    setSpeed(1);
   }
   function showcase() {
     viewer.setSpeed(.45);
-    walk('Promena smera');
+    attack(ranged);
   }
-  bind('Napad', attack, true);
-  bind('Ponovi', attack);
+  bind('Napad', () => attack(), true);
+  bind('Ponovi', () => attack());
+  bind('Projektil', () => attack(ranged));
+  bind('Zavrsni pogodak', () => attack(finalHit));
+  bind('Preskoci', () => viewer.skip());
   bind('Ispred/iza zaklona', toggleCover).classList.add('wide');
   Object.keys(walks).forEach(label => bind(label, () => walk(label)));
   bind('Reset', reset);

@@ -13,6 +13,8 @@
     figure_caster: { height: 99, foot: .49 },
     figure_wolf: { height: 57, foot: .52 }
   };
+  const contactAt = event => event.type === 'ranged' ? .69 : .46;
+  const attackTypes = new Set(['melee', 'ranged']);
   const copy = value => JSON.parse(JSON.stringify(value));
 
   function createRenderer(canvas, sources, onChange = () => {}) {
@@ -158,18 +160,47 @@
       ctx.fillStyle = color; ctx.fillText(label, x, y);
     }
 
+    function eventPoints(event) {
+      const actor = state.units.find(u => u.id === event.actor);
+      const target = state.units.find(u => u.id === event.target) || event.at;
+      return actor && target ? { from: project(actor), to: project(target) } : null;
+    }
+
     function unitPose(unit, p, t) {
       const attack = active?.event;
-      const target = attack && state.units.find(u => u.id === attack.target);
-      let offset = 0;
-      if (attack?.type === 'melee' && attack.actor === unit.id && target) {
-        offset = Math.sign(project(target).x - p.x) * Math.sin(Math.PI * t) * 19;
+      const points = attack && attackTypes.has(attack.type) && eventPoints(attack);
+      let offset = 0, tilt = 0;
+      let facing = facings.get(unit.id) || (unit.team === 'enemy' ? -1 : 1);
+      if (points) {
+        const direction = Math.sign(points.to.x - points.from.x) || facing;
+        const contact = contactAt(attack);
+        if (attack.actor === unit.id) {
+          facing = direction;
+          if (attack.type === 'melee') {
+            const lunge = t < .22 ? -6 * ease(t / .22) : t < contact ?
+              lerp(-6, 28, ease((t - .22) / (contact - .22))) :
+              28 * (1 - ease((t - contact) / (1 - contact)));
+            offset = direction * lunge;
+            tilt = direction * lunge * .004;
+          } else {
+            tilt = direction * (t < .30 ? -.10 * Math.sin(Math.PI * t / .30) : .04 * (1 - t));
+          }
+        }
+        if (attack.target === unit.id && t >= contact) {
+          const recoil = Math.max(0, 1 - (t - contact) * 3.4);
+          offset = direction * 10 * recoil;
+          tilt = direction * .14 * recoil;
+        }
+      }
+      if (unit.hp === 0) {
+        const fall = points && attack.target === unit.id ? ease(Math.min(1, Math.max(0, (t - contactAt(attack)) * 3.6))) : 1;
+        tilt += facing * fall * 1.32;
       }
       const profile = SIZES[unit.sprite] || SIZES.figure_guard;
       const img = images[unit.sprite];
       const height = profile.height;
       const width = img?.naturalHeight ? height * img.naturalWidth / img.naturalHeight : height * .75;
-      return { x: p.x + offset, y: p.y, width, height, foot: profile.foot };
+      return { x: p.x + offset, y: p.y, width, height, foot: profile.foot, facing, tilt };
     }
 
     function movingPose(unit, t) {
@@ -196,6 +227,8 @@
       const mirror = (unit.sprite === 'figure_wolf' ? -1 : 1) !== facing;
       ctx.save();
       ctx.translate(x, y);
+      ctx.rotate(pose.tilt || 0);
+      if (unit.hp === 0) ctx.globalAlpha = .55;
       ctx.scale(mirror ? -1 : 1, 1);
       const left = -width * foot;
       if (Math.abs(gait) < .05) {
@@ -220,7 +253,7 @@
     function drawUnit(unit, pose) {
       const { x, y } = pose;
       shadow({ x, y }, unit.sprite === 'figure_wolf' ? 41 : 29, 11);
-      if (selected === unit.id) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
+      if (selected === unit.id && unit.hp > 0) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
       drawSprite(unit, pose);
     }
 
@@ -236,7 +269,7 @@
     function sceneEntries(t = 0) {
       return [
         ...state.covers.filter(c => c.hp !== 0).map(c => ({ item: c, cover: true, p: project(c) })),
-        ...state.units.filter(u => u.hp > 0).map(u => {
+        ...state.units.map(u => {
           const motion = movingPose(u, t);
           return { item: u, cover: false, p: motion?.p || project(u), motion };
         })
@@ -256,22 +289,59 @@
           drawCover(entry.item, entry.p, chosen?.p);
         } else {
           const pose = unitPose(entry.item, entry.p, t);
-          pose.facing = entry.motion?.facing || facings.get(entry.item.id) || (entry.item.team === 'enemy' ? -1 : 1);
+          if (entry.motion) pose.facing = entry.motion.facing;
           pose.gait = entry.motion?.gait || 0;
           drawUnit(entry.item, pose);
-          statuses.push([entry.item, pose]);
+          if (entry.item.hp > 0) statuses.push([entry.item, pose]);
         }
       }
       statuses.forEach(([unit, pose]) => drawUnitStatus(unit, pose));
-      if (active?.event.type === 'melee' && t > .35 && t < .7) {
-        const target = state.units.find(u => u.id === active.event.target);
-        if (target) {
-          const p = project(target);
-          ctx.globalAlpha = 1 - Math.abs(t - .5) * 4;
-          ellipse(p.x - 11, p.y - 33, 19, 3, '#f7d4a1');
-          ctx.globalAlpha = 1;
-        }
+      if (active && attackTypes.has(active.event.type)) drawAttack(active.event, t);
+    }
+
+    function drawAttack(event, t) {
+      const points = eventPoints(event);
+      if (!points) return;
+      const { from, to } = points;
+      const contact = contactAt(event);
+      if (event.type === 'ranged' && t >= .30 && t < contact) {
+        const f = (t - .30) / (contact - .30);
+        const arrow = mix({ x: from.x, y: from.y - 55 }, { x: to.x, y: to.y - 24 }, f);
+        const arc = Math.sin(f * Math.PI) * 28;
+        const angle = Math.atan2(to.y + 31 - from.y - Math.cos(f * Math.PI) * 28, to.x - from.x);
+        ctx.save(); ctx.translate(arrow.x, arrow.y - arc); ctx.rotate(angle);
+        ctx.strokeStyle = '#ffe3ad'; ctx.lineWidth = 2.1;
+        ctx.beginPath(); ctx.moveTo(-24, 0); ctx.lineTo(5, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -3); ctx.lineTo(5, 0); ctx.lineTo(0, 3); ctx.stroke();
+        ctx.restore();
       }
+      const impact = t - contact;
+      if (impact < 0 || impact > .30) return;
+      ctx.save();
+      const x = to.x, y = to.y - 26;
+      ctx.globalAlpha = 1 - impact / .30;
+      ctx.strokeStyle = '#ffe0a0';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        const angle = i * TAU / 6 + .2, radius = 6 + 70 * impact;
+        ctx.beginPath();
+        ctx.moveTo(x + Math.cos(angle) * radius, y + Math.sin(angle) * radius);
+        ctx.lineTo(x + Math.cos(angle) * (radius + 6), y + Math.sin(angle) * (radius + 6));
+        ctx.stroke();
+      }
+      const delta = event.result?.hp?.find(h => h.id === event.target)?.delta;
+      if (delta < 0) tag(x + 28, y - 25 - 45 * impact, String(delta), '#ffd098');
+      ctx.restore();
+    }
+
+    function applyContact(event) {
+      if (active.contacted) return;
+      active.contacted = true;
+      for (const update of event.result?.hp || []) {
+        const unit = state.units.find(u => u.id === update.id);
+        if (unit) unit.hp = update.hp;
+      }
+      if (event.result?.hp?.length) onChange(copy(state));
     }
 
     function stop(status = 'cancelled') {
@@ -294,6 +364,7 @@
     }
 
     function finishEvent(event) {
+      applyContact(event);
       if (event.type === 'move' && event.path?.length) {
         const unit = state.units.find(u => u.id === event.actor);
         if (unit) {
@@ -312,12 +383,13 @@
     function playEvent(event) {
       if (!state || !event?.id || seen.has(event.id) || active) return Promise.resolve('ignored');
       const safe = copy(event);
-      const duration = safe.duration || (safe.type === 'move' ? 290 * safe.path.length : 680);
+      const duration = safe.duration || (safe.type === 'move' ? 290 * (safe.path?.length || 1) : safe.type === 'ranged' ? 890 : 750);
       return new Promise(resolve => {
-        active = { event: safe, previous: performance.now(), elapsed: 0, duration, resolve };
+        active = { event: safe, previous: performance.now(), elapsed: 0, duration, resolve, contacted: false };
         function step(time) {
           active.elapsed += Math.max(0, time - active.previous) * speed;
           active.previous = time;
+          if (active.elapsed / duration >= contactAt(safe)) applyContact(safe);
           if (active.elapsed >= duration) {
             finishEvent(safe);
           } else {
@@ -332,6 +404,7 @@
     return {
       ready, project, hitTest, renderSnapshot, reset, playEvent,
       cancel() { stop(); draw(); },
+      skip() { if (active) finishEvent(active.event); },
       select(id) { selected = id; draw(); },
       hover(cell) { hovered = cell; draw(); },
       setMode(next) { mode = next; draw(); },
