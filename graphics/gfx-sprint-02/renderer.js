@@ -15,6 +15,11 @@
   };
   const contactAt = event => ({ ranged: .69, mark: .30, trailPlace: .35, trailHit: .25, cover: .43 })[event.type] || .46;
   const attackTypes = new Set(['melee', 'ranged']);
+  const SILHOUETTES = {
+    figure_guard:{height:104,foot:.55},
+    figure_archer:{height:98,foot:.49},
+    figure_caster:{height:101,foot:.53}
+  };
   const copy = value => JSON.parse(JSON.stringify(value));
 
   function createRenderer(canvas, sources, onChange = () => {}) {
@@ -22,7 +27,7 @@
     const images = {};
     let state, mode = 'angled', selected = null, hovered = null, speed = 1;
     let active = null, frame = 0, cameraEffects = true, reducedMotion = false;
-    let landscape = null, terrainLayer = null, enhancedTerrain = true;
+    let landscape = null, terrainLayer = null, enhancedTerrain = true, enhancedFigures = true;
     const seen = new Set();
     const facings = new Map();
     const ready = Promise.all(Object.entries(sources).map(([key, src]) => new Promise(resolve => {
@@ -265,7 +270,7 @@
         const fall = points && attack.target === unit.id ? ease(Math.min(1, Math.max(0, (t - contactAt(attack)) * 3.6))) : 1;
         tilt += facing * fall * 1.32;
       }
-      const profile = SIZES[unit.sprite] || SIZES.figure_guard;
+      const profile = (enhancedFigures && SILHOUETTES[unit.sprite]) || SIZES[unit.sprite] || SIZES.figure_guard;
       const img = images[unit.sprite];
       const height = profile.height;
       const width = img?.naturalHeight ? height * img.naturalWidth / img.naturalHeight : height * .75;
@@ -289,6 +294,29 @@
       const envelope = Math.min(1, position * 5, (event.path.length - position) * 5);
       return { p, gait: pushed ? 0 : Math.sin(position * TAU) * envelope,
         facing: Math.sign(b.x - a.x) || facings.get(unit.id) || 1 };
+    }
+
+    function drawGear(sprite) {
+      ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+      if(sprite==='figure_guard'){
+        path([{x:14,y:-50},{x:30,y:-54},{x:44,y:-65},{x:37,y:-54},{x:28,y:-48},{x:15,y:-47}]);
+        ctx.fillStyle='#c4c8b1';ctx.fill();ctx.strokeStyle='#3b4335';ctx.lineWidth=1.5;ctx.stroke();
+        ctx.strokeStyle='#947a55';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(24,-55);ctx.lineTo(26,-47);ctx.stroke();
+      }
+      if(sprite==='figure_archer'){
+        ctx.strokeStyle='#251b13';ctx.lineWidth=4;
+        ctx.beginPath();ctx.moveTo(40,-82);ctx.quadraticCurveTo(56,-59,33,-31);ctx.stroke();
+        ctx.strokeStyle='#bd9b64';ctx.lineWidth=2;ctx.stroke();
+        ctx.strokeStyle='#ded8bb';ctx.lineWidth=.9;
+        ctx.beginPath();ctx.moveTo(40,-82);ctx.lineTo(33,-31);ctx.stroke();
+      }
+      if(sprite==='figure_caster'){
+        ctx.strokeStyle='#2b211a';ctx.lineWidth=4.8;
+        ctx.beginPath();ctx.moveTo(25,-3);ctx.quadraticCurveTo(31,-49,22,-89);ctx.stroke();
+        ctx.strokeStyle='#9f825a';ctx.lineWidth=2.4;ctx.stroke();
+        ellipse(22,-89,3.8,5,'#a0bbab','#475e54');
+      }
+      ctx.restore();
     }
 
     function drawSprite(unit, pose) {
@@ -318,12 +346,16 @@
             width * sw / img.naturalWidth + .4, height - top + bob - Math.max(0, stride) * 3);
         }
       }
+      if(enhancedFigures && unit.hp>0) drawGear(unit.sprite);
       ctx.restore();
     }
 
     function drawUnit(unit, pose) {
       const { x, y } = pose;
       shadow({ x, y }, unit.sprite === 'figure_wolf' ? 41 : 29, 11);
+      if(enhancedFigures && unit.hp>0 && unit.team!=='enemy'){
+        ellipse(x-4,y+1,11,3.1,'#111a1290');
+      }
       if (state.active === unit.id && unit.hp > 0) ellipse(x, y, 29, 10, null, '#b4dec3');
       if (selected === unit.id && unit.hp > 0) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
       drawSprite(unit, pose);
@@ -564,6 +596,7 @@
       hover(cell) { hovered = cell; draw(); },
       setMode(next) { mode = next; terrainLayer=null; draw(); },
       describeCell,
+      setFigureStyle(enhanced) { enhancedFigures=!!enhanced; draw(); },
       setTerrainStyle(enhanced) { enhancedTerrain=!!enhanced; draw(); },
       setSpeed(next) { if (Number.isFinite(next) && next > 0) speed = next; },
       setActive(id) { if (state) { state.active = id; draw(); onChange(copy(state)); } },

@@ -69,5 +69,15 @@ window.runRavanQA = async function(stage, check) {
   const h=ui.viewer.project({x:6,y:4}), r=$('arena').getBoundingClientRect();
   $('arena').dispatchEvent(new MouseEvent('pointermove',{clientX:r.left+h.x*r.width/960,clientY:r.top+h.y*r.height/570}));
   check('hover imenuje blato',$('hex').textContent.includes('blato'));
+  if(stage<12) return;
+  $('figure-group').click();
+  const order=ui.viewer.getDrawOrder();
+  check('Iva se bira iza zaklona',order.indexOf('a_iva')<order.indexOf('zaklon') && $('selection').textContent.includes('Iva'));
+  const pose=ui.viewer.project({x:5,y:2});
+  $('figure-compare').click();
+  const original=ui.viewer.project({x:5,y:2});
+  $('figure-compare').click();
+  check('uporedni prikaz zadrzava oslonac na istom heksu',pose.x===original.x && pose.y===original.y);
+  check('sve tri uloge ostaju citljive',$('roster').textContent.includes('Zastitnik')&&$('roster').textContent.includes('Izvidjac')&&$('roster').textContent.includes('Ucenjak'));
 
 };

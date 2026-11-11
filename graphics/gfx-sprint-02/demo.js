@@ -99,6 +99,16 @@
   $('detail-actions').append(button('Teren pre/posle',()=>{
     terrain=!terrain;viewer.setTerrainStyle(terrain);
   },{id:'terrain-compare'}));
+  let figures=true;
+  $('detail-actions').append(button('Figure pre/posle',()=>{
+    figures=!figures;viewer.setFigureStyle(figures);
+  },{id:'figure-compare'}),button('Grupa uz zaklon',()=>{
+    const group=copy(scene);
+    Object.assign(group.units[1],{x:5,y:2});
+    Object.assign(group.units[2],{x:5,y:4});
+    group.covers=group.covers.filter(c=>c.id||c.y!==2&&c.y!==4);
+    reset(group);select('a_iva');
+  },{id:'figure-group'}));
   reset();
   window.ravanSprint = view;
 })();
