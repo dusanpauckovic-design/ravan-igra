@@ -13,13 +13,13 @@ window.RavanActionPanel = function mountActions(ui, port) {
     if(preview?.ok) panel.append(text('small',preview.cost));
     const controls=text('div','','action-controls');
     controls.append(button('Potvrdi',confirm,{id:'confirm',disabled:!preview?.ok||pending,className:'primary'}),
-      button('Odustani',cancel,{id:'cancel-action',disabled:pending}));
+      button('Odustani',()=>{cancel();ui.onActionStage?.('choose');},{id:'cancel-action',disabled:pending}));
     panel.append(controls);
   }
   function cancel() { revision++; pending=false; action=null; target=null; preview=null; viewer.hover(null); draw(); }
   function choose(key) {
     if(pending || ui.isReplayRunning?.()) return;
-    action=key; target=null; preview=null; setMessage(''); draw();
+    action=key; target=null; preview=null; setMessage(''); draw(); ui.onActionStage?.('target');
   }
   function pick(cell) {
     if(!action || pending) return !!action;
@@ -27,6 +27,7 @@ window.RavanActionPanel = function mountActions(ui, port) {
     target=cell;
     preview=port.preview({action,target,state:viewer.getSnapshot()});
     draw();
+    ui.onActionStage?.(preview.ok?'preview':'blocked');
     if(preview.ok) $('confirm').focus({preventScroll:true});
     return true;
   }
@@ -44,13 +45,13 @@ window.RavanActionPanel = function mountActions(ui, port) {
     if(stamp!==revision) return;
     cancel();
     if(result==='complete') {
-      setMessage(response.message);
+      setMessage(response.message); ui.onActionStage?.('complete');
       ui.onActionComplete?.(response);
     }
   }
   for(const [key,label] of actions) $('actions').append(button(label,()=>choose(key),{id:key}));
   document.addEventListener('keydown',event=>{
-    if(event.key==='Escape' && action && !pending) { cancel(); setMessage('Potez otkazan.'); $('actions').firstElementChild.focus(); }
+    if(event.key==='Escape' && action && !pending) { cancel(); ui.onActionStage?.('choose'); setMessage('Potez otkazan.'); $('actions').firstElementChild.focus(); }
   });
   return {pick,cancel,choose,isPending:()=>pending,get:()=>({action,preview,pending})};
 };

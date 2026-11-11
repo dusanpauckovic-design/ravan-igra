@@ -112,6 +112,7 @@
   view.replay=RavanReplayPanel(view);
   view.outcomePort=RavanFixtureOutcome();
   view.outcome=RavanOutcomePanel(view,view.outcomePort);
+  view.hints=RavanHints(view);
   reset();
   window.ravanSprint = view;
 })();

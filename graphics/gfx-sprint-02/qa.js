@@ -107,5 +107,17 @@ window.runRavanQA = async function(stage, check) {
   $('checkpoint').click();await Promise.resolve();
   check('checkpoint vraca pocetnu scenu',ui.viewer.getSnapshot().units[3].hp===58 && $('arena-title').textContent==='Kameni prolaz');
   ui.outcome.show('victory');
+  if(stage<15)return;
+  document.querySelector('[data-screen=battle]').click();ui.reset();
+  $('attack').click();
+  check('jedan savet trazi metu',$('hint').textContent.includes('Izaberi metu') && document.querySelectorAll('#hint').length===1);
+  pick(3,3);
+  check('blokada i dalje objasnjava razlog',$('hint').textContent.includes('razlog') && $('action-panel').textContent.includes('protivnika'));
+  pick(4,3);
+  check('savet za potvrdu i vazan rezultat su vidljivi bez zvuka',ui.hints.muted()&&$('hint').textContent.includes('Potvrdi')&&$('action-panel').textContent.includes('58 → 44'));
+  $('skip-hints').click();
+  check('pomoc se preskace bez blokiranja potvrde',$('hint').hidden && !$('confirm').disabled);
+  $('hint-toggle').checked=true;$('hint-toggle').dispatchEvent(new Event('change'));
+  check('pomoc se moze vratiti iz detalja',ui.hints.enabled()&&!$('hint').hidden);
 
 };

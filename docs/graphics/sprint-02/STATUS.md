@@ -11,3 +11,4 @@ Predaje su kumulativne demonstracije. Svi podaci u preview-u su probni.
 - [GFX-12](GFX-12.md) · Prirodnije i citljivije figure · tehnicki spremno, ceka pregled · issue #43
 - [GFX-13](GFX-13.md) · Ritam napada i reakcija · tehnicki spremno, ceka pregled · issue #44
 - [GFX-14](GFX-14.md) · Rezime, nagrada i sledeci susret · tehnicki spremno, ceka pregled · issue #45
+- [GFX-15](GFX-15.md) · Opciona pomoc i povratna informacija · tehnicki spremno, ceka pregled · issue #46
