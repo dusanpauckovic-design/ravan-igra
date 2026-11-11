@@ -68,6 +68,8 @@
   if(!profile||profile.querySelector('.rv-e5-sheet-figure'))return;
   const portrait=profile.querySelector('img');
   if(!portrait)return;
+  sheet.classList.add('rv-e5-sheet');
+  profile.classList.add('rv-e5-sheet-profile');
   portrait.src=ART[appearance.faces[look.face].portrait];
   const canvas=make('canvas','rv-e5-sheet-figure');
   canvas.setAttribute('aria-hidden','true');
