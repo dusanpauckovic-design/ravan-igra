@@ -34,7 +34,7 @@ window.RavanPartyPanel = function mountParty(ui,port) {
     const units=port.get(), u=units.find(x=>x.id===chosen), actual=viewer.getSnapshot().units.find(x=>x.id===chosen);
     root.textContent='';
     const h=text('h1','Druzina'); h.tabIndex=-1;
-    root.append(h,text('p','Izaberi borca i pripremi njegove aktivne tehnike.','screen-desc'));
+    root.append(h);
     const layout=text('div','','party-layout'), list=text('div','','choice-list');
     for(const unit of units){
       const b=button('',()=>{choose(unit.id);draw(root);root.querySelector('[data-party="'+chosen+'"]').focus({preventScroll:true});},{className:'choice'});
@@ -44,7 +44,8 @@ window.RavanPartyPanel = function mountParty(ui,port) {
       b.dataset.party=unit.id; b.setAttribute('aria-pressed',String(unit.id===chosen)); list.append(b);
     }
     const detail=text('section','','paper');
-    const title=text('div','','profile');
+    const title=text('div','','profile sheet-profile');
+    window.RavanVisuals.scenery(title,'center 54%');
     const image=document.createElement('img');image.src=ART[u.sprite];image.alt='';
     const heading=text('div','');
     heading.append(text('h2',u.name),text('p',u.role+' · '+u.rank),text('small',u.weapon+' · '+actual.hp+'/'+actual.hpMax+' HP'));

@@ -47,14 +47,14 @@ window.RavanWorldFixture=function createWorldFixture(){
     },};
 };
 window.RavanWorld=function mountWorld(ui,port){
-  const {text,button,screens}=ui;
+  const {text,button,screens}=ui, visuals=window.RavanVisuals;
   let selected='camp',notice='';
   function map(root){
     root.textContent='';
     const model=port.get(), title=text('h1','Dolina prevoja');title.tabIndex=-1;
     root.append(title);
     const layout=text('div','','map-layout'), field=text('div','','map-field');
-    field.style.backgroundImage='linear-gradient(#151e19a0,#172219b0),url("'+ART.battle_vista+'")';
+    visuals.scenery(field,'center 42%');
     const loc=id=>model.locations.find(l=>l.id===id);
     const svgNS='http://www.w3.org/2000/svg';
     const roads=document.createElementNS(svgNS,'svg');
@@ -64,6 +64,8 @@ window.RavanWorld=function mountWorld(ui,port){
       const a=loc(from), b=loc(to), line=document.createElementNS(svgNS,'line');
       for(const [key,value] of Object.entries({x1:a.x,y1:a.y,x2:b.x,y2:b.y}))line.setAttribute(key,value);
       line.setAttribute('vector-effect','non-scaling-stroke');
+      const known=model.discovered.includes(from)&&model.discovered.includes(to);
+      line.setAttribute('class',!known?'unseen':from===model.current||to===model.current?'nearby':'known');
       roads.append(line);
     }
     field.append(roads);
@@ -73,8 +75,10 @@ window.RavanWorld=function mountWorld(ui,port){
       const status=here?'Ovde si':model.resolved.includes(l.id)?'Reseno':model.visited.includes(l.id)?'Poseceno':seen?'Otkriveno':'';
       const pin=button('',()=>{selected=l.id;notice='';map(root);root.querySelector('[data-location="'+l.id+'"]').focus({preventScroll:true});},{className:'map-pin',disabled:!seen});
       pin.style.left=l.x+'%';pin.style.top=l.y+'%';pin.dataset.location=l.id;
-      pin.setAttribute('aria-pressed',String(selected===l.id));pin.append(text('strong',name));
-      if(status)pin.append(text('small',status));
+      pin.setAttribute('aria-pressed',String(selected===l.id));
+      if(here)pin.setAttribute('aria-current','location');
+      pin.append(visuals.icon(seen?l.id:'unknown','map-emblem'),text('strong',name));
+      if(here||model.resolved.includes(l.id))pin.append(text('small',status));
       field.append(pin);
     }
     const panel=text('section','','paper'), l=loc(selected);
@@ -90,18 +94,24 @@ window.RavanWorld=function mountWorld(ui,port){
   function camp(root){
     root.textContent='';
     const state=port.get(),title=text('h1','Kamp uz stazu');title.tabIndex=-1;
-    root.append(title,text('p','Zalihe · '+state.supplies,'points'));
+    const banner=text('header','','camp-hero');
+    visuals.scenery(banner,'center 56%');
+    banner.append(title,text('p','Zalihe · '+state.supplies,'points'),button('Otvori mapu',()=>screens.open('map'),{id:'camp-map',className:'primary'}));
+    root.append(banner);
     const grid=text('div','','camp-grid');
-    for(const [name,desc,id,run,reason] of [
-      ['Druzina','Pregledaj borce i opremu.','camp-party',()=>screens.open('sheet'),''],
-      ['Odmor',state.rested?'Druzina se odmorila.':'Odmori druzinu.','camp-rest',()=>act('rest','camp',root,camp),port.reason('rest','camp')],
-      ['Priprema',state.prepared?'Priprema zavrsena.':'Trosi jednu zalihu.','camp-prepare',()=>act('prepare','camp',root,camp),port.reason('prepare','camp')],
-      ['Zalihe','Otvori torbu ili trgovca.','camp-inventory',()=>ui.inventory.open(),'']
+    for(const [icon,name,desc,id,run,reason] of [
+      ['people','Druzina','Pregledaj borce i opremu.','camp-party',()=>screens.open('sheet'),''],
+      ['rest','Odmor',state.rested?'Druzina se odmorila.':'Odmori druzinu.','camp-rest',()=>act('rest','camp',root,camp),port.reason('rest','camp')],
+      ['shield','Priprema',state.prepared?'Priprema zavrsena.':'Trosi jednu zalihu.','camp-prepare',()=>act('prepare','camp',root,camp),port.reason('prepare','camp')],
+      ['pack','Zalihe','Otvori torbu ili trgovca.','camp-inventory',()=>ui.inventory.open(),'']
     ]){
-      const card=text('section','','paper');card.append(text('h2',name),text('p',desc,'screen-desc'),button('Otvori',run,{id,disabled:!!reason}));
-      if(reason)card.append(text('small',reason,'world-reason'));grid.append(card);
+      const card=text('section','','paper camp-service');
+      const action=button('',run,{id,disabled:!!reason});
+      action.append(visuals.icon(icon),text('strong',name));
+      card.append(action,text('p',reason||desc,'screen-desc'));
+      grid.append(card);
     }
-    root.append(grid,button('Otvori mapu',()=>screens.open('map'),{id:'camp-map',className:'primary'}),text('p',notice,'screen-desc'));
+    root.append(grid,text('p',notice,'screen-desc'));
   }
   function act(type,id,root,draw){
     if(type==='activity'&&id==='camp'){screens.open('camp');return;}

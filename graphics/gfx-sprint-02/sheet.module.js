@@ -46,16 +46,19 @@ window.RavanSheet=function mountSheet(ui,port){
       const item=button(actor.name,()=>{selected=actor.id;draw(root);root.querySelector('[data-sheet="'+selected+'"]').focus({preventScroll:true});},{className:'choice'});
       item.dataset.sheet=actor.id;item.setAttribute('aria-pressed',String(actor.id===selected));list.append(item);
     }
-    const panel=text('section','','paper');
-    const profile=text('div','','profile'), portrait=document.createElement('img');portrait.src=ART[member.sprite];portrait.alt='';
+    const panel=text('section','','paper sheet-paper');
+    const profile=text('div','','profile sheet-profile'), portrait=document.createElement('img');portrait.src=ART[member.sprite];portrait.alt='';
     const heading=text('div','');
     heading.append(text('h2',member.name),text('p',member.role+' · '+member.status));
     if(member.profession)heading.append(text('small','Profesija · '+member.profession));
+    window.RavanVisuals.scenery(profile,'center 58%');
     profile.append(portrait,heading);panel.append(profile);
     const stats=text('div','','sheet-stats');
     for(const stat of member.stats){
       const cell=text('details','','sheet-stat');
-      cell.append(text('summary',stat.label+' · '+stat.value),text('p','Osnova '+stat.base));
+      const summary=text('summary','');
+      summary.append(text('strong',String(stat.value)),text('span',stat.label));
+      cell.append(summary,text('p','Osnova '+stat.base));
       for(const b of stat.bonuses)cell.append(text('p',b.label+' '+(b.value>=0?'+':'')+b.value));
       stats.append(cell);
     }

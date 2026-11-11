@@ -7,8 +7,8 @@ window.RavanOpening = function mountOpening(ui) {
     const hero=text('section','','opening-hero');
     hero.style.backgroundImage='linear-gradient(90deg, #131914 2%, #131914f2 24%, #13191466 63%, #151c190c), linear-gradient(0deg, #161d19c9, transparent 60%), url("'+ART.battle_vista+'")';
     const intro=text('div','','opening-intro');
-    const title=text('h1',encounter.title); title.tabIndex=-1;
-    intro.append(title,text('p',encounter.objective,'opening-objective'));
+    const title=text('h1','Secanja prve doline'); title.tabIndex=-1;
+    intro.append(title);
     const controls=text('div','','opening-actions');
     const model=ui.characterPort.get();
     const resume=button('Nastavi',()=>model.scene&&model.scene!=='ready' ? screens.open('intro') : model.hero&&ui.enterWorld ? ui.enterWorld() : ui.enterEncounter(),{id:'opening-resume',disabled:!started&&!model.hero});

@@ -47,7 +47,7 @@ window.RavanInventoryFixture=function createInventoryFixture(character){
     }};
 };
 window.RavanInventory=function mountInventory(ui,port){
-  const {text,button,screens}=ui;
+  const {text,button,screens}=ui, visuals=window.RavanVisuals;
   let tab='bag',category='',query='',sort='name',selected=null,notice='',pending=false;
   const verbs={favorite:'Omiljeno',equip:'Opremi',unequip:'Skini',use:'Upotrebi',sell:'Prodaj',buy:'Kupi',loot:'Uzmi'};
   const tabs=[['bag','Torba'],['shop','Trgovac'],['loot','Plen']];
@@ -72,7 +72,7 @@ window.RavanInventory=function mountInventory(ui,port){
     const categories=select('inventory-category','Kategorija',[['','Sve kategorije'],...Array.from(new Set(source.map(x=>x.kind))).map(x=>[x,x])],category);
     const sorting=select('inventory-sort','Sortiranje',[['name','Po imenu'],['price','Po vrednosti'],['favorite','Omiljeni prvo']],sort);
     filters.append(search,categories,sorting);root.append(filters);
-    const layout=text('div','','skills-layout'), list=text('div','','skill-list'), detail=text('section','','paper');
+    const layout=text('div','','skills-layout inventory-layout'), list=text('div','','skill-list'), detail=text('section','','paper inventory-detail');
     layout.append(list,detail);root.append(layout);
     function refresh(){
       list.textContent='';detail.textContent='';
@@ -83,10 +83,13 @@ window.RavanInventory=function mountInventory(ui,port){
       for(const i of filtered){
         const el=button('',()=>{selected=i.id;notice='';refresh();list.querySelector('[data-item="'+i.id+'"]').focus();},{className:'node'});
         el.dataset.item=i.id;el.setAttribute('aria-pressed',String(i===item));
-        el.append(text('strong',i.name),text('small',[i.equipped?'Opremljeno':'',i.favorite?'Omiljeno':'','×'+i.quantity].filter(Boolean).join(' · ')));
-        list.append(el);
+        const copy=text('span','','item-label');
+        copy.append(text('strong',i.name),text('small',[i.equipped?'Opremljeno':'',i.favorite?'Omiljeno':'','×'+i.quantity].filter(Boolean).join(' · ')));
+        el.classList.add('item-entry');el.append(visuals.icon(visuals.itemKind(i)),copy);list.append(el);
       }
-      detail.append(text('h2',item.name),text('p',item.kind+' · '+(item.slot==='weapon'?'Slot oruzja':item.slot==='body'?'Slot oklopa':'×'+item.quantity),'skill-state'),text('p',item.description,'screen-desc'));
+      const itemHero=text('div','','item-hero');
+      itemHero.append(visuals.icon(visuals.itemKind(item),'item-emblem'),text('h2',item.name),text('p',item.kind+' · '+(item.slot==='weapon'?'Slot oruzja':item.slot==='body'?'Slot oklopa':'×'+item.quantity),'skill-state'));
+      detail.append(itemHero,text('p',item.description,'screen-desc'));
       if(item.attack){
         const equipped=state.items.find(x=>x.equipped===item.slot);
         detail.append(text('p','Bonus napada · '+(equipped?.attack||0)+' → '+item.attack));

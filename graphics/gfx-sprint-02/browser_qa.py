@@ -67,11 +67,11 @@ def on_result(js, value):
         qt.QTimer.singleShot(250, lambda: widget.evalJS('window.__result'))
     else:
         results = json.loads(value)
-        if 16<=stage<=18 or stage in (25,26):
+        if 16<=stage<=18 or stage in (25,26,27):
             sys.path.insert(0, str(Path(__file__).parent))
             sys.dont_write_bytecode = True
             from native_qa import run
-            qt.QTimer.singleShot(250, lambda: run(widget, results, lambda: capture(results), stage=stage))
+            qt.QTimer.singleShot(250, lambda: run(widget, results, lambda: capture(results), stage=min(stage,26)))
         else:
             qt.QTimer.singleShot(250, lambda: capture(results))
 
