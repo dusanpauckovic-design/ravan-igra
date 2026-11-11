@@ -7,3 +7,4 @@ Predaje su kumulativne demonstracije. Svi podaci u preview-u su probni.
 - [GFX-08](GFX-08.md) · Izbor akcije, mete i potvrda · tehnicki spremno, ceka pregled · issue #39
 - [GFX-09](GFX-09.md) · Druzina i izbor builda · tehnicki spremno, ceka pregled · issue #40
 - [GFX-10](GFX-10.md) · Citljivo stablo vestina · tehnicki spremno, ceka pregled · issue #41
+- [GFX-11](GFX-11.md) · Prirodniji teren i jasniji zaklon · tehnicki spremno, ceka pregled · issue #42

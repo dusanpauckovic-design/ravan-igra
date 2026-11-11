@@ -36,6 +36,17 @@ def capture(results):
     report = {'viewport': [width,height], 'results': results, 'screenshot': str(name)}
     (out / (html.stem + '_QA_' + size + '.json')).write_text(json.dumps(report, indent=2))
     print('RAVAN QA ' + json.dumps(report), flush=True)
+    if stage in (11,12):
+        control = 'terrain-compare' if stage == 11 else 'figure-compare'
+        widget.evalJS("document.getElementById('" + control + "').click()")
+        qt.QTimer.singleShot(310, capture_before)
+    else:
+        slicer.app.quit()
+
+def capture_before():
+    name = out / (html.stem + '_Pre_' + size + '.png')
+    if not widget.grab().save(str(name)):
+        raise RuntimeError('Comparison screenshot save failed')
     slicer.app.quit()
 
 def on_result(js, value):

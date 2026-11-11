@@ -22,7 +22,7 @@
     const images = {};
     let state, mode = 'angled', selected = null, hovered = null, speed = 1;
     let active = null, frame = 0, cameraEffects = true, reducedMotion = false;
-    let landscape = null;
+    let landscape = null, terrainLayer = null, enhancedTerrain = true;
     const seen = new Set();
     const facings = new Map();
     const ready = Promise.all(Object.entries(sources).map(([key, src]) => new Promise(resolve => {
@@ -117,13 +117,61 @@
       ctx.drawImage(landscape, 0, 0);
     }
 
+    function terrainAt(cell) {
+      return state.terrain?.find(t => same(t, cell))?.kind || 'earth';
+    }
+
+    function describeCell(cell) {
+      const cover = state.covers.find(c=>same(c,cell) && c.hp!==0);
+      return { kind:terrainAt(cell), cover:cover ? { breakable:cover.hpMax>0, hp:cover.hp } : null };
+    }
+
+    function drawMaterials() {
+      if(!enhancedTerrain || !state.terrain?.length) return;
+      if(!terrainLayer) {
+        terrainLayer=document.createElement('canvas');
+        terrainLayer.width=W;terrainLayer.height=H;
+        const layer=terrainLayer.getContext('2d');
+        const palette={grass:['#73864b99','#53663c00'],mud:['#3b312ad9','#59473800'],stone:['#9d99858c','#a2a49300']};
+        for(const tile of state.terrain){
+          const colors=palette[tile.kind];
+          if(!colors) continue;
+          const p=project(tile);
+          layer.save();
+          layer.translate(p.x,p.y);layer.scale(1,mode==='flat'?.9:.61);
+          const g=layer.createRadialGradient(0,0,2,0,0,48);
+          g.addColorStop(0,colors[0]);g.addColorStop(1,colors[1]);
+          layer.fillStyle=g;layer.fillRect(-50,-50,100,100);
+          for(let i=0;i<13;i++){
+            const dx=((i*31+tile.x*9)%63)-31,dy=((i*17+tile.y*7)%49)-24;
+            if(tile.kind==='grass') {
+              layer.strokeStyle=i%2?'#a0a66f70':'#4a57368c';layer.lineWidth=1.4;
+              layer.beginPath();layer.moveTo(dx,dy);layer.quadraticCurveTo(dx-2,dy-4,dx+(i%2?3:-4),dy-9);layer.stroke();
+            } else if(tile.kind==='stone') {
+              layer.fillStyle=i%2?'#c2c0a55b':'#383d3565';
+              layer.fillRect(dx,dy,2+i%4,1+i%3);
+            }
+          }
+          if(tile.kind==='mud') {
+            layer.strokeStyle='#c6b695a6';layer.lineWidth=1.6;
+            for(let row=-1;row<=1;row++){
+              layer.beginPath();layer.moveTo(-13,row*6);
+              layer.bezierCurveTo(-7,row*6-4,5,row*6+4,13,row*6);layer.stroke();
+            }
+          }
+          layer.restore();
+        }
+      }
+      ctx.drawImage(terrainLayer,0,0);
+    }
+
     function drawTile(cell) {
       const unit = state.units.find(u => u.id === selected && u.hp > 0 && same(u, cell));
       const hover = same(hovered, cell);
       path(polygon(cell));
       ctx.fillStyle = unit ? '#c2a36654' : hover ? '#ede1a346' : (cell.x + cell.y) % 3 ? '#aeb18d0e' : '#322c151e';
       ctx.fill();
-      ctx.strokeStyle = unit ? '#f2d393' : hover ? '#d9cfaa' : '#d8d5ad33';
+      ctx.strokeStyle = unit ? '#f2d393' : hover ? '#d9cfaa' : enhancedTerrain ? '#d8d5ad1d' : '#d8d5ad33';
       ctx.lineWidth = unit || hover ? 2 : 1;
       ctx.stroke();
       if ((state.danger || []).some(danger => same(danger, cell))) {
@@ -163,7 +211,14 @@
       image('terrain_rock', p.x - (large ? 48 : 33), p.y - (large ? 60 : 42),
         large ? 96 : 66, large ? 65 : 46);
       ctx.restore();
-      if (large) tag(p.x + 17, p.y - 49, String(cover.hp), '#e8d1a8');
+      if (large) {
+        if(enhancedTerrain){
+          ctx.strokeStyle='#e5c692';ctx.lineWidth=1.7;
+          ctx.beginPath();ctx.moveTo(p.x-10,p.y-45);ctx.lineTo(p.x-3,p.y-34);
+          ctx.lineTo(p.x-8,p.y-27);ctx.lineTo(p.x+4,p.y-19);ctx.stroke();
+        }
+        tag(p.x + 17, p.y - 49, enhancedTerrain ? 'Zaklon '+cover.hp+' HP' : String(cover.hp), '#e8d1a8');
+      }
     }
 
     function tag(x, y, label, color) {
@@ -305,6 +360,7 @@
         const kick = (t - contactAt(active.event)) / .19;
         if (kick >= 0 && kick < 1) ctx.translate(Math.sin(kick * Math.PI * 3) * (1 - kick) * 4, (1 - kick) * 1.4);
       }
+      drawMaterials();
       cells().forEach(drawTile);
       (state.trails || []).forEach(trail => drawRune(project(trail), '#8ee3da'));
       const entries = sceneEntries(t);
@@ -450,6 +506,7 @@
     function renderSnapshot(snapshot) {
       stop();
       state = copy(snapshot);
+      terrainLayer = null;
       draw();
       onChange(copy(state));
     }
@@ -505,7 +562,9 @@
       skip() { if (active) finishEvent(active.event); },
       select(id) { selected = id; draw(); },
       hover(cell) { hovered = cell; draw(); },
-      setMode(next) { mode = next; draw(); },
+      setMode(next) { mode = next; terrainLayer=null; draw(); },
+      describeCell,
+      setTerrainStyle(enhanced) { enhancedTerrain=!!enhanced; draw(); },
       setSpeed(next) { if (Number.isFinite(next) && next > 0) speed = next; },
       setActive(id) { if (state) { state.active = id; draw(); onChange(copy(state)); } },
       setCameraEffects(enabled) { cameraEffects = !!enabled; draw(); },

@@ -58,5 +58,16 @@ window.runRavanQA = async function(stage, check) {
   check('learn trosi jedan poen i otkljucava sledeci cvor',ui.skillPort.points()===before-1 && ui.skillPort.status('steady').key==='open');
   document.querySelector('[data-skill=steady]').click();
   check('poeni i povratak ostaju vidljivi',$('skills-back').getBoundingClientRect().bottom<innerHeight);
+  if(stage<11) return;
+  $('skills-back').click();ui.reset();
+  const mud=ui.viewer.describeCell({x:6,y:3});
+  const cover=ui.viewer.describeCell({x:5,y:3});
+  check('blato i prepreke razdvojeni u podacima',mud.kind==='mud'&&!mud.cover&&cover.cover.breakable&&cover.cover.hp===18);
+  const beforeTerrain=JSON.stringify(ui.viewer.getSnapshot());
+  $('terrain-compare').click();$('terrain-compare').click();
+  check('pre/posle cuva celu geometriju i stanje',JSON.stringify(ui.viewer.getSnapshot())===beforeTerrain);
+  const h=ui.viewer.project({x:6,y:4}), r=$('arena').getBoundingClientRect();
+  $('arena').dispatchEvent(new MouseEvent('pointermove',{clientX:r.left+h.x*r.width/960,clientY:r.top+h.y*r.height/570}));
+  check('hover imenuje blato',$('hex').textContent.includes('blato'));
 
 };

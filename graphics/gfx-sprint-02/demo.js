@@ -11,6 +11,11 @@
       { id:'a_merin', name:'Merin', role:'Ucenjak', team:'ally', sprite:'figure_caster', x:3, y:4, hp:60, hpMax:60 },
       { id:'e_0', name:'Tihi lovac', role:'Protivnik', team:'enemy', sprite:'figure_wolf', x:4, y:3, hp:58, hpMax:58 }
     ],
+    terrain:[
+      ...[[1,2],[2,2],[1,3],[2,3],[1,4],[2,5],[7,4],[8,4],[8,5]].map(([x,y])=>({x,y,kind:'grass'})),
+      ...[[6,2],[6,3],[6,4],[7,3]].map(([x,y])=>({x,y,kind:'mud'})),
+      ...[[4,1],[5,1],[5,2],[5,3],[5,4],[6,5]].map(([x,y])=>({x,y,kind:'stone'}))
+    ],
     covers:[0,1,2,4,5].map(y=>({x:5,y})).concat([{id:'zaklon',x:5,y:3,hp:18,hpMax:18}])
   };
   let selected = scene.active, flat = false;
@@ -64,7 +69,11 @@
   }
   canvas.onpointermove = event => {
     const cell=cellAt(event); viewer.hover(cell);
-    $('hex').textContent=cell ? 'Hex '+cell.x+', '+cell.y : 'Izvan table';
+    if(!cell){$('hex').textContent='Izvan table';return;}
+    const entry=viewer.describeCell(cell);
+    const type={earth:'zemlja',grass:'trava',mud:'blato',stone:'kamen'}[entry.kind];
+    const label=entry.cover ? entry.cover.breakable ? ' · lomljiv zaklon '+entry.cover.hp+' HP' : ' · prepreka' : '';
+    $('hex').textContent='Hex '+cell.x+', '+cell.y+' · '+type+label;
   };
   canvas.onpointerleave = () => { viewer.hover(null); $('hex').textContent='Pomeri pokazivac preko table.'; };
   canvas.onclick = event => {
@@ -86,6 +95,10 @@
   view.skillPort=RavanFixtureSkills(RavanSkillCatalog);
   RavanSkillPanel(view,RavanSkillCatalog,view.skillPort);
   $('detail-actions').append(button('Ponovi scenu',()=>reset(),{id:'reset'}));
+  let terrain=true;
+  $('detail-actions').append(button('Teren pre/posle',()=>{
+    terrain=!terrain;viewer.setTerrainStyle(terrain);
+  },{id:'terrain-compare'}));
   reset();
   window.ravanSprint = view;
 })();
