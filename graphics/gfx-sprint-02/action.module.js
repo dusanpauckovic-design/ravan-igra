@@ -18,7 +18,7 @@ window.RavanActionPanel = function mountActions(ui, port) {
   }
   function cancel() { revision++; pending=false; action=null; target=null; preview=null; viewer.hover(null); draw(); }
   function choose(key) {
-    if(pending) return;
+    if(pending || ui.isReplayRunning?.()) return;
     action=key; target=null; preview=null; setMessage(''); draw();
   }
   function pick(cell) {

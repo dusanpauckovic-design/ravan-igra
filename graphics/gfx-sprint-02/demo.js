@@ -59,7 +59,7 @@
   }
   function select(id) { selected=id; viewer.select(id); drawHUD(viewer.getSnapshot()); }
   function reset(snapshot = scene) {
-    actionPanel?.cancel(); selected=snapshot.active;
+    view.onReset?.(); actionPanel?.cancel(); selected=snapshot.active;
     viewer.reset(snapshot); select(selected);
     $('message').textContent='';
   }
@@ -78,7 +78,7 @@
   canvas.onpointerleave = () => { viewer.hover(null); $('hex').textContent='Pomeri pokazivac preko table.'; };
   canvas.onclick = event => {
     const cell=cellAt(event);
-    if(actionPanel.pick(cell)) return;
+    if(view.isReplayRunning?.() || actionPanel.pick(cell)) return;
     const unit=viewer.getSnapshot().units.find(u=>cell && u.hp>0 && u.x===cell.x && u.y===cell.y);
     if(unit) select(unit.id);
   };
@@ -109,6 +109,7 @@
     group.covers=group.covers.filter(c=>c.id||c.y!==2&&c.y!==4);
     reset(group);select('a_iva');
   },{id:'figure-group'}));
+  view.replay=RavanReplayPanel(view);
   reset();
   window.ravanSprint = view;
 })();

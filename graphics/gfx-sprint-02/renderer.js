@@ -13,7 +13,7 @@
     figure_caster: { height: 99, foot: .49 },
     figure_wolf: { height: 57, foot: .52 }
   };
-  const contactAt = event => ({ ranged: .69, mark: .30, trailPlace: .35, trailHit: .25, cover: .43 })[event.type] || .46;
+  const contactAt = event => ({ ranged: .64, mark: .30, trailPlace: .35, trailHit: .25, cover: .43 })[event.type] || .46;
   const attackTypes = new Set(['melee', 'ranged']);
   const SILHOUETTES = {
     figure_guard:{height:104,foot:.55},
@@ -411,7 +411,7 @@
         }
       }
       if (active && attackTypes.has(active.event.type)) drawAttack(active.event, t);
-      if (active) drawMagic(active.event, t);
+      if (active) { drawMagic(active.event, t); drawRoleEvent(active.event, t); }
       statuses.forEach(([unit, pose]) => drawUnitStatus(unit, pose));
       ctx.restore();
     }
@@ -424,8 +424,8 @@
       if (event.type === 'ranged' && t >= .30 && t < contact) {
         const f = (t - .30) / (contact - .30);
         const arrow = mix({ x: from.x, y: from.y - 55 }, { x: to.x, y: to.y - 24 }, f);
-        const arc = Math.sin(f * Math.PI) * 28;
-        const angle = Math.atan2(to.y + 31 - from.y - Math.cos(f * Math.PI) * 28, to.x - from.x);
+        const arc = Math.sin(f * Math.PI) * 20;
+        const angle = Math.atan2(to.y + 31 - from.y - Math.cos(f * Math.PI) * 20, to.x - from.x);
         ctx.save(); ctx.translate(arrow.x, arrow.y - arc); ctx.rotate(angle);
         ctx.strokeStyle = '#ffe3ad'; ctx.lineWidth = 2.1;
         ctx.beginPath(); ctx.moveTo(-24, 0); ctx.lineTo(5, 0); ctx.stroke();
@@ -509,6 +509,25 @@
       }
     }
 
+    function drawRoleEvent(event,t) {
+      if(event.type!=='guard' && event.type!=='observe')return;
+      const unit=state.units.find(u=>u.id===(event.type==='guard'?event.actor:event.target));
+      if(!unit)return;
+      const p=project(unit);
+      ctx.save();ctx.translate(p.x,p.y-36);ctx.globalAlpha=Math.sin(t*Math.PI);
+      ctx.lineWidth=2;ctx.strokeStyle='#cde5cd';
+      if(event.type==='guard'){
+        path([{x:-14,y:-14},{x:14,y:-14},{x:12,y:3},{x:0,y:13},{x:-12,y:3}]);
+        ctx.fillStyle='#41655685';ctx.fill();ctx.stroke();
+      } else {
+        ellipse(0,0,16,16,null,'#e8d6a1');
+        for(let i=0;i<4;i++){
+          ctx.rotate(Math.PI/2);ctx.beginPath();ctx.moveTo(0,-12);ctx.lineTo(0,-20);ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
     function applyContact(event) {
       if (active.contacted) return;
       active.contacted = true;
@@ -569,7 +588,7 @@
     function playEvent(event) {
       if (!state || !event?.id || seen.has(event.id) || active) return Promise.resolve('ignored');
       const safe = copy(event);
-      const fullDuration = safe.duration || (safe.type === 'move' ? 290 * (safe.path?.length || 1) : ({ranged: 890, push: 390, mark: 490, markEnd: 380, trailPlace: 490, trailHit: 620, cover: 650})[safe.type] || 750);
+      const fullDuration = safe.duration || (safe.type === 'move' ? 230 * (safe.path?.length || 1) : ({ranged: 660, push: 310, mark: 490, markEnd: 380, trailPlace: 490, trailHit: 620, cover: 650})[safe.type] || 590);
       const duration = reducedMotion ? Math.max(1, fullDuration * .33) : fullDuration;
       return new Promise(resolve => {
         active = { event: safe, previous: performance.now(), elapsed: 0, duration, resolve, contacted: false };

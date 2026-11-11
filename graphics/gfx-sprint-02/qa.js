@@ -79,5 +79,19 @@ window.runRavanQA = async function(stage, check) {
   $('figure-compare').click();
   check('uporedni prikaz zadrzava oslonac na istom heksu',pose.x===original.x && pose.y===original.y);
   check('sve tri uloge ostaju citljive',$('roster').textContent.includes('Zastitnik')&&$('roster').textContent.includes('Izvidjac')&&$('roster').textContent.includes('Ucenjak'));
+  if(stage<13) return;
+  const mode=name=>{ui.replay.speed.value=name;ui.replay.applySpeed();};
+  const finished=[];
+  for(const name of ['normal','fast','reduced']){
+    mode(name);finished.push(await ui.replay.play());
+    finished.push(JSON.stringify(ui.viewer.getSnapshot()));
+  }
+  check('tri brzine daju isto krajnje stanje',finished[0]==='complete' && finished[2]==='complete' && finished[4]==='complete' && finished[1]===finished[3] && finished[3]===finished[5]);
+  check('kontakt i rusenje primenili dostavljene vrednosti',ui.viewer.getSnapshot().units[3].hp===0 && ui.viewer.getSnapshot().covers.find(c=>c.id==='zaklon').hp===0);
+  mode('normal');const interrupted=ui.replay.play();
+  await new Promise(r=>setTimeout(r,100));ui.reset();
+  check('reset prekida sekvencu i brise efekte',await interrupted==='cancelled' && !ui.viewer.getPlayback().event && ui.viewer.getPlayback().seen===0);
+  mode('fast');await ui.replay.play();
+  document.querySelector('#battle details').open=true;
 
 };
