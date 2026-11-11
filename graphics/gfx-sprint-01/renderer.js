@@ -21,7 +21,7 @@
     const ctx = canvas.getContext('2d');
     const images = {};
     let state, mode = 'angled', selected = null, hovered = null, speed = 1;
-    let active = null, frame = 0;
+    let active = null, frame = 0, cameraEffects = true, reducedMotion = false;
     let landscape = null;
     const seen = new Set();
     const facings = new Map();
@@ -126,6 +126,20 @@
       ctx.strokeStyle = unit ? '#f2d393' : hover ? '#d9cfaa' : '#d8d5ad33';
       ctx.lineWidth = unit || hover ? 2 : 1;
       ctx.stroke();
+      if ((state.danger || []).some(danger => same(danger, cell))) {
+        const p = project(cell);
+        ctx.save(); path(polygon(cell)); ctx.clip();
+        ctx.fillStyle = '#a8573f37'; ctx.fill();
+        ctx.strokeStyle = '#eda67f66'; ctx.lineWidth = 1;
+        for (let i = -58; i <= 58; i += 11) {
+          ctx.beginPath(); ctx.moveTo(p.x + i - 24, p.y + 30); ctx.lineTo(p.x + i + 24, p.y - 30); ctx.stroke();
+        }
+        path([{x:p.x,y:p.y-11},{x:p.x+10,y:p.y+7},{x:p.x-10,y:p.y+7}]);
+        ctx.fillStyle = '#6d3930'; ctx.fill(); ctx.strokeStyle = '#f5b591'; ctx.stroke();
+        ctx.fillStyle = '#fff0d6'; ctx.textAlign = 'center'; ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('!', p.x, p.y + 5);
+        ctx.restore();
+      }
     }
 
     function shadow(p, rx, ry, strength = .58) {
@@ -255,6 +269,7 @@
     function drawUnit(unit, pose) {
       const { x, y } = pose;
       shadow({ x, y }, unit.sprite === 'figure_wolf' ? 41 : 29, 11);
+      if (state.active === unit.id && unit.hp > 0) ellipse(x, y, 29, 10, null, '#b4dec3');
       if (selected === unit.id && unit.hp > 0) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
       drawSprite(unit, pose);
     }
@@ -265,7 +280,10 @@
       ctx.fillStyle = '#131914'; ctx.fillRect(x - 20, y - height - 11, 40, 5);
       ctx.fillStyle = unit.team === 'enemy' ? '#e29276' : '#b4c38a';
       ctx.fillRect(x - 20, y - height - 11, 40 * hp, 5);
-      if (selected === unit.id) tag(x, y - height - 17, unit.name + '  ' + unit.hp + '/' + unit.hpMax, '#f4daa5');
+      if (selected === unit.id || state.active === unit.id) {
+        tag(x, y - height - 17, unit.name + '  ' + unit.hp + '/' + unit.hpMax,
+          selected === unit.id ? '#f4daa5' : '#c5ead4');
+      }
     }
 
     function sceneEntries(t = 0) {
@@ -282,6 +300,11 @@
       if (!state) return;
       const t = active ? Math.min(1, active.elapsed / active.duration) : 0;
       background();
+      ctx.save();
+      if (cameraEffects && !reducedMotion && active?.event.impact === 'heavy') {
+        const kick = (t - contactAt(active.event)) / .19;
+        if (kick >= 0 && kick < 1) ctx.translate(Math.sin(kick * Math.PI * 3) * (1 - kick) * 4, (1 - kick) * 1.4);
+      }
       cells().forEach(drawTile);
       (state.trails || []).forEach(trail => drawRune(project(trail), '#8ee3da'));
       const entries = sceneEntries(t);
@@ -293,7 +316,7 @@
         } else {
           const pose = unitPose(entry.item, entry.p, t);
           if (entry.motion) pose.facing = entry.motion.facing;
-          pose.gait = entry.motion?.gait || 0;
+          pose.gait = reducedMotion ? 0 : entry.motion?.gait || 0;
           drawUnit(entry.item, pose);
           if (entry.item.mark && entry.item.hp > 0) drawMark(pose);
           if (entry.item.hp > 0) statuses.push([entry.item, pose]);
@@ -302,6 +325,7 @@
       if (active && attackTypes.has(active.event.type)) drawAttack(active.event, t);
       if (active) drawMagic(active.event, t);
       statuses.forEach(([unit, pose]) => drawUnitStatus(unit, pose));
+      ctx.restore();
     }
 
     function drawAttack(event, t) {
@@ -413,6 +437,7 @@
         if (cover) cover.hp = update.hp;
       }
       if (event.result?.trails) state.trails = event.result.trails;
+      if (event.result?.danger) state.danger = event.result.danger;
       if (event.result) onChange(copy(state));
     }
 
@@ -455,7 +480,8 @@
     function playEvent(event) {
       if (!state || !event?.id || seen.has(event.id) || active) return Promise.resolve('ignored');
       const safe = copy(event);
-      const duration = safe.duration || (safe.type === 'move' ? 290 * (safe.path?.length || 1) : ({ranged: 890, push: 390, mark: 490, markEnd: 380, trailPlace: 490, trailHit: 620, cover: 650})[safe.type] || 750);
+      const fullDuration = safe.duration || (safe.type === 'move' ? 290 * (safe.path?.length || 1) : ({ranged: 890, push: 390, mark: 490, markEnd: 380, trailPlace: 490, trailHit: 620, cover: 650})[safe.type] || 750);
+      const duration = reducedMotion ? Math.max(1, fullDuration * .33) : fullDuration;
       return new Promise(resolve => {
         active = { event: safe, previous: performance.now(), elapsed: 0, duration, resolve, contacted: false };
         function step(time) {
@@ -481,6 +507,10 @@
       hover(cell) { hovered = cell; draw(); },
       setMode(next) { mode = next; draw(); },
       setSpeed(next) { if (Number.isFinite(next) && next > 0) speed = next; },
+      setActive(id) { if (state) { state.active = id; draw(); onChange(copy(state)); } },
+      setCameraEffects(enabled) { cameraEffects = !!enabled; draw(); },
+      setReducedMotion(enabled) { reducedMotion = !!enabled; },
+      getPlayback() { return { event: active?.event.id || null, seen: seen.size, cameraEffects, reducedMotion }; },
       getDrawOrder() { return sceneEntries().map(e => e.item.id || 'rock:' + e.item.x + ',' + e.item.y); },
       getSnapshot() { return copy(state); }
     };

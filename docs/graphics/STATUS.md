@@ -10,6 +10,6 @@ Grana `graphics/gfx-sprint-01`. RV-03 referenca `c93005bb24f9592686fb31ecd06fa4e
 | [GFX-03](https://github.com/dusanpauckovic-design/ravan-igra/issues/11) | Kretanje | Ceka Duleov pregled |
 | [GFX-04](https://github.com/dusanpauckovic-design/ravan-igra/issues/12) | Udarci i reakcije | Ceka Duleov pregled |
 | [GFX-05](https://github.com/dusanpauckovic-design/ravan-igra/issues/13) | Magija i rusenje | Ceka Duleov pregled |
-| [GFX-06](https://github.com/dusanpauckovic-design/ravan-igra/issues/14) | Sekvenca i ugovor integracije | Planirano |
+| [GFX-06](https://github.com/dusanpauckovic-design/ravan-igra/issues/14) | Sekvenca i ugovor integracije | Ceka Duleov pregled |
 
 Pojedinacni tiketi sadrze commit, otvoriv HTML, snimke i kompletan izvor.

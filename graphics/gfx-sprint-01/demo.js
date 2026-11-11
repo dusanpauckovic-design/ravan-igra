@@ -2,7 +2,7 @@
   const $ = id => document.getElementById(id);
   const canvas = $('arena');
   const scene = {
-    width: 9, height: 6,
+    width: 9, height: 6, active: 'a_radan', trails: [], danger: [{x:6,y:3}],
     units: [
       { id: 'a_radan', name: 'Radan', role: 'Zastitnik', team: 'ally', sprite: 'figure_guard', x: 3, y: 3, hp: 78, hpMax: 78 },
       { id: 'a_iva', name: 'Iva', role: 'Izvidjac', team: 'ally', sprite: 'figure_archer', x: 2, y: 2, hp: 61, hpMax: 61 },
@@ -26,11 +26,12 @@
       button.type = 'button';
       button.className = 'unit';
       button.setAttribute('aria-pressed', u.id === selected);
+      if (u.id === state.active) button.classList.add('turn');
       const image = document.createElement('img');
       image.src = ART[u.sprite]; image.alt = '';
       const info = document.createElement('span');
       const name = document.createElement('strong'); name.textContent = u.name;
-      const role = document.createElement('small'); role.textContent = u.role;
+      const role = document.createElement('small'); role.textContent = u.hp === 0 ? 'Pao' : u.id === state.active ? 'Na potezu' : u.role;
       info.append(name, role);
       const hp = document.createElement('output'); hp.textContent = u.hp + '/' + u.hpMax;
       button.append(image, info, hp);
@@ -80,7 +81,7 @@
       weakened.units.find(u => u.id === 'e_0').hp = 12;
       viewer.renderSnapshot(weakened);
     }
-    select(event.actor);
+    viewer.setActive(event.actor); select(event.actor);
     $('message').textContent = event.type === 'ranged' ? 'Iva zateze luk.' : 'Radan zamahuje.';
     const outcome = await viewer.playEvent(event);
     if (outcome === 'complete') {
@@ -151,7 +152,7 @@
     const stamp = sequence;
     for (const [event, label] of steps) {
       if (stamp !== sequence) return 'cancelled';
-      if (event.actor) select(event.actor);
+      if (event.actor) { viewer.setActive(event.actor); select(event.actor); }
       $('message').textContent = label;
       if (await viewer.playEvent(event) !== 'complete') return 'cancelled';
     }
@@ -161,6 +162,27 @@
   }
   const combo = () => run(comboSteps, magicScene(), 'Kombinacija zavrsena · 35 HP.');
   const cover = () => run(coverSteps, magicScene(), 'Zaklon je srusen · polje je otvoreno.');
+  const battleSteps = [
+    [{ id:'battle/walk', type:'move', actor:'a_iva', path:[{x:3,y:2}], result:{} }, 'Iva zauzima poziciju.'],
+    [ranged, 'Iva ispaljuje strelu.'], [mark, 'Iva postavlja oznaku.'], [place, 'Merin priprema trag.'],
+    [{ ...melee, id:'battle/hit', result:hit('e_0', 34, -12) }, 'Radan pogadja oznacenu metu.'],
+    [spent, 'Oznaka je potrosena.'], [push, 'Meta ulazi na trag.'],
+    [{ ...trigger, id:'battle/trail', result:{ ...hit('e_0', 23, -11), trails:[], danger:[] } }, 'Trag se aktivira.'],
+    ...coverSteps,
+    [{ id:'battle/approach', type:'move', actor:'a_radan', path:[{x:4,y:3}], result:{} }, 'Radan prilazi.'],
+    [{ ...finalHit, id:'battle/final', impact:'heavy', result:hit('e_0', 0, -23) }, 'Radan zadaje zavrsni pogodak.']
+  ];
+  const battle = () => run(battleSteps, magicScene(), 'Proba zavrsena · Tihi lovac je pao.');
+  function option(id, label, checked, apply) {
+    const wrapper = document.createElement('label');
+    wrapper.className = 'option';
+    const toggle = document.createElement('input');
+    toggle.type = 'checkbox'; toggle.id = id; toggle.checked = checked;
+    toggle.onchange = () => apply(toggle.checked);
+    wrapper.append(toggle, label);
+    $('actions').append(wrapper);
+    apply(checked);
+  }
 
   async function qa(stage, check, sleep) {
     toggleCover();
@@ -211,20 +233,37 @@
       check('reset stops entire combination', await interrupted === 'cancelled' && !viewer.getSnapshot().units.find(u => u.id === 'e_0').mark);
     }
     setSpeed(1);
+    if (stage < 6) return;
+    const toggle = (id, enabled) => { $(id).checked = enabled; $(id).dispatchEvent(new Event('change')); };
+    const end = () => JSON.stringify(viewer.getSnapshot());
+    check('normal full battle completes', await battle() === 'complete');
+    const outcome = end();
+    setSpeed(2); toggle('camera', false);
+    check('fast camera-off battle has same result', await battle() === 'complete' && end() === outcome);
+    toggle('reduced', true);
+    check('reduced motion battle has same result', await battle() === 'complete' && end() === outcome);
+    const progress = viewer.getPlayback();
+    check('three replays leave exactly one sequence of event IDs', progress.seen === battleSteps.length && !progress.event);
+    const cancelled = battle();
+    await sleep(60); reset();
+    check('reset clears entire replay and transient events', await cancelled === 'cancelled' && viewer.getPlayback().seen === 0 && !viewer.getPlayback().event);
+    check('reset restores danger telegraph and Radan as active', viewer.getSnapshot().danger.length === 1 && viewer.getSnapshot().active === 'a_radan');
+    setSpeed(1); toggle('reduced', false); toggle('camera', true);
   }
   function showcase() {
-    viewer.setSpeed(.82);
-    combo();
+    viewer.setSpeed(.95);
+    battle();
   }
-  bind('Napad', () => attack(), true);
+  bind('Pusti celu borbu', battle, true).classList.add('wide');
+  bind('Napad', () => attack());
   bind('Ponovi', () => attack());
   bind('Projektil', () => attack(ranged));
   bind('Zavrsni pogodak', () => attack(finalHit));
-  bind('Preskoci', () => viewer.skip());
   bind('Ispred/iza zaklona', toggleCover).classList.add('wide');
   Object.keys(walks).forEach(label => bind(label, () => walk(label)));
-  bind('Oznaka → trag', combo);
+  bind('Oznaka i trag', combo);
   bind('Rusenje zaklona', cover);
+  bind('Preskoci', () => viewer.skip());
   bind('Reset', reset);
   const speedLabel = document.createElement('label');
   speedLabel.className = 'option wide';
@@ -234,6 +273,9 @@
   speed.append(new Option('Normalno', '1'), new Option('Brzo ×2', '2'));
   speed.onchange = () => viewer.setSpeed(Number(speed.value));
   speedLabel.append(speed); $('actions').append(speedLabel);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  option('camera', 'Efekat kamere', !reduce, viewer.setCameraEffects);
+  option('reduced', 'Smanjeno kretanje', reduce, viewer.setReducedMotion);
   reset();
   window.ravanDemo = { viewer, scene, reset, qa, toggleCover, showcase };
 })();

@@ -20,3 +20,7 @@ RV-03 ima `battle.units`, `battle.obstacles`, `receipt.seq`,
 borbu i spaja identitet borbe + sekvencu + indeks vizuelnog dogadjaja.
 Predaja prikazuje zamrznutu, isecenu scenu po uzoru na arenu RV-03.
 Njeno dugme 2D osnova predstavlja iste fixture podatke u ravnoj projekciji.
+
+GFX-06 prosirenje i konkretan RV-03 adapter su dokumentovani u
+[INTEGRATION.md](INTEGRATION.md). Primer koristi potvrdjen receipt i
+snapshot pre i posle potvrde.

@@ -29,26 +29,29 @@ def evaluate(js):
 def finished(js, value):
     if js == 'window.__gfxQA':
         if not value or value in ("null", "undefined"):
-            qt.QTimer.singleShot(100, lambda: evaluate(js))
+            qt.QTimer.singleShot(300, lambda: evaluate(js))
             return
         results.extend(json.loads(value))
-        save(os.environ.get('RAVAN_QA_VIEW', '1280x800'))
-        if version == 1 and size[0] == 1280:
-            evaluate("document.getElementById('view').click(); 'flat';")
-        elif version == 2 and size[0] == 1280:
-            evaluate("window.ravanDemo.toggleCover(); 'cover';")
-        elif version >= 3 and size[0] == 1280:
-            evaluate("window.ravanDemo.showcase(); 'action';")
-        else:
-            finish()
+        qt.QTimer.singleShot(280, capture_idle)
     elif js.startswith("JSON.stringify"):
         print("RAVAN PROGRESS", value, flush=True)
     elif value == 'action':
-        qt.QTimer.singleShot({4: 880, 5: 1080}.get(version, 525), lambda: (save('Akcija_1280x800'), finish()))
+        qt.QTimer.singleShot({4: 880, 5: 1080, 6: 2100}.get(version, 525), lambda: (save('Akcija_1280x800'), finish()))
     elif value == 'cover':
         qt.QTimer.singleShot(100, lambda: (save('Iza_Zaklona_1280x800'), finish()))
     elif value == 'flat':
         qt.QTimer.singleShot(100, lambda: (save('2D_1280x800'), finish()))
+
+def capture_idle():
+    save(os.environ.get('RAVAN_QA_VIEW', '1280x800'))
+    if version == 1 and size[0] == 1280:
+        evaluate("document.getElementById('view').click(); 'flat';")
+    elif version == 2 and size[0] == 1280:
+        evaluate("window.ravanDemo.toggleCover(); 'cover';")
+    elif version >= 3 and size[0] == 1280:
+        evaluate("window.ravanDemo.showcase(); 'action';")
+    else:
+        finish()
 
 def finish():
     report = {'viewport': size, 'results': results, 'screenshots': shots}
@@ -58,6 +61,12 @@ def finish():
 
 script = r"""
 (() => {
+  if (!window.ravanDemo || window.__gfxRunning) return;
+  window.__gfxRunning = true;
+  // Qt's offscreen widget may suspend compositor frame ticks at larger
+  // window sizes. Keep browser JS playback on a real-time timer in this harness.
+  window.requestAnimationFrame = callback => setTimeout(() => callback(performance.now()), 16);
+  window.cancelAnimationFrame = handle => clearTimeout(handle);
   const stage = __STAGE__, results = [];
   const check = (name, condition) => results.push({ name, ok: !!condition });
   const $ = id => document.getElementById(id);
@@ -87,6 +96,7 @@ script = r"""
     const rect = $('arena').getBoundingClientRect();
     const controls = $('actions').getBoundingClientRect();
     check('arena and controls fit viewport', rect.bottom <= innerHeight && controls.bottom <= innerHeight && document.documentElement.scrollWidth <= innerWidth);
+    if (stage >= 6) check('legend fits viewport', $('sequence-note').getBoundingClientRect().bottom <= innerHeight);
     $('roster').children[1].click();
     check('select Iva', $('roster').children[1].getAttribute('aria-pressed') === 'true');
     const field = viewer.project(scene.units[2]);
@@ -102,7 +112,8 @@ script = r"""
 })();
 """
 widget.connect('evalResult(QString,QString)', finished)
-qt.QTimer.singleShot(800, lambda: evaluate(script.replace('__STAGE__', str(version))))
-qt.QTimer.singleShot(2900, lambda: evaluate('window.__gfxQA'))
+for delay in (850, 1700, 3000):
+    qt.QTimer.singleShot(delay, lambda: evaluate(script.replace('__STAGE__', str(version))))
+qt.QTimer.singleShot(3500, lambda: evaluate('window.__gfxQA'))
 
 qt.QTimer.singleShot(12000, lambda: evaluate('JSON.stringify(window.__gfxProgress)'))
