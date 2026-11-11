@@ -192,3 +192,8 @@ body{min-height:100vh}
 .sheet-stat summary{color:var(--ink);font-weight:bold}.sheet-stat p,.sheet-sections small{display:block;color:var(--muted);margin:3px 0}
 .sheet-sections section{border-top:1px solid var(--line);min-width:0;padding-bottom:7px}
 .sheet-sections section h3{margin:7px 0}
+.inventory-filters{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 14px}
+.inventory-filters input{font:inherit;color:var(--ink);background:var(--surface-dark);border:1px solid var(--line);border-radius:6px;padding:7px}
+.inventory-block{font-size:12px;color:#f1c5b3;margin:6px 0}
+.inventory-confirm{padding:8px;border:1px solid var(--brass);border-radius:5px;margin-top:9px}
+.inventory-confirm strong{display:block;margin-bottom:6px}

@@ -149,6 +149,8 @@
   view.creator=RavanCharacterCreation(view,view.characterPort);
   view.sheetPort=RavanSheetFixture(view);
   RavanSheet(view,view.sheetPort);
+  view.inventoryPort=RavanInventoryFixture(view.characterPort);
+  view.inventory=RavanInventory(view,view.inventoryPort);
   RavanOpening(view);
   reset();
   window.ravanSprint = view;
