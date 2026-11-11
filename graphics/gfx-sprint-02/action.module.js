@@ -1,32 +1,53 @@
 /* The view requests a preview and submits its opaque token once. */
 window.RavanActionPanel = function mountActions(ui, port) {
-  const {$,button,text,viewer,scene} = ui;
+  const {$,button,text,viewer,canvas} = ui;
   const actions = [['attack','Napad'],['move','Kretanje'],['heal','Lecenje']];
-  let action = null, target = null, preview = null, pending = false, revision = 0;
+  let action = null, target = null, cursor = null, preview = null, candidates = [], pending = false, revision = 0;
   const setMessage = value => { $('message').textContent = value; };
   function draw() {
     const panel = $('action-panel'); panel.textContent='';
     for(const [key] of actions) $(key).setAttribute('aria-pressed',String(key===action));
     if(!action) return;
-    panel.append(text('strong',preview?.ok?'Pregled poteza':'Izaberi metu'));
-    panel.append(text('p',preview?.ok?preview.summary:preview?.reason || (action==='move'?'Izaberi slobodan hex.':'Izaberi borca na tabli.')));
+    panel.append(text('strong',pending?'Potez se izvodi':preview?.ok?'Pregled poteza':'Izaberi metu'));
+    if(!pending) panel.append(text('p',preview?.ok?preview.summary:preview?.reason || (action==='move'?'Izaberi slobodan hex.':'Izaberi borca na tabli.')));
     if(preview?.ok) panel.append(text('small',preview.cost));
     const controls=text('div','','action-controls');
     controls.append(button('Potvrdi',confirm,{id:'confirm',disabled:!preview?.ok||pending,className:'primary'}),
-      button('Odustani',()=>{cancel();ui.onActionStage?.('choose');},{id:'cancel-action',disabled:pending}));
+      button('Odustani',returnToAction,{id:'cancel-action',disabled:pending}));
     panel.append(controls);
   }
-  function cancel() { revision++; pending=false; action=null; target=null; preview=null; viewer.hover(null); draw(); }
+  function guide() {
+    viewer.setTargeting?.(action && !pending ? { candidates, target, path:preview?.path || [], blocked:!!preview && !preview.ok } : null);
+  }
+  function cancel() {
+    revision++; pending=false; action=null; target=null; cursor=null; preview=null; candidates=[];
+    guide(); viewer.hover(null); draw();
+  }
   function choose(key) {
     if(pending || ui.isReplayRunning?.()) return;
-    action=key; target=null; preview=null; setMessage(''); draw(); ui.onActionStage?.('target');
+    const state=viewer.getSnapshot();
+    cursor=state.units.find(u=>u.id===state.active) || {x:0,y:0};
+    action=key; target=null; preview=null;
+    candidates=port.targets?.({action,state}) || [];
+    setMessage(''); draw(); guide(); ui.onActionStage?.('target');
+    canvas.focus({preventScroll:true});
+    describeCursor();
+  }
+  function describeCursor() {
+    viewer.hover(cursor);
+    $('hex').textContent='Hex '+cursor.x+', '+cursor.y;
+  }
+  function returnToAction() {
+    const previous=action;
+    cancel(); ui.onActionStage?.('choose');
+    $(previous)?.focus({preventScroll:true});
   }
   function pick(cell) {
     if(!action || pending) return !!action;
     if(!cell) return true;
-    target=cell;
+    target=cell; cursor=cell;
     preview=port.preview({action,target,state:viewer.getSnapshot()});
-    draw();
+    draw(); guide(); describeCursor();
     ui.onActionStage?.(preview.ok?'preview':'blocked');
     if(preview.ok) $('confirm').focus({preventScroll:true});
     return true;
@@ -35,7 +56,7 @@ window.RavanActionPanel = function mountActions(ui, port) {
     if(!preview?.ok||pending) return;
     pending=true;
     const stamp=revision, token=preview.token;
-    preview=null; draw();
+    preview=null; draw(); guide();
     let response;
     try { response=await port.submit(token); }
     catch { response={ok:false,reason:'Potvrda nije stigla. Ponovi pregled.'}; }
@@ -50,16 +71,33 @@ window.RavanActionPanel = function mountActions(ui, port) {
     }
   }
   for(const [key,label] of actions) $('actions').append(button(label,()=>choose(key),{id:key}));
+  canvas.addEventListener('keydown',event=>{
+    if(!action || pending) return;
+    if(event.key==='Enter') {
+      event.preventDefault();
+      if(!event.repeat) pick(cursor);
+      return;
+    }
+    const direction={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[event.key];
+    if(!direction) return;
+    event.preventDefault();
+    const {width,height}=viewer.getSnapshot();
+    cursor={
+      x:Math.max(0,Math.min(width-1,cursor.x+direction[0])),
+      y:Math.max(0,Math.min(height-1,cursor.y+direction[1]))
+    };
+    describeCursor();
+  });
   document.addEventListener('keydown',event=>{
-    if(event.key==='Escape' && action && !pending) { cancel(); ui.onActionStage?.('choose'); setMessage('Potez otkazan.'); $('actions').firstElementChild.focus(); }
+    if(event.key==='Enter' && event.repeat && event.target.id==='confirm')event.preventDefault();
+    if(event.key==='Escape' && action && !pending) { returnToAction(); setMessage('Potez otkazan.'); }
   });
   return {pick,cancel,choose,isPending:()=>pending,get:()=>({action,preview,pending})};
 };
 window.RavanFixtureActions = function createFixtureActions() {
   let next=0, current=null, count=0;
   const key=p=>p.x+','+p.y;
-  function preview({action,target,state}) {
-    current=null;
+  function plan({action,target,state}) {
     const actor=state.units.find(u=>u.id===state.active);
     const unit=state.units.find(u=>u.x===target.x && u.y===target.y && u.hp>0);
     const reject=reason=>({ok:false,reason});
@@ -87,14 +125,31 @@ window.RavanFixtureActions = function createFixtureActions() {
       event={type:'move',actor:actor.id,path,result:{}};
       summary='Odrediste · hex '+target.x+', '+target.y; cost='Putanja · '+path.length+' polja';
     }
+    return {ok:true,event,summary,cost,outcome};
+  }
+  function targets({action,state}) {
+    const cells=[];
+    for(let y=0;y<state.height;y++) {
+      for(let x=0;x<state.width;x++) {
+        const target={x,y};
+        if(plan({action,target,state}).ok) cells.push(target);
+      }
+    }
+    return cells;
+  }
+  function preview(input) {
+    current=null;
+    const result=plan(input);
+    if(!result.ok) return result;
     const token='intent/'+(++next);
+    const {event,summary,cost,outcome}=result;
     current={token,event:{...event,id:token},summary,outcome};
-    return {ok:true,token,summary,cost};
+    return {ok:true,token,summary,cost,path:event.path || []};
   }
   async function submit(token) {
     if(!current || current.token!==token) return {ok:false,reason:'Pregled vise nije vazeci.'};
     const {event,summary,outcome}=current; current=null; count++;
     return {ok:true,event,message:summary,outcome};
   }
-  return {preview,submit,count:()=>count};
+  return {preview,targets,submit,count:()=>count};
 };

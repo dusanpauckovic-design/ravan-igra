@@ -41,3 +41,5 @@ footer{display:flex;justify-content:space-between;color:var(--muted);font-size:1
 .hint{display:flex;align-items:center;gap:6px;margin:7px 0;padding:6px 7px;background:#26392b;border-radius:4px;font-size:11px;line-height:1.35;color:#d5e5cf}.hint button{font-size:10px;min-height:25px;flex-shrink:0;padding:3px 5px}.preference{font-size:11px;color:var(--muted);min-height:28px;display:flex;align-items:center;gap:4px}.preference input{accent-color:var(--brass)}
 .screen-head{flex-wrap:wrap}.screen-head h1{min-width:120px}
 .unit strong{white-space:nowrap}.board-foot #selection{max-width:50%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.board-controls{padding:0 15px 10px;color:var(--muted);font-size:11px}
+canvas:focus-visible{outline:2px solid var(--brass);outline-offset:-3px}

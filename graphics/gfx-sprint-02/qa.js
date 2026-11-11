@@ -134,6 +134,32 @@ window.runRavanQA = async function(stage, check) {
   check('dugacko ime zadrzava pun tekst i raspored',name.textContent===extended.units[0].name && name.scrollWidth>=name.clientWidth && document.documentElement.scrollWidth<=innerWidth);
   ui.reset();
   check('smanjeno kretanje i mute dostupni',ui.hints.muted() && !!Array.from(ui.replay.speed.options).find(o=>o.value==='reduced'));
+  if(stage>=17){
+    const guide=()=>ui.viewer.getTargeting();
+    const send=(el,key,repeat=false)=>{
+      const event=new KeyboardEvent('keydown',{key,repeat,bubbles:true,cancelable:true});
+      el.dispatchEvent(event);return event.defaultPrevented;
+    };
+    $('move').click();
+    check('dostupne celije dolaze iz porta',JSON.stringify(guide().candidates)===JSON.stringify([{x:2,y:3},{x:2,y:4},{x:4,y:4}]));
+    pick(2,4);
+    check('putanja i meta se vide bez izvrsenja',guide().path.length===2 && guide().target.y===4 && ui.viewer.getSnapshot().units[0].y===3);
+    $('view').click();
+    check('putanja ostaje vezana za heks u 2D',guide().path[1].x===2 && guide().path[1].y===4);
+    $('view').click();
+    pick(5,3);
+    check('blokiran heks brise prethodnu putanju',guide().blocked && guide().path.length===0 && $('confirm').disabled);
+    send($('arena'),'Escape');
+    check('Escape brise oznake i vraca fokus',guide()===null && document.activeElement.id==='move');
+    $('attack').click();
+    const count=ui.actionPort.count();
+    send($('arena'),'ArrowRight');
+    send($('arena'),'Enter');
+    check('strelica i Enter otvaraju samo pregled',guide().target.x===4 && document.activeElement.id==='confirm' && ui.actionPort.count()===count);
+    check('drzanje Entera ne potvrdjuje potez',send($('confirm'),'Enter',true) && ui.actionPort.count()===count);
+    ui.reset();
+    check('reset uklanja sve oznake',guide()===null);
+  }
   document.querySelector('[data-screen=party]').click();
   document.addEventListener('click',e=>{if(e.isTrusted)window.__trusted=(window.__trusted||0)+1;},true);
   document.addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Enter')window.__trustedEnter=(window.__trustedEnter||0)+1;},true);

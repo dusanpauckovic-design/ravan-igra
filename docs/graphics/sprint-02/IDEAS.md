@@ -11,3 +11,4 @@ Ideje se beleze uz predaju, van aktivnog obima.
 - GFX-14 · Proveriti da li stvarni pregled treba da istakne poslednji odlucujuci potez.
 - GFX-15 · Proveriti sa novim igracem da li savet za trag treba da ostane do odgurivanja.
 - GFX-16 · U sledecoj gameplay predaji proveriti kako igraci bez pomoci pronalaze vestine i prvi legalni potez.
+- GFX-17 · U buducem UI testu proveriti da li vodic mete ostaje jasan sa vise preklopljenih boraca.

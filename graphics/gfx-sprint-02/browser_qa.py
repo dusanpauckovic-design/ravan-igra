@@ -57,7 +57,7 @@ def on_result(js, value):
         qt.QTimer.singleShot(250, lambda: widget.evalJS('window.__result'))
     else:
         results = json.loads(value)
-        if stage==16:
+        if stage>=16:
             sys.path.insert(0, str(Path(__file__).parent))
             sys.dont_write_bytecode = True
             from native_qa import run
