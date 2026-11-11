@@ -37,8 +37,12 @@ def finished(js, value):
             evaluate("document.getElementById('view').click(); 'flat';")
         elif version == 2 and size[0] == 1280:
             evaluate("window.ravanDemo.toggleCover(); 'cover';")
+        elif version >= 3 and size[0] == 1280:
+            evaluate("window.ravanDemo.showcase(); 'action';")
         else:
             finish()
+    elif value == 'action':
+        qt.QTimer.singleShot(525, lambda: (save('Akcija_1280x800'), finish()))
     elif value == 'cover':
         qt.QTimer.singleShot(100, lambda: (save('Iza_Zaklona_1280x800'), finish()))
     elif value == 'flat':

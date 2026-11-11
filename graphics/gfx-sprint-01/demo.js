@@ -84,7 +84,23 @@
     select('a_radan');
     $('message').textContent = behind ? 'Radan je iza zaklona.' : 'Radan je ispred zaklona.';
   }
-  function qa(stage, check) {
+  const walks = {
+    'Prava putanja': [{x:2,y:3}, {x:1,y:3}, {x:0,y:3}],
+    'Obilazak': [{x:3,y:2}, {x:3,y:1}, {x:4,y:1}, {x:4,y:0}],
+    'Promena smera': [{x:2,y:3}, {x:2,y:2}, {x:1,y:2}, {x:0,y:3}]
+  };
+  async function walk(label) {
+    reset();
+    $('message').textContent = label + ' · Radan se krece.';
+    const outcome = await viewer.playEvent({ id: 'walk/' + label, type: 'move', actor: 'a_radan', path: walks[label], result: {} });
+    if (outcome === 'complete') $('message').textContent = label + ' · Radan je stao.';
+    return outcome;
+  }
+  function setSpeed(speed) {
+    viewer.setSpeed(speed);
+    $('speed').value = String(speed);
+  }
+  async function qa(stage, check, sleep) {
     toggleCover();
     let order = viewer.getDrawOrder();
     check('Radan behind cover', order.indexOf('a_radan') < order.indexOf('zaklon'));
@@ -93,10 +109,37 @@
     check('Radan in front of cover', order.indexOf('a_radan') > order.indexOf('zaklon'));
     const picked = $('roster').children[0];
     check('selected Radan and HP stay readable', picked.getAttribute('aria-pressed') === 'true' && picked.textContent.includes('78/78'));
+    setSpeed(2);
+    for (const [label, path] of Object.entries(walks)) {
+      const outcome = await walk(label);
+      const end = path[path.length - 1], unit = viewer.getSnapshot().units[0];
+      check(label + ' ends at supplied hex', outcome === 'complete' && unit.x === end.x && unit.y === end.y);
+    }
+    const old = walk('Obilazak');
+    await sleep(125); reset();
+    check('reset cancels in-flight walk', await old === 'cancelled');
+    await sleep(250);
+    check('cancelled frames cannot move Radan later', viewer.getSnapshot().units[0].x === scene.units[0].x && viewer.getSnapshot().units[0].y === scene.units[0].y);
+    check('movement replays after reset', await walk('Promena smera') === 'complete');
+    setSpeed(1);
+  }
+  function showcase() {
+    viewer.setSpeed(.45);
+    walk('Promena smera');
   }
   bind('Napad', attack, true);
   bind('Ponovi', attack);
   bind('Ispred/iza zaklona', toggleCover).classList.add('wide');
+  Object.keys(walks).forEach(label => bind(label, () => walk(label)));
+  bind('Reset', reset);
+  const speedLabel = document.createElement('label');
+  speedLabel.className = 'option wide';
+  speedLabel.append('Brzina ');
+  const speed = document.createElement('select');
+  speed.id = 'speed';
+  speed.append(new Option('Normalno', '1'), new Option('Brzo ×2', '2'));
+  speed.onchange = () => viewer.setSpeed(Number(speed.value));
+  speedLabel.append(speed); $('actions').append(speedLabel);
   reset();
-  window.ravanDemo = { viewer, scene, reset, qa, toggleCover };
+  window.ravanDemo = { viewer, scene, reset, qa, toggleCover, showcase };
 })();

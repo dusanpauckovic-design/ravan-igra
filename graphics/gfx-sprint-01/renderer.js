@@ -22,6 +22,7 @@
     let active = null, frame = 0;
     let landscape = null;
     const seen = new Set();
+    const facings = new Map();
     const ready = Promise.all(Object.entries(sources).map(([key, src]) => new Promise(resolve => {
       const img = images[key] = new Image();
       img.onload = img.onerror = resolve;
@@ -171,11 +172,56 @@
       return { x: p.x + offset, y: p.y, width, height, foot: profile.foot };
     }
 
+    function movingPose(unit, t) {
+      const event = active?.event;
+      if (event?.type !== 'move' || event.actor !== unit.id || !event.path?.length) return null;
+      const points = [event.from || unit, ...event.path];
+      const position = t * event.path.length;
+      const segment = Math.min(event.path.length - 1, Math.floor(position));
+      const phase = position - segment;
+      const a = project(points[segment]), b = project(points[segment + 1]);
+      const easing = event.path.length === 1 ? ease(phase) :
+        segment === 0 ? phase * phase * (2 - phase) :
+        segment === event.path.length - 1 ? 1 - (1 - phase) ** 2 * (1 + phase) : phase;
+      const p = mix(a, b, easing);
+      const envelope = Math.min(1, position * 5, (event.path.length - position) * 5);
+      return { p, gait: Math.sin(position * TAU) * envelope,
+        facing: Math.sign(b.x - a.x) || facings.get(unit.id) || 1 };
+    }
+
+    function drawSprite(unit, pose) {
+      const { x, y, width, height, foot, facing = 1, gait = 0 } = pose;
+      const img = images[unit.sprite];
+      if (!img?.naturalWidth) return;
+      const mirror = (unit.sprite === 'figure_wolf' ? -1 : 1) !== facing;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(mirror ? -1 : 1, 1);
+      const left = -width * foot;
+      if (Math.abs(gait) < .05) {
+        ctx.drawImage(img, left, -height, width, height);
+      } else {
+        const bob = Math.abs(gait) * 2.3;
+        const cut = Math.floor(img.naturalHeight * .76);
+        const top = height * cut / img.naturalHeight;
+        ctx.transform(1, 0, -Math.abs(gait) * .035, 1, 0, 0);
+        ctx.drawImage(img, 0, 0, img.naturalWidth, cut, left, -height - bob, width, top + 1);
+        const half = Math.floor(img.naturalWidth / 2);
+        for (const [sx, sw, stride] of [[0, half, gait], [half, img.naturalWidth - half, -gait]]) {
+          const part = img.naturalHeight - cut;
+          const dx = left + width * sx / img.naturalWidth;
+          ctx.drawImage(img, sx, cut, sw, part, dx + stride * 2.2, -height + top - bob,
+            width * sw / img.naturalWidth + .4, height - top + bob - Math.max(0, stride) * 3);
+        }
+      }
+      ctx.restore();
+    }
+
     function drawUnit(unit, pose) {
-      const { x, y, width, height, foot } = pose;
+      const { x, y } = pose;
       shadow({ x, y }, unit.sprite === 'figure_wolf' ? 41 : 29, 11);
       if (selected === unit.id) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
-      image(unit.sprite, x - width * foot, y - height, width, height);
+      drawSprite(unit, pose);
     }
 
     function drawUnitStatus(unit, pose) {
@@ -187,19 +233,22 @@
       if (selected === unit.id) tag(x, y - height - 17, unit.name + '  ' + unit.hp + '/' + unit.hpMax, '#f4daa5');
     }
 
-    function sceneEntries() {
+    function sceneEntries(t = 0) {
       return [
         ...state.covers.filter(c => c.hp !== 0).map(c => ({ item: c, cover: true, p: project(c) })),
-        ...state.units.filter(u => u.hp > 0).map(u => ({ item: u, cover: false, p: project(u) }))
+        ...state.units.filter(u => u.hp > 0).map(u => {
+          const motion = movingPose(u, t);
+          return { item: u, cover: false, p: motion?.p || project(u), motion };
+        })
       ].sort((a, b) => a.p.y - b.p.y || Number(b.cover) - Number(a.cover));
     }
 
-    function draw(time = performance.now()) {
+    function draw() {
       if (!state) return;
-      const t = active ? Math.min(1, (time - active.start) * speed / active.duration) : 0;
+      const t = active ? Math.min(1, active.elapsed / active.duration) : 0;
       background();
       cells().forEach(drawTile);
-      const entries = sceneEntries();
+      const entries = sceneEntries(t);
       const chosen = entries.find(e => !e.cover && e.item.id === selected);
       const statuses = [];
       for (const entry of entries) {
@@ -207,6 +256,8 @@
           drawCover(entry.item, entry.p, chosen?.p);
         } else {
           const pose = unitPose(entry.item, entry.p, t);
+          pose.facing = entry.motion?.facing || facings.get(entry.item.id) || (entry.item.team === 'enemy' ? -1 : 1);
+          pose.gait = entry.motion?.gait || 0;
           drawUnit(entry.item, pose);
           statuses.push([entry.item, pose]);
         }
@@ -237,25 +288,42 @@
     }
 
     function reset(snapshot) {
-      seen.clear();
+      seen.clear(); facings.clear();
       selected = null; hovered = null;
       renderSnapshot(snapshot);
+    }
+
+    function finishEvent(event) {
+      if (event.type === 'move' && event.path?.length) {
+        const unit = state.units.find(u => u.id === event.actor);
+        if (unit) {
+          const pose = movingPose(unit, 1);
+          facings.set(unit.id, pose.facing);
+          const last = event.path[event.path.length - 1];
+          Object.assign(unit, { x: last.x, y: last.y });
+        }
+      }
+      seen.add(event.id);
+      stop('complete');
+      draw();
+      onChange(copy(state));
     }
 
     function playEvent(event) {
       if (!state || !event?.id || seen.has(event.id) || active) return Promise.resolve('ignored');
       const safe = copy(event);
-      const duration = safe.duration || 680;
+      const duration = safe.duration || (safe.type === 'move' ? 290 * safe.path.length : 680);
       return new Promise(resolve => {
-        active = { event: safe, start: performance.now(), duration, resolve };
+        active = { event: safe, previous: performance.now(), elapsed: 0, duration, resolve };
         function step(time) {
-          draw(time);
-          if ((time - active.start) * speed < duration) {
+          active.elapsed += Math.max(0, time - active.previous) * speed;
+          active.previous = time;
+          if (active.elapsed >= duration) {
+            finishEvent(safe);
+          } else {
+            draw();
             frame = requestAnimationFrame(step);
-            return;
           }
-          seen.add(safe.id);
-          stop('complete'); draw();
         }
         frame = requestAnimationFrame(step);
       });
@@ -267,7 +335,7 @@
       select(id) { selected = id; draw(); },
       hover(cell) { hovered = cell; draw(); },
       setMode(next) { mode = next; draw(); },
-      setSpeed(next) { speed = next; },
+      setSpeed(next) { if (Number.isFinite(next) && next > 0) speed = next; },
       getDrawOrder() { return sceneEntries().map(e => e.item.id || 'rock:' + e.item.x + ',' + e.item.y); },
       getSnapshot() { return copy(state); }
     };
