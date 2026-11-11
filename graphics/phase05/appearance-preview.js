@@ -1,7 +1,7 @@
 /* RV-42 preview bridge. The existing creator owns the face selection. */
 (function(){
  const appearance=window.RavanAppearance, app=document.getElementById('app');
- let outfit='road';
+ let outfit='earth';
  function make(tag,cls,copy){
   const el=document.createElement(tag);el.className=cls;
   if(copy)el.textContent=copy;
@@ -11,7 +11,10 @@
   const identity=app.querySelector('.creator-panel[data-step="0"] .creator-identity');
   if(!identity||identity.querySelector('.rv-e5-figure'))return;
   const picked=identity.querySelector('[data-option][aria-pressed="true"]');
-  const face=picked?.dataset.option||'hero';
+  const port=window.RavanRPG;
+  const draft=appearance.normalize(port?.snapshot()?.draft?.identity);
+  const face=draft?.face||picked?.dataset.option||'hero';
+  if(draft)outfit=draft.outfit;
   if(!appearance.faces[face])return;
   const figure=make('div','rv-e5-figure'), caption=make('p','rv-e5-caption');
   const canvas=make('canvas','rv-e5-full');
@@ -20,7 +23,7 @@
   const view=make('div','rv-e5-view');
   view.append(portrait,canvas);
   const choices=make('div','rv-e5-outfits');choices.setAttribute('role','group');choices.setAttribute('aria-label','Probni ogrtaci');
-  const note=make('p','rv-e5-note','Ogrtaci su probni prikaz.');
+  const note=make('p','rv-e5-note',draft?'Izgled bez bonusa.':'Ogrtaci su probni prikaz.');
   function update(){
    const label=appearance.faces[face].name+' · '+appearance.outfits[outfit].name;
    canvas.setAttribute('aria-label',label);canvas.setAttribute('role','img');
@@ -31,7 +34,12 @@
   for(const [id,entry] of Object.entries(appearance.outfits)){
    const button=make('button','v3-text-button',entry.name);
    button.type='button';button.dataset.outfit=id;button.style.setProperty('--cloth',entry.color);
-   button.addEventListener('click',()=>{outfit=id;update();});choices.append(button);
+   button.addEventListener('click',()=>{
+    const result=appearance.choose(port,face,id);
+    if(result&&!result.ok){note.textContent=result.error||'Izgled nije promenjen.';return;}
+    outfit=id;update();
+   });
+   choices.append(button);
   }
   figure.append(view,caption,choices,note);
   identity.prepend(figure);
@@ -43,7 +51,12 @@
   update();
  }
  app.addEventListener('click',event=>{
-  if(event.target.closest?.('[data-act="rpg-new"]'))outfit='road';
+  if(event.target.closest?.('[data-act="rpg-new"]'))outfit='earth';
+  const option=event.target.closest?.('.rv-e5-identity [data-option]');
+  if(option&&Object.prototype.hasOwnProperty.call(appearance.faces,option.dataset.option)){
+   const face=option.dataset.option, palette=outfit;
+   Promise.resolve().then(()=>appearance.choose(window.RavanRPG,face,palette));
+  }
  },true);
  new MutationObserver(attach).observe(app,{childList:true,subtree:true});
  attach();

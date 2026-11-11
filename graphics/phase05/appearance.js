@@ -8,8 +8,8 @@
    cloth:[[.49,.21],[.64,.26],[.69,.36],[.56,.42],[.39,.48],[.28,.66],[.11,.70],[.11,.55],[.26,.39]]}
  };
  const outfits={
-  road:{name:'Putni ogrtac',color:'#855841',edge:'#ae8a66',hem:1},
-  wood:{name:'Sumarski plast',color:'#52715b',edge:'#9da77a',hem:.88},
+  earth:{name:'Putni ogrtac',color:'#855841',edge:'#ae8a66',hem:1},
+  forest:{name:'Sumarski plast',color:'#52715b',edge:'#9da77a',hem:.88},
   stone:{name:'Siva kabanica',color:'#657689',edge:'#b3b2a6',hem:.75}
  };
  const images=new Map();
@@ -41,6 +41,16 @@
   path(ctx,shape,iw,ih);ctx.stroke();
   ctx.restore();
  }
+ function normalize(identity){
+  if(!identity||identity.version!==1||!Object.prototype.hasOwnProperty.call(faces,identity.portrait)||
+   !Object.prototype.hasOwnProperty.call(outfits,identity.palette))return null;
+  return {face:identity.portrait,outfit:identity.palette};
+ }
+ function choose(port,face,outfit){
+  const snapshot=port?.snapshot();
+  if(!snapshot?.appearanceCatalog||!normalize(snapshot.draft?.identity))return null;
+  return port.dispatch({version:1,revision:snapshot.revision,type:'appearance',portrait:face,palette:outfit});
+ }
  function draw(canvas,appearance,assets){
   const face=faces[appearance.face],outfit=outfits[appearance.outfit];
   if(!face||!outfit||!assets[face.figure])return Promise.resolve(false);
@@ -53,5 +63,5 @@
    return true;
   }).catch(()=>false);
  }
- root.RavanAppearance=Object.freeze({faces,outfits,draw});
+ root.RavanAppearance=Object.freeze({faces,outfits,normalize,choose,draw});
 })(globalThis);
