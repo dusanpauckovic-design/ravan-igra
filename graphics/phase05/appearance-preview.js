@@ -11,7 +11,7 @@
 
  function attachCreator(look){
   const host=app.querySelector('.creator-panel[data-step="0"] .creator-identity');
-  for(const button of app.querySelectorAll('.creator-panel [data-palette]')){
+  for(const button of app.querySelectorAll('[data-palette]')){
    const controls=button.parentElement;
    controls.classList.add('rv-e5-superseded');
    controls.previousElementSibling?.classList.add('rv-e5-superseded');
