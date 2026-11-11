@@ -11,11 +11,14 @@ root = Path(__file__).resolve().parent
 html = (args.source / 'index.html').read_text(encoding='utf-8')
 if 'appearanceCatalog' not in html or 'RavanCharacterCreation' not in html:
     parser.error('Expected a built E5-P1 checkout with Identity v1.')
-for vendor, owned in {
-    'renderer.js': root.parent / 'gfx-sprint-02/renderer.js',
-    'battle-adapter.js': root.parent / 'phase04/battle-adapter.js',
-}.items():
-    original = (args.source / 'vendor/phase04-finish' / vendor).read_text(encoding='utf-8')
+for folder, vendor, owned in [(
+    'phase04-finish', 'renderer.js', root.parent / 'gfx-sprint-02/renderer.js'
+), (
+    'phase04-finish', 'battle-adapter.js', root.parent / 'phase04/battle-adapter.js'
+), *([(
+    'ui19', 'overworld-view.js', root.parent / 'phase04/overworld-view.js'
+)] if 'inspect-trace' in html else [])]:
+    original = (args.source / 'vendor' / folder / vendor).read_text(encoding='utf-8')
     if html.count(original) != 1:
         parser.error(f'Expected one embedded {vendor}.')
     html = html.replace(original, owned.read_text(encoding='utf-8'), 1)
@@ -29,5 +32,8 @@ if replacements != 1:
 end = html.lower().rfind('</body>')
 css = (root / 'appearance.css').read_text(encoding='utf-8')
 scripts = '\n'.join((root / name).read_text(encoding='utf-8') for name in ('appearance.js', 'appearance-preview.js'))
+if 'inspect-trace' in html:
+    css += '\n' + (root / 'world-trace.css').read_text(encoding='utf-8')
+    scripts += '\n' + (root / 'world-trace.js').read_text(encoding='utf-8')
 html = html[:end] + '<style>' + css + '</style><script>' + scripts + '</script>\n' + html[end:]
 args.output.write_text(html, encoding='utf-8')

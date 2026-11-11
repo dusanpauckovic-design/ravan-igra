@@ -1,0 +1,19 @@
+.rv19-map .rv19-stage{height:clamp(370px,65vh,700px);background:radial-gradient(ellipse at 47% 40%,#526246,#172822 76%)}
+.rv19-stage .rv-e5-trace-pin{z-index:2;transform:translate(14px,-30px);border-color:#e2be7f;background:#332b1e}
+.rv19-stage .rv-e5-trace-pin .rv19-pin{color:#ffdda0;font-size:16px;vertical-align:middle}
+.rv-e5-world-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.rv-e5-trace{border:1px solid #7e8065!important;background:#1a2821!important;padding:13px!important}
+.rv-e5-trace[hidden]{display:none!important}
+.rv-e5-trace h2{font:clamp(20px,3vw,29px) Georgia,serif;margin:0 0 7px;color:#efdbb1}
+.rv-e5-trace p{margin:0 0 8px;font-size:14px;line-height:1.4}
+.rv-e5-route{display:flex;flex-wrap:wrap;gap:4px 8px;border-left:2px solid #e9c283;padding:7px 8px;background:#131e19}
+.rv-e5-route[data-route=covered]{border-color:#b2e2c7}
+.rv-e5-route strong{width:100%;color:#f3e2bb}
+.rv-e5-route span:first-of-type{color:#f5cd89;font-weight:600}
+.rv-e5-route[data-route=covered] span:first-of-type{color:#bce5cf}
+.rv-e5-route span:last-of-type{color:#d8dccc;width:100%}
+.rv-e5-trace [data-act]{min-height:34px}
+@media(min-width:900px){
+ .rv-e5-world-layout.rv-e5-with-trace{grid-template-columns:minmax(0,1fr) minmax(225px,23%)}
+ .rv-e5-trace{align-self:start}
+}
