@@ -1,0 +1,26 @@
+.rv19-map{max-width:1440px;margin:auto;padding:10px!important;background:#172620!important;border-color:#586452!important}
+.rv19-map h1{font-family:Georgia,serif;margin:0 0 4px;font-size:clamp(22px,3vw,37px)}
+.rv19-map h1+p{margin:0 0 8px;color:#ccd3bc}
+.rv19-stage{position:relative;height:clamp(320px,57vh,620px);overflow:hidden;border-radius:9px;border:1px solid #728367;background:radial-gradient(ellipse at 50% 55%,#384b36,#101d20 78%);margin-bottom:8px}
+.rv19-canvas,.rv19-markers{position:absolute;left:0;top:0;width:100%;height:100%}
+.rv19-markers{pointer-events:none}
+.rv19-stage button{min-height:32px;border:1px solid #7e8769;border-radius:5px;background:#1c2b25;color:#f3e8ce;font:inherit;cursor:pointer}
+.rv19-stage button:focus-visible,.rv19-stage button[aria-pressed=true]{outline:2px solid #f4d08e;outline-offset:2px}
+.rv19-tools{position:absolute;left:7px;right:7px;bottom:7px;display:flex;flex-wrap:wrap;justify-content:center}
+.rv19-tools button{padding:3px 8px;margin:2px;min-width:32px}
+.rv19-stage .rv19-marker{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;padding:2px 5px;min-height:26px;white-space:nowrap;font-size:11px;box-shadow:0 4px 8px #111a19bd}
+.rv19-pin{color:#d9bb7c;margin:0 3px}
+.rv19-marker.known .rv19-pin,.rv19-marker[aria-pressed=true] .rv19-pin{color:#ffdda0}
+.rv19-marker:not(.known):not([aria-pressed=true]) .rv19-name{display:none}
+.rv19-marker:focus .rv19-name,.rv19-marker:hover .rv19-name{display:inline!important}
+.rv19-overview{position:absolute;top:8px;left:8px;right:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:6px;border:1px solid #687860;border-radius:6px;background:#14211ef2}
+.rv19-overview[hidden],.rv19-marker[hidden],.rv19-group[hidden]{display:none}
+.rv19-region{border:1px solid #566e5d;padding:4px;text-align:center;font-size:12px;color:#e5d7b2}
+.rv19-region[aria-current]{border-color:#f2cf87}
+.rv19-region canvas{width:100%;display:block}
+.rv19-group{position:absolute;left:8px;top:10px;padding:5px 9px;background:#1a2c23}
+.rv19-map details{margin:4px 0 7px}
+.rv19-map details summary{cursor:pointer;color:#e3cfa2}
+.rv19-map [data-act^=ow-]:not(.rv19-marker){margin:2px 4px 2px 0}
+@media(max-width:540px){.rv19-stage{height:360px}.rv19-tools button{padding:3px 5px}.rv19-region{font-size:10px}}
+.rv19-risk{font-size:12px;color:#dac295;margin:3px 0}
