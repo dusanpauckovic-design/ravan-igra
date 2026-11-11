@@ -32,3 +32,8 @@ footer{display:flex;justify-content:space-between;color:var(--muted);font-size:1
 .builds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.build{flex:1;min-width:170px;text-align:left;padding:8px}
 .build span,.builds button small{display:block;margin-top:4px;color:var(--muted)}.slots .slot{flex:1}
 @media(max-width:650px){.party-layout{grid-template-columns:1fr}}
+.screen-head{display:flex;align-items:center;gap:10px}.screen-head h1{margin:0 auto 0 0}.points{color:var(--brass)}
+.skill-tabs{display:flex;gap:6px;margin:12px 0}.skills-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}.skill-list{display:grid;align-content:start;gap:5px}
+.node{display:flex;justify-content:space-between;align-items:center;text-align:left;margin-left:calc(13px * var(--depth));min-height:37px;border-left:3px solid #748574}
+.node.learned{border-left-color:#9ed0a9}.node.open{border-left-color:#e1bc80}.node.locked{border-left-style:dashed}.skill-state{color:var(--sage);margin-bottom:8px}.skill-compare{display:grid;grid-template-columns:90px minmax(0,1fr);gap:8px;line-height:1.4}.skill-compare dt{color:var(--muted)}.skill-compare dd{margin:0}
+@media(max-width:650px){.skills-layout{grid-template-columns:1fr}}

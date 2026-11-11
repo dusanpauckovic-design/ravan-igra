@@ -45,5 +45,18 @@ window.runRavanQA = async function(stage, check) {
   check('tacno tri slota',document.querySelectorAll('[data-slot]').length===3);
   $('party-back').click();
   check('povratak u borbu bez izmene HP-a',!$('battle').hidden && ui.viewer.getSnapshot().units[0].hp===64);
-  document.querySelector('[data-screen=party]').click();
+  if(stage<10){document.querySelector('[data-screen=party]').click();return;}
+  document.querySelector('[data-screen=skills]').click();
+  document.querySelector('[data-skill=steady]').click();
+  const before=ui.skillPort.points();
+  check('zakljucan cvor prikazuje preduslov',$('screen').textContent.includes('Prvo nauci Daleki hitac') && $('learn').disabled);
+  $('learn').click();
+  check('zakljucan cvor ne trosi poene',ui.skillPort.points()===before);
+  document.querySelector('[data-skill=longshot]').click();
+  check('dostupan cvor ima stvaran efekat i cenu',$('screen').textContent.includes('+1 dometa')&&!$('learn').disabled);
+  $('learn').click(); await Promise.resolve();
+  check('learn trosi jedan poen i otkljucava sledeci cvor',ui.skillPort.points()===before-1 && ui.skillPort.status('steady').key==='open');
+  document.querySelector('[data-skill=steady]').click();
+  check('poeni i povratak ostaju vidljivi',$('skills-back').getBoundingClientRect().bottom<innerHeight);
+
 };

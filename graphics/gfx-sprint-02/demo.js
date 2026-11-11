@@ -83,6 +83,8 @@
   view.screens=RavanScreens(view);
   view.partyPort=RavanFixtureParty();
   RavanPartyPanel(view,view.partyPort);
+  view.skillPort=RavanFixtureSkills(RavanSkillCatalog);
+  RavanSkillPanel(view,RavanSkillCatalog,view.skillPort);
   $('detail-actions').append(button('Ponovi scenu',()=>reset(),{id:'reset'}));
   reset();
   window.ravanSprint = view;
