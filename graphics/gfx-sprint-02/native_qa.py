@@ -2,7 +2,7 @@
 import json
 import qt
 
-def run(widget, results, done):
+def run(widget, results, done, *, stage=16):
     view=widget.webView()
     target=view.focusProxy()
     expected=''
@@ -39,6 +39,8 @@ def run(widget, results, done):
         ('click',click('#reset'),120,'reset aktivnog susreta'),
         ('assert',assertion("document.getElementById('arena-title').textContent==='Patrola doline' && ravanSprint.viewer.getSnapshot().units[3].hp===37 && window.__trusted>=10 && window.__trustedEnter===2"),10,'native klikovi, dva Entera i reset aktivnog susreta'),
     ]
+    if stage>=18:
+        steps.insert(0,('click',click('#opening-party'),120,'Pocetak → druzina'))
     iterator=iter(steps)
 
     def next_step():

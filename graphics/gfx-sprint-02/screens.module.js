@@ -7,9 +7,15 @@ window.RavanScreens = function mountScreens(ui) {
     if(id!=='battle' && (ui.actionPanel.isPending()||ui.isReplayRunning?.())) return;
     if(id!=='battle') ui.actionPanel.cancel();
     current=id;
+    $('app').dataset.view=id;
     $('battle').hidden=id!=='battle';
     container.hidden=id==='battle';
-    for(const link of $('nav').children) link.setAttribute('aria-pressed',String(link.dataset.screen===id));
+    for(const link of $('nav').children) {
+      const selected=link.dataset.screen===id;
+      link.setAttribute('aria-pressed',String(selected));
+      if(selected) link.setAttribute('aria-current','page');
+      else link.removeAttribute('aria-current');
+    }
     if(id!=='battle') {
       container.textContent='';
       views.get(id)(container);
@@ -22,7 +28,8 @@ window.RavanScreens = function mountScreens(ui) {
     const link=button(label,()=>open(id));
     link.dataset.screen=id;
     link.setAttribute('aria-pressed',String(id===current));
-    $('nav').append(link);
+    if(id==='opening') $('nav').prepend(link);
+    else $('nav').append(link);
   }
   register('battle','Borba',null);
   return {open,register,get:()=>current};

@@ -20,7 +20,7 @@
   };
   let selected = scene.active, flat = false;
   let encounter={title:'Kameni prolaz',objective:'Savladaj Tihog lovca.',snapshot:scene};
-  let actionPanel;
+  let actionPanel, enteredEncounter=false;
   const viewer = RavanGraphics.createRenderer(canvas, ART, drawHUD);
   const view = { $, copy, canvas, scene, viewer, text, button, select, reset, cellAt, drawHUD };
   const selectedUnit = state => state.units.find(u=>u.id===selected);
@@ -53,7 +53,11 @@
       const image=document.createElement('img'); image.src=ART[unit.sprite]; image.alt='';
       const label=text('span','');
       label.append(text('strong',unit.name),text('small',unit.id===state.active ? 'Na potezu · '+unit.role : unit.role));
-      el.append(image,label,text('output',unit.hp+'/'+unit.hpMax));
+      const health=text('div','','unit-health');
+      const meter=document.createElement('progress');
+      meter.max=unit.hpMax;meter.value=unit.hp;meter.setAttribute('aria-label','Zivot · '+unit.name);
+      health.append(text('output',unit.hp+'/'+unit.hpMax),meter);
+      el.append(image,label,health);
       roster.append(el);
       if (priorFocus===unit.id) el.focus({preventScroll:true});
     }
@@ -67,6 +71,7 @@
   }
   function loadEncounter(title,objective,snapshot){
     encounter={title,objective,snapshot:copy(snapshot)};
+    enteredEncounter=true;
     $('arena-title').textContent=title;
     $('objective').textContent='Cilj · '+objective;
     reset();
@@ -100,7 +105,7 @@
   Object.assign(view,{actionPanel,actionPort});
   view.screens=RavanScreens(view);
   view.partyPort=RavanFixtureParty();
-  RavanPartyPanel(view,view.partyPort);
+  view.partyView=RavanPartyPanel(view,view.partyPort);
   view.skillPort=RavanFixtureSkills(RavanSkillCatalog);
   RavanSkillPanel(view,RavanSkillCatalog,view.skillPort);
   $('detail-actions').append(button('Ponovi scenu',()=>reset(),{id:'reset'}));
@@ -129,8 +134,19 @@
     start.units[3].hp=28;
     loadEncounter('Kameni prolaz','Savladaj Tihog lovca.',start);
   };
-  view.onActionComplete=response=>{if(response.outcome) view.outcome.show(response.outcome);};
+  view.hasEnteredEncounter=()=>enteredEncounter;
+  view.resumeTarget=()=>{
+    const result=view.outcomePort.get();
+    const defeated=viewer.getSnapshot().units.every(unit=>unit.team!=='enemy'||unit.hp<=0);
+    return result && !result.finished && (result.kind==='defeat'||defeated) ? 'outcome' : 'battle';
+  };
+  view.enterEncounter=()=>enteredEncounter ? view.screens.open(view.resumeTarget()) : view.startEncounter();
+  view.onActionComplete=response=>{
+    enteredEncounter=true;
+    if(response.outcome) view.outcome.show(response.outcome);
+  };
+  RavanOpening(view);
   reset();
   window.ravanSprint = view;
-  view.screens.open('party');
+  view.screens.open('opening');
 })();

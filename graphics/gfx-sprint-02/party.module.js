@@ -37,7 +37,10 @@ window.RavanPartyPanel = function mountParty(ui,port) {
     root.append(h,text('p','Izaberi borca i pripremi njegove aktivne tehnike.','screen-desc'));
     const layout=text('div','','party-layout'), list=text('div','','choice-list');
     for(const unit of units){
-      const b=button(unit.name+' · '+unit.role,()=>{chosen=unit.id;slot=0;notice='';draw(root)},{className:'choice'});
+      const b=button('',()=>{choose(unit.id);draw(root);root.querySelector('[data-party="'+chosen+'"]').focus({preventScroll:true});},{className:'choice'});
+      const portrait=document.createElement('img');portrait.src=ART[unit.sprite];portrait.alt='';
+      const label=text('span','');label.append(text('strong',unit.name),text('small',unit.role));
+      b.append(portrait,label);
       b.dataset.party=unit.id; b.setAttribute('aria-pressed',String(unit.id===chosen)); list.append(b);
     }
     const detail=text('section','','paper');
@@ -45,6 +48,9 @@ window.RavanPartyPanel = function mountParty(ui,port) {
     const image=document.createElement('img');image.src=ART[u.sprite];image.alt='';
     const heading=text('div','');
     heading.append(text('h2',u.name),text('p',u.role+' · '+u.rank),text('small',u.weapon+' · '+actual.hp+'/'+actual.hpMax+' HP'));
+    const health=document.createElement('progress');
+    health.max=actual.hpMax;health.value=actual.hp;health.setAttribute('aria-label','Zivot · '+u.name);
+    heading.append(health);
     title.append(image,heading); detail.append(title,text('h3','Poredjenje buildova'));
     const builds=text('div','','builds');
     for(const b of u.builds){
@@ -69,7 +75,7 @@ window.RavanPartyPanel = function mountParty(ui,port) {
       techniques.append(el);
     }
     if(u.slots[slot]) techniques.append(button('Isprazni slot',()=>submit(root,{slot,technique:null}),{disabled:busy}));
-    const result=text('p',notice,'screen-desc'); result.setAttribute('role','status');
+    const result=text('p',notice,'screen-desc'); result.setAttribute('role','status');result.hidden=!notice;
     const onward=text('div','','action-controls');
     onward.append(button('Pregledaj vestine',()=>screens.open('skills'),{className:'primary',id:'party-skills'}),
       button('Nazad na borbu',()=>screens.open('battle'),{id:'party-back'}));
@@ -83,5 +89,7 @@ window.RavanPartyPanel = function mountParty(ui,port) {
     catch {notice='Izbor nije sacuvan.';}
     finally {busy=false;if(screens.get()==='party') draw(root);}
   }
+  function choose(id) {chosen=id;slot=0;notice='';}
   screens.register('party','Druzina',draw);
+  return {openMember(id){choose(id);screens.open('party');}};
 };

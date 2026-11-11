@@ -42,7 +42,10 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
     const model=port.get();
     root.textContent='';
     const title=text('h1',model.title);title.tabIndex=-1;
-    root.append(text('p',model.kind==='victory'?'Pobeda':'Poraz','result-kind'),title,text('p',model.summary,'screen-desc'));
+    const banner=text('header','','result-banner '+model.kind);
+    banner.style.backgroundImage='linear-gradient(90deg, #151c18f5 12%, #151c18a0 66%, #151c1840), url("'+ART.battle_vista+'")';
+    banner.append(text('p',model.kind==='victory'?'Pobeda':'Poraz','result-kind'),title,text('p',model.summary,'screen-desc'));
+    root.append(banner);
     const panel=text('section','','paper outcome-paper');
     if(model.kind==='victory'){
       panel.append(text('h2',model.claimed?'Izabrana nagrada':'Izaberi jednu nagradu'));
@@ -51,7 +54,7 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
         const el=button('',()=>{selected=r.id;notice='';draw(root)},{className:'build',disabled:!!model.claimed || !!r.reason || busy});
         el.dataset.reward=r.id;el.setAttribute('aria-pressed',String((model.claimed||selected)===r.id));
         el.append(text('strong',r.name),text('span',r.effect));
-        if(r.reason)el.append(text('small',r.reason));
+        if(r.reason)el.append(text('small',r.reason,'reward-reason'));
         rewards.append(el);
       }
       panel.append(rewards);
@@ -62,7 +65,7 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
       panel.append(text('h2','Checkpoint · '+ui.getEncounter().title),text('p','Vraca pocetno stanje susreta.','screen-desc'),
         button('Vrati se na checkpoint',()=>send(root,'loadCheckpoint'),{id:'checkpoint',className:'primary',disabled:busy}));
     }
-    const feedback=text('p',notice,'screen-desc');feedback.setAttribute('role','status');
+    const feedback=text('p',notice,'screen-desc');feedback.setAttribute('role','status');feedback.hidden=!notice;
     panel.append(feedback);root.append(panel);
   }
   async function send(root,type){
