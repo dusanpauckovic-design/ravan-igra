@@ -11,7 +11,8 @@
   const labels = {
     move: 'Kretanje', push: 'Odgurivanje', melee: 'Bliski napad', ranged: 'Daljinski napad',
     trailPlace: 'Postavljanje traga', trailHit: 'Aktivacija traga', mark: 'Oznaka',
-    markEnd: 'Istek ili potrosnja oznake', cover: 'Zaklon', sync: 'Rezultat akcije'
+    markEnd: 'Istek ili potrosnja oznake', cover: 'Zaklon', sync: 'Rezultat akcije',
+    prepare:'Priprema', release:'Najavljeni udar', interrupt:'Prekinuta priprema', guard:'Gard'
   };
 
   const identitySprites = { hero:'figure_hero', hero_alt:'figure_scout' };
@@ -25,7 +26,7 @@
 
   function snapshot(battle, { width = 11, height = 7, pickSprite } = {}) {
     return {
-      width, height, biome:battle.generated?.biome,
+      width, height, biome:battle.generated?.biome, approach:battle.generated?.approach,
       terrain:(battle.terrain?.mud||[]).map(cell=>({...hex(cell),kind:'mud'})), active: battle.current || null,
       units: battle.units.map(unit => {
         const identity = mainIdentity(unit);
@@ -34,6 +35,7 @@
           kind:unit.kind, elite:!!unit.elite, guarding:!!unit.guarding,
           hp: unit.hp, hpMax: unit.hpMax, mark: clone(unit.mark) || null,
           ...(identity && {identity}),
+          ...(battle.generated?.approach && {tactical:unit.intent?.length?'prepare':unit.aiPhase==='interrupted'?'interrupt':null}),
           sprite: pickSprite?.(unit) || (identity && identitySprites[identity.portrait]) || heroes[unit.heroId] || (unit.team==='enemy'&&enemySprites[unit.kind]) || (beasts.has(unit.kind) ? 'figure_wolf' : 'figure_guard')
         };
       }),
@@ -79,6 +81,8 @@
       } else if (v.type === 'markSpent') {
         events.push({ type:'markEnd', actor:v.actor, target:v.target,
           result:{ marks:[{id:v.target,mark:null}] } });
+      } else if (['prepare','release','interrupt'].includes(v.type)) {
+        events.push({type:v.type,actor:v.actor,target:v.target,cells:(v.cells||[]).map(hex)});
       } else if (v.type === 'cover') {
         events.push({ type:'cover', at:hex(v.at) });
       }
@@ -93,12 +97,18 @@
     }
     const before = snapshot(beforeBattle, options), after = snapshot(afterBattle, options);
     const events = visualEvents(receipt.visuals || []);
+    if(receipt.action==='guard'&&after.approach)events.push({type:'guard',actor:receipt.actor});
     const oldUnits = new Map(before.units.map(u => [u.id, u]));
     const oldTrails = before.trails;
     const append = (event, field, value) => {
       const result = event.result ||= {};
       (result[field] ||= []).push(value);
     };
+
+    const tactical = [...events].reverse().find(event=>['prepare','release','interrupt'].includes(event.type));
+    if(tactical){
+      tactical.result={danger:after.danger,tactical:after.units.map(unit=>({id:unit.id,status:unit.tactical}))};
+    }
 
     for (const unit of after.units) {
       const old = oldUnits.get(unit.id);
@@ -147,6 +157,8 @@
       // event instead of inventing intermediate values for a combination.
       let event = [...events].reverse().find(e => e.target === change.id &&
         ['melee', 'ranged', 'trailHit'].includes(e.type));
+      if (!event&&change.delta<0&&tactical?.type==='release'&&
+          tactical.cells.some(cell=>same(cell,oldUnits.get(change.id))))event=tactical;
       if (!event && change.delta < 0 && typeof receipt.target === 'string' && receipt.target === change.id) {
         const attacker = oldUnits.get(receipt.actor), target = oldUnits.get(change.id);
         if (attacker && target && receipt.actor !== change.id) {

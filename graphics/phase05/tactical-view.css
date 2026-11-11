@@ -1,0 +1,7 @@
+.rv-e5-tactical-status{display:block;width:fit-content;margin-top:5px;padding:3px 7px;border-left:2px solid #b1cdb4;background:#15241eea;color:#e1e6d2;font-size:12px;line-height:1.25}
+.rv-e5-tactical-status[data-signal=prepare]{border-color:#efad81;background:#352319f0;color:#ffd0a7}
+.rv-e5-tactical-status[data-signal=interrupt]{border-color:#9ddbc0;color:#c1e7d7}
+.rv-e5-svg-status{fill:#c1e7d7;stroke:#192a23;stroke-width:3;paint-order:stroke;pointer-events:none;font:bold 13px sans-serif}
+.rv-e5-svg-status[data-signal=prepare]{fill:#ffd0a7;font-size:20px}
+.rv-e5-tactical .rv-viewport-commands [data-id=guard]{border-bottom-color:#92cdbb}
+@media(max-width:600px){.rv-e5-tactical-status{max-width:190px;font-size:11px}}

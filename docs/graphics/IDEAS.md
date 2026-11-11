@@ -11,3 +11,4 @@
 
 - E5-D1: probati svetliji rub istog ogrtaca na kisnoj podlozi i citljivost tri materijala u pokretu. Zaseban vizuelni eksperiment nakon Etape 5.
 - E5-D2: isprobati orijentir za povratak u kamp po mraku kada sat igre bude vezan za autoritativno doba dana.
+- E5-D3: probati kratak zvuk udara tetive za razlikovanje strelca bez pojacavanja vizuelnih efekata.

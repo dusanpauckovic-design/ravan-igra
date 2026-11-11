@@ -1,4 +1,4 @@
-"""Assemble a portable E5-D1 review build from a built E5-P1 checkout."""
+"""Assemble a portable graphics review build from an E5 gameplay checkout."""
 import argparse
 from pathlib import Path
 import re
@@ -30,10 +30,15 @@ html, replacements = re.subn(
 if replacements != 1:
     parser.error('Expected the owned graphics asset catalog.')
 end = html.lower().rfind('</body>')
+if end < 0:
+    parser.error('Expected a complete HTML body.')
 css = (root / 'appearance.css').read_text(encoding='utf-8')
 scripts = '\n'.join((root / name).read_text(encoding='utf-8') for name in ('appearance.js', 'appearance-preview.js'))
 if 'inspect-trace' in html:
     css += '\n' + (root / 'world-trace.css').read_text(encoding='utf-8')
     scripts += '\n' + (root / 'world-trace.js').read_text(encoding='utf-8')
+if 'interruptPreparation' in html:
+    css += '\n' + (root / 'tactical-view.css').read_text(encoding='utf-8')
+    scripts += '\n' + (root / 'tactical-view.js').read_text(encoding='utf-8')
 html = html[:end] + '<style>' + css + '</style><script>' + scripts + '</script>\n' + html[end:]
 args.output.write_text(html, encoding='utf-8')
