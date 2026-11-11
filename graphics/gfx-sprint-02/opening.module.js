@@ -10,10 +10,12 @@ window.RavanOpening = function mountOpening(ui) {
     const title=text('h1',encounter.title); title.tabIndex=-1;
     intro.append(title,text('p',encounter.objective,'opening-objective'));
     const controls=text('div','','opening-actions');
-    controls.append(
-      button(started?(ui.resumeTarget()==='outcome'?'Otvori rezime':'Nastavi susret'):'Udji u susret',()=>ui.enterEncounter(),{id:'opening-enter',className:'primary'}),
-      button('Pripremi druzinu',()=>screens.open('party'),{id:'opening-party'})
-    );
+    const model=ui.characterPort.get();
+    const resume=button('Nastavi',()=>model.scene&&model.scene!=='ready' ? screens.open('intro') : model.hero&&ui.enterWorld ? ui.enterWorld() : ui.enterEncounter(),{id:'opening-resume',disabled:!started&&!model.hero});
+    controls.append(button('Nova igra',()=>ui.creator.newGame(),{id:'opening-new',className:'primary'}),resume,
+      button('Brza arena',()=>ui.startQuickArena(),{id:'opening-enter'}),
+      button('Pripremi druzinu',()=>screens.open('party'),{id:'opening-party'}));
+    if(model.hero || started)intro.append(text('p',model.hero?'Probni nastavak · '+model.hero.name:'Probni nastavak · '+encounter.title,'screen-desc'));
     intro.append(controls);
     hero.append(intro);
     const party=text('section','','opening-party');

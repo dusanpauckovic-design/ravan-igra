@@ -174,3 +174,42 @@ body{min-height:100vh}
 .brand{margin-right:13px}
 .opening-actions{gap:0}
 .opening-actions button{margin:0 8px 6px 0}
+.creator-steps{display:flex;gap:10px;flex-wrap:wrap;padding:0;list-style:none;margin:16px 0}
+.creator-steps li{border-bottom:2px solid var(--line);padding:6px 10px;color:var(--muted)}
+.creator-steps li[aria-current=step]{border-color:var(--brass);color:var(--ink)}
+.creator-panel h2{margin:0 0 10px;font:26px Georgia,serif}
+.rpg-field{margin:12px 0;padding:0;border:0;min-width:0}
+.rpg-field legend{font-weight:bold;margin-bottom:7px;color:var(--brass)}
+.rpg-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:7px}
+.rpg-option{text-align:left;padding:7px;min-height:48px}.rpg-option strong,.rpg-option small{display:block}
+.rpg-option img{width:46px;height:58px;object-fit:contain;float:left;margin-right:8px}
+.rpg-input{display:grid;gap:6px;max-width:330px}.rpg-input input{font:inherit;color:var(--ink);background:#26322a;border:1px solid var(--line);border-radius:6px;padding:8px}
+.attribute-row{display:flex;flex-wrap:wrap;gap:8px;margin:7px 0}
+.attribute{display:flex;align-items:center;gap:6px}.attribute button{min-height:28px}
+.sheet-layout{margin-top:16px}.sheet-layout .choice{overflow-wrap:anywhere}
+.sheet-stats,.sheet-sections{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin:12px 0}
+.sheet-stat{background:var(--surface);border:1px solid var(--line);border-radius:7px;margin:0;padding:7px 9px}
+.sheet-stat summary{color:var(--ink);font-weight:bold}.sheet-stat p,.sheet-sections small{display:block;color:var(--muted);margin:3px 0}
+.sheet-sections section{border-top:1px solid var(--line);min-width:0;padding-bottom:7px}
+.sheet-sections section h3{margin:7px 0}
+.inventory-filters{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 14px}
+.inventory-filters input{font:inherit;color:var(--ink);background:var(--surface-dark);border:1px solid var(--line);border-radius:6px;padding:7px}
+.inventory-block{font-size:12px;color:#f1c5b3;margin:6px 0}
+.inventory-confirm{padding:8px;border:1px solid var(--brass);border-radius:5px;margin-top:9px}
+.inventory-confirm strong{display:block;margin-bottom:6px}
+.map-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(230px,1fr);gap:14px;margin-top:15px}
+.map-field{position:relative;aspect-ratio:1.56;background-size:cover;background-position:center;min-height:330px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.map-roads{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;stroke:#d4c09f9c;stroke-width:2}
+.map-pin{position:absolute;transform:translate(-50%,-50%);padding:7px 8px;box-shadow:0 3px 12px #0b130f;text-align:center}
+.map-pin strong,.map-pin small,.world-reason{display:block}.world-reason{margin:5px 0 10px}
+.map-layout .paper button{margin:4px 4px 0 0}
+.camp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:9px;margin:14px 0}
+.camp-grid h2{margin:0}
+@media(max-width:750px){.map-layout{grid-template-columns:1fr}}
+.rpg-dialog{max-width:min(420px,90vw);padding:19px;border:1px solid var(--brass);border-radius:8px;background:var(--surface-dark);color:var(--ink)}
+.rpg-dialog::backdrop{background:#111915bc}
+.rpg-toast{position:fixed;bottom:15px;right:15px;max-width:340px;padding:10px 13px;background:#293f31;border:1px solid #789b7d;border-radius:7px;z-index:5}
+.rpg-toast[data-kind=error]{background:#4a3129;border-color:#c28b7d}
+#screen-back{margin-left:auto}
+#screen-back:not([hidden])+nav{margin-left:0}
+@media(max-width:900px){.mast nav button{padding-inline:7px}}

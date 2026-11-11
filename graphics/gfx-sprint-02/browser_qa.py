@@ -15,7 +15,7 @@ widget = slicer.qSlicerWebWidget()
 widget.resize(width, height)
 widget.show()
 widget.webView().url = qt.QUrl.fromLocalFile(str(html))
-qa = Path(__file__).with_name('qa.js').read_text()
+qa = Path(__file__).with_name('phase_qa.js' if stage >= 21 else 'qa.js').read_text()
 script = """(() => {
   if (!window.ravanSprint || window.__started) return;
   window.__started = true;
@@ -26,13 +26,23 @@ script = """(() => {
   window.addEventListener('error', e => check(e.message, false));
   window.addEventListener('unhandledrejection', e => check(String(e.reason), false));
   """ + qa + """
-  window.runRavanQA(""" + str(stage) + """, check)
+  (window.runPhaseQA || window.runRavanQA)(""" + str(stage-20 if stage>=21 else stage) + """, check)
     .catch(e => check(String(e.stack || e), false))
     .finally(() => window.__result = JSON.stringify(results));
 })();"""
 def capture(results):
     name = out / (html.stem + '_' + size + '.png')
-    if not widget.grab().save(str(name)):
+    pixmap=widget.grab()
+    image=pixmap.toImage()
+    samples={image.pixelColor(x,y).name() for x,y in ((16,18),(150,120),(400,260),(600,420))}
+    if stage>=21 and len(samples)==1:
+        if getattr(capture,'attempt',0)<3:
+            capture.attempt=getattr(capture,'attempt',0)+1
+            widget.hide();widget.show()
+            qt.QTimer.singleShot(420,lambda: capture(results))
+            return
+        print('RAVAN SCREENSHOT BLANK',flush=True)
+    if not pixmap.save(str(name)):
         raise RuntimeError('Screenshot save failed')
     report = {'viewport': [width,height], 'results': results, 'screenshot': str(name)}
     (out / (html.stem + '_QA_' + size + '.json')).write_text(json.dumps(report, indent=2))
@@ -57,7 +67,7 @@ def on_result(js, value):
         qt.QTimer.singleShot(250, lambda: widget.evalJS('window.__result'))
     else:
         results = json.loads(value)
-        if stage>=16:
+        if 16<=stage<=18 or stage==25:
             sys.path.insert(0, str(Path(__file__).parent))
             sys.dont_write_bytecode = True
             from native_qa import run
