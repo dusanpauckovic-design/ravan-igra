@@ -186,3 +186,9 @@ body{min-height:100vh}
 .rpg-input{display:grid;gap:6px;max-width:330px}.rpg-input input{font:inherit;color:var(--ink);background:#26322a;border:1px solid var(--line);border-radius:6px;padding:8px}
 .attribute-row{display:flex;flex-wrap:wrap;gap:8px;margin:7px 0}
 .attribute{display:flex;align-items:center;gap:6px}.attribute button{min-height:28px}
+.sheet-layout{margin-top:16px}.sheet-layout .choice{overflow-wrap:anywhere}
+.sheet-stats,.sheet-sections{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin:12px 0}
+.sheet-stat{background:var(--surface);border:1px solid var(--line);border-radius:7px;margin:0;padding:7px 9px}
+.sheet-stat summary{color:var(--ink);font-weight:bold}.sheet-stat p,.sheet-sections small{display:block;color:var(--muted);margin:3px 0}
+.sheet-sections section{border-top:1px solid var(--line);min-width:0;padding-bottom:7px}
+.sheet-sections section h3{margin:7px 0}

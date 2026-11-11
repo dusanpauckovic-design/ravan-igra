@@ -147,6 +147,8 @@
   };
   view.characterPort=RavanCharacterFixture();
   view.creator=RavanCharacterCreation(view,view.characterPort);
+  view.sheetPort=RavanSheetFixture(view);
+  RavanSheet(view,view.sheetPort);
   RavanOpening(view);
   reset();
   window.ravanSprint = view;

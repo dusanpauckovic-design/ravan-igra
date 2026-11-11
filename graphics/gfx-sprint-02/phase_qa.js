@@ -24,4 +24,12 @@ window.runPhaseQA=async function(stage,check){
   tap('[data-screen=opening]');fill('story');
   check('desktop nema horizontalni overflow',document.documentElement.scrollWidth<=innerWidth);
   if(stage===1){tap('[data-screen=opening]');tap('#opening-new');name('Sava');choose('figure_archer');return;}
+  tap('[data-screen=sheet]');
+  check('list zadrzava dugo ime, nula poena i zakljucan tier',$('screen').textContent.includes('Sava Dugo Ime Putnika') && $('screen').textContent.includes('0 poena') && $('screen').textContent.includes('jos nije otkljucan'));
+  check('oprema prikazuje probno poredjenje napada',$('screen').textContent.includes('15 → 17'));
+  tap('.sheet-stat summary');
+  check('otvoreni breakdown pokazuje poreklo bonusa',document.querySelector('.sheet-stat').open && $('screen').textContent.includes('Snaga +6'));
+  tap('[data-sheet=a_radan]');
+  check('saborac prikazuje trajan rang i aktivan status',$('screen').textContent.includes('Rang saborca je stalan') && $('screen').textContent.includes('Ranjen'));
+  tap('[data-sheet=hero]');
 };
