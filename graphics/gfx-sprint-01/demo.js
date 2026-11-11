@@ -12,7 +12,7 @@
     covers: [0, 1, 2, 4, 5].map(y => ({ x: 5, y })).concat([{ id: 'zaklon', x: 5, y: 3, hp: 18, hpMax: 18 }])
   };
   const viewer = RavanGraphics.createRenderer(canvas, ART, updateRoster);
-  let selected = null, flat = false, behind = false;
+  let selected = null, flat = false, behind = false, sequence = 0;
   const hit = (id, hp, delta) => ({ hp: [{ id, hp, delta }] });
   const melee = { id: 'probe/melee', type: 'melee', actor: 'a_radan', target: 'e_0', path: [], result: hit('e_0', 44, -14) };
   const ranged = { id: 'probe/ranged', type: 'ranged', actor: 'a_iva', target: 'e_0', path: [], result: hit('e_0', 46, -12) };
@@ -45,7 +45,7 @@
     for (const [i, b] of [...$('roster').children].entries()) b.setAttribute('aria-pressed', viewer.getSnapshot().units[i].id === selected);
   }
   function reset() {
-    behind = false; selected = null; viewer.reset(scene); select('a_radan');
+    sequence++; behind = false; selected = null; viewer.reset(scene); select('a_radan');
     $('hex').textContent = 'Hex —';
   }
   function bind(label, action, primary = false) {
@@ -90,6 +90,7 @@
     return outcome;
   }
   function toggleCover() {
+    sequence++;
     const changed = JSON.parse(JSON.stringify(scene));
     changed.covers = changed.covers.filter(c => c.id || ![2, 4].includes(c.y));
     behind = !behind;
@@ -114,6 +115,53 @@
     viewer.setSpeed(speed);
     $('speed').value = String(speed);
   }
+  const at = { x: 5, y: 3 };
+  const stone = { x: 5, y: 4 };
+  const mark = { id: 'combo/mark', type: 'mark', actor: 'a_iva', target: 'e_0',
+    result: { marks: [{ id: 'e_0', mark: { by: 'a_iva', until: 3 } }] } };
+  const place = { id: 'combo/place', type: 'trailPlace', actor: 'a_merin', at,
+    result: { trails: [{ ...at, by: 'a_merin', until: 3 }] } };
+  const spent = { id: 'combo/spent', type: 'markEnd', actor: 'a_radan', target: 'e_0',
+    result: { marks: [{ id: 'e_0', mark: null }] } };
+  const push = { id: 'combo/push', type: 'push', actor: 'a_radan', target: 'e_0',
+    from: { x: 4, y: 3 }, path: [at], result: {} };
+  const trigger = { id: 'combo/trigger', type: 'trailHit', target: 'e_0', at,
+    result: { ...hit('e_0', 35, -11), trails: [] } };
+  const damageCover = { id: 'stone/hit', type: 'cover', actor: 'a_radan', at: stone,
+    result: { covers: [{ id: 'zaklon', hp: 7 }] } };
+  const breakCover = { id: 'stone/break', type: 'cover', actor: 'a_radan', at: stone,
+    result: { covers: [{ id: 'zaklon', hp: 0 }] } };
+  const comboSteps = [
+    [mark, 'Iva postavlja oznaku.'], [place, 'Merin postavlja trag.'],
+    [{ ...melee, id: 'combo/strike', result: hit('e_0', 46, -12) }, 'Radan pogadja oznacenu metu.'],
+    [spent, 'Oznaka je potrosena.'], [push, 'Meta je odgurnuta na trag.'],
+    [trigger, 'Trag se aktivira.']
+  ];
+  const coverSteps = [[damageCover, 'Radan udara zaklon.'], [breakCover, 'Zaklon se lomi.']];
+  function magicScene() {
+    const state = JSON.parse(JSON.stringify(scene));
+    state.trails = [];
+    state.covers = state.covers.filter(c => c.id || c.y !== stone.y);
+    Object.assign(state.covers.find(c => c.id === 'zaklon'), stone);
+    return state;
+  }
+  async function run(steps, start, done) {
+    reset();
+    viewer.renderSnapshot(start);
+    const stamp = sequence;
+    for (const [event, label] of steps) {
+      if (stamp !== sequence) return 'cancelled';
+      if (event.actor) select(event.actor);
+      $('message').textContent = label;
+      if (await viewer.playEvent(event) !== 'complete') return 'cancelled';
+    }
+    if (stamp !== sequence) return 'cancelled';
+    $('message').textContent = done;
+    return 'complete';
+  }
+  const combo = () => run(comboSteps, magicScene(), 'Kombinacija zavrsena · 35 HP.');
+  const cover = () => run(coverSteps, magicScene(), 'Zaklon je srusen · polje je otvoreno.');
+
   async function qa(stage, check, sleep) {
     toggleCover();
     let order = viewer.getDrawOrder();
@@ -151,11 +199,22 @@
     check('skip applies supplied fatal result once', await fatal === 'complete' && hp() === 0);
     await attack(finalHit);
     check('fatal hit replays to same result', hp() === 0);
+    if (stage >= 5) {
+      check('ordered combination completes', await combo() === 'complete');
+      const after = viewer.getSnapshot(), enemy = after.units.find(u => u.id === 'e_0');
+      check('push ends on trail and consumes mark', enemy.x === at.x && enemy.y === at.y && !enemy.mark);
+      check('trigger removes trail and displays supplied HP', after.trails.length === 0 && enemy.hp === 35);
+      await cover();
+      check('cover HP reaches zero and leaves draw order', viewer.getSnapshot().covers.find(c => c.id === 'zaklon').hp === 0 && !viewer.getDrawOrder().includes('zaklon'));
+      const interrupted = combo();
+      await sleep(110); reset();
+      check('reset stops entire combination', await interrupted === 'cancelled' && !viewer.getSnapshot().units.find(u => u.id === 'e_0').mark);
+    }
     setSpeed(1);
   }
   function showcase() {
-    viewer.setSpeed(.45);
-    attack(ranged);
+    viewer.setSpeed(.82);
+    combo();
   }
   bind('Napad', () => attack(), true);
   bind('Ponovi', () => attack());
@@ -164,6 +223,8 @@
   bind('Preskoci', () => viewer.skip());
   bind('Ispred/iza zaklona', toggleCover).classList.add('wide');
   Object.keys(walks).forEach(label => bind(label, () => walk(label)));
+  bind('Oznaka → trag', combo);
+  bind('Rusenje zaklona', cover);
   bind('Reset', reset);
   const speedLabel = document.createElement('label');
   speedLabel.className = 'option wide';

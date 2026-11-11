@@ -41,8 +41,10 @@ def finished(js, value):
             evaluate("window.ravanDemo.showcase(); 'action';")
         else:
             finish()
+    elif js.startswith("JSON.stringify"):
+        print("RAVAN PROGRESS", value, flush=True)
     elif value == 'action':
-        qt.QTimer.singleShot(880 if version == 4 else 525, lambda: (save('Akcija_1280x800'), finish()))
+        qt.QTimer.singleShot({4: 880, 5: 1080}.get(version, 525), lambda: (save('Akcija_1280x800'), finish()))
     elif value == 'cover':
         qt.QTimer.singleShot(100, lambda: (save('Iza_Zaklona_1280x800'), finish()))
     elif value == 'flat':
@@ -62,6 +64,7 @@ script = r"""
   const click = text => [...$('actions').querySelectorAll('button')].find(b => b.textContent === text).click();
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const errors = [];
+  window.__gfxProgress = {results,errors};
   window.addEventListener('error', e => errors.push(e.message));
   window.addEventListener('unhandledrejection', e => errors.push(String(e.reason)));
   (async () => {
@@ -101,3 +104,5 @@ script = r"""
 widget.connect('evalResult(QString,QString)', finished)
 qt.QTimer.singleShot(800, lambda: evaluate(script.replace('__STAGE__', str(version))))
 qt.QTimer.singleShot(2900, lambda: evaluate('window.__gfxQA'))
+
+qt.QTimer.singleShot(12000, lambda: evaluate('JSON.stringify(window.__gfxProgress)'))

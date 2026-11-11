@@ -13,7 +13,7 @@
     figure_caster: { height: 99, foot: .49 },
     figure_wolf: { height: 57, foot: .52 }
   };
-  const contactAt = event => event.type === 'ranged' ? .69 : .46;
+  const contactAt = event => ({ ranged: .69, mark: .30, trailPlace: .35, trailHit: .25, cover: .43 })[event.type] || .46;
   const attackTypes = new Set(['melee', 'ranged']);
   const copy = value => JSON.parse(JSON.stringify(value));
 
@@ -205,7 +205,8 @@
 
     function movingPose(unit, t) {
       const event = active?.event;
-      if (event?.type !== 'move' || event.actor !== unit.id || !event.path?.length) return null;
+      const who = event?.type === 'push' ? event.target : event?.type === 'move' ? event.actor : null;
+      if (who !== unit.id || !event.path?.length) return null;
       const points = [event.from || unit, ...event.path];
       const position = t * event.path.length;
       const segment = Math.min(event.path.length - 1, Math.floor(position));
@@ -214,9 +215,10 @@
       const easing = event.path.length === 1 ? ease(phase) :
         segment === 0 ? phase * phase * (2 - phase) :
         segment === event.path.length - 1 ? 1 - (1 - phase) ** 2 * (1 + phase) : phase;
-      const p = mix(a, b, easing);
+      const pushed = event.type === 'push';
+      const p = mix(a, b, pushed ? 1 - (1 - phase) ** 3 : easing);
       const envelope = Math.min(1, position * 5, (event.path.length - position) * 5);
-      return { p, gait: Math.sin(position * TAU) * envelope,
+      return { p, gait: pushed ? 0 : Math.sin(position * TAU) * envelope,
         facing: Math.sign(b.x - a.x) || facings.get(unit.id) || 1 };
     }
 
@@ -281,6 +283,7 @@
       const t = active ? Math.min(1, active.elapsed / active.duration) : 0;
       background();
       cells().forEach(drawTile);
+      (state.trails || []).forEach(trail => drawRune(project(trail), '#8ee3da'));
       const entries = sceneEntries(t);
       const chosen = entries.find(e => !e.cover && e.item.id === selected);
       const statuses = [];
@@ -292,11 +295,13 @@
           if (entry.motion) pose.facing = entry.motion.facing;
           pose.gait = entry.motion?.gait || 0;
           drawUnit(entry.item, pose);
+          if (entry.item.mark && entry.item.hp > 0) drawMark(pose);
           if (entry.item.hp > 0) statuses.push([entry.item, pose]);
         }
       }
-      statuses.forEach(([unit, pose]) => drawUnitStatus(unit, pose));
       if (active && attackTypes.has(active.event.type)) drawAttack(active.event, t);
+      if (active) drawMagic(active.event, t);
+      statuses.forEach(([unit, pose]) => drawUnitStatus(unit, pose));
     }
 
     function drawAttack(event, t) {
@@ -334,6 +339,64 @@
       ctx.restore();
     }
 
+    function drawRune(p, color, size = 1) {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.scale(size, size * .49);
+      ctx.lineWidth = 2;
+      ellipse(0, 0, 21, 21, '#41948838', color);
+      ellipse(0, 0, 15, 15, null, color);
+      ctx.strokeStyle = color;
+      path([{x:0,y:-19}, {x:11,y:7}, {x:-11,y:7}]); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawMark(pose) {
+      const x = pose.x - 22, y = pose.y - Math.min(33, pose.height * .35);
+      path([{ x, y: y - 10 }, { x: x + 7, y }, { x, y: y + 10 }, { x: x - 7, y }]);
+      ctx.fillStyle = '#57395a'; ctx.fill();
+      ctx.strokeStyle = '#ffd6f6'; ctx.lineWidth = 1.8; ctx.stroke();
+      ellipse(x, y, 2.5, 2.5, '#fff0f9');
+    }
+
+    function drawMagic(event, t) {
+      const target = state.units.find(u => u.id === event.target);
+      const location = event.at || target || event.from;
+      if (!location) return;
+      const p = project(location);
+      if (event.type === 'trailPlace' || event.type === 'trailHit') {
+        ctx.save(); ctx.globalAlpha = (1 - t) * .86;
+        drawRune(p, event.type === 'trailHit' ? '#e1fff2' : '#9ce4ce', 1 + t * 1.75);
+        if (event.type === 'trailHit') {
+          ctx.strokeStyle = '#bdffe5'; ctx.lineWidth = 2;
+          for (let i = -2; i <= 2; i++) {
+            ctx.beginPath(); ctx.moveTo(p.x + i * 7, p.y);
+            ctx.lineTo(p.x + i * 11, p.y - (1 - t) * (38 - 4 * Math.abs(i))); ctx.stroke();
+          }
+          const delta = event.result?.hp?.find(h => h.id === event.target)?.delta;
+          if (delta < 0 && t >= contactAt(event)) tag(p.x + 33, p.y - 28 - t * 25, String(delta), '#d0f9e7');
+        }
+        ctx.restore();
+      }
+      if (event.type === 'mark' || event.type === 'markEnd') {
+        ctx.save(); ctx.globalAlpha = 1 - t;
+        const center = { x: p.x - 22, y: p.y - 28 }, r = 10 + 16 * t;
+        path([{x:center.x,y:center.y-r}, {x:center.x+r*.7,y:center.y},
+          {x:center.x,y:center.y+r}, {x:center.x-r*.7,y:center.y}]);
+        ctx.strokeStyle = '#ffd5f3'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+      }
+      if (event.type === 'push' || event.type === 'cover') {
+        const impact = event.type === 'cover' ? (t - contactAt(event)) / (1 - contactAt(event)) : t;
+        if (impact < 0) return;
+        ctx.save(); ctx.globalAlpha = 1 - impact;
+        for (let i = 0; i < 8; i++) {
+          const angle = i * TAU / 8, radius = impact * (event.type === 'cover' ? 36 : 24);
+          const x = p.x + Math.cos(angle) * radius, y = p.y + Math.sin(angle) * radius * .31;
+          ellipse(x, y - 8 - Math.sin(Math.PI * impact) * (i + 3), 2 + i % 4, 2,
+            event.type === 'cover' ? '#baaa87' : '#a89a79');
+        }
+        ctx.restore();
+      }
+    }
+
     function applyContact(event) {
       if (active.contacted) return;
       active.contacted = true;
@@ -341,7 +404,16 @@
         const unit = state.units.find(u => u.id === update.id);
         if (unit) unit.hp = update.hp;
       }
-      if (event.result?.hp?.length) onChange(copy(state));
+      for (const update of event.result?.marks || []) {
+        const unit = state.units.find(u => u.id === update.id);
+        if (unit) unit.mark = update.mark;
+      }
+      for (const update of event.result?.covers || []) {
+        const cover = state.covers.find(c => update.id ? c.id === update.id : same(c, update.at));
+        if (cover) cover.hp = update.hp;
+      }
+      if (event.result?.trails) state.trails = event.result.trails;
+      if (event.result) onChange(copy(state));
     }
 
     function stop(status = 'cancelled') {
@@ -365,8 +437,8 @@
 
     function finishEvent(event) {
       applyContact(event);
-      if (event.type === 'move' && event.path?.length) {
-        const unit = state.units.find(u => u.id === event.actor);
+      if ((event.type === 'move' || event.type === 'push') && event.path?.length) {
+        const unit = state.units.find(u => u.id === (event.type === 'push' ? event.target : event.actor));
         if (unit) {
           const pose = movingPose(unit, 1);
           facings.set(unit.id, pose.facing);
@@ -383,7 +455,7 @@
     function playEvent(event) {
       if (!state || !event?.id || seen.has(event.id) || active) return Promise.resolve('ignored');
       const safe = copy(event);
-      const duration = safe.duration || (safe.type === 'move' ? 290 * (safe.path?.length || 1) : safe.type === 'ranged' ? 890 : 750);
+      const duration = safe.duration || (safe.type === 'move' ? 290 * (safe.path?.length || 1) : ({ranged: 890, push: 390, mark: 490, markEnd: 380, trailPlace: 490, trailHit: 620, cover: 650})[safe.type] || 750);
       return new Promise(resolve => {
         active = { event: safe, previous: performance.now(), elapsed: 0, duration, resolve, contacted: false };
         function step(time) {
