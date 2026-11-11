@@ -107,10 +107,11 @@
   identityChip(app.querySelector('.screen-head'),snapshot.sheet?.identity);
   const uid=layout.querySelector('[data-item][aria-pressed=true]')?.dataset.item;
   const candidate=snapshot.inventory?.items.find(item=>item.uid===uid);
-  if(candidate&&motifs[candidate.id]&&!detail.querySelector('.rv-e5-item-art')){
+  const illustrated=!!(candidate&&motifs[candidate.id]);
+  detail.classList.toggle('rv-e5-artifact-detail',illustrated);
+  if(illustrated&&!detail.querySelector('.rv-e5-item-art')){
    const emblem=detail.querySelector('.item-emblem');
    emblem?.replaceWith(artifact(candidate.id));
-   detail.classList.add('rv-e5-artifact-detail');
   }
   if(!candidate?.slot||detail.querySelector('.rv-e5-compare')||!detail.querySelector('#item-equip'))return;
   const actor=snapshot.sheet?.selected||'main';
