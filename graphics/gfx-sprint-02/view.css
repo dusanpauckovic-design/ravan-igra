@@ -22,3 +22,5 @@ button:disabled{opacity:.55;cursor:default}.active-tag{color:var(--sage);font-si
 details{margin-top:9px;border-top:1px solid var(--line);padding-top:6px}summary{cursor:pointer;color:var(--muted);font-size:12px;padding:4px 0}#detail-actions{margin-top:6px}
 footer{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding-top:8px}
 @media(max-width:850px){main{padding:9px}.layout{grid-template-columns:1fr}.mast{flex-wrap:wrap}.scene-head h1{font-size:24px}}
+#action-panel:not(:empty){margin-top:8px;background:#121b16;border:1px solid var(--line);padding:8px;border-radius:5px;font-size:12px}
+#action-panel p{margin:4px 0;color:var(--muted);line-height:1.35}.action-controls{display:flex;gap:5px;margin-top:6px}

@@ -4,3 +4,4 @@ Baza je zamrznuti GFX-06 `3e7492109d87a8308955adc3bb636b7b641cde53`.
 GitHub red je [#27](https://github.com/dusanpauckovic-design/ravan-igra/issues/27).
 Predaje su kumulativne demonstracije. Svi podaci u preview-u su probni.
 - [GFX-07](GFX-07.md) · Jednostavan borbeni HUD · tehnicki spremno, ceka pregled · issue #38
+- [GFX-08](GFX-08.md) · Izbor akcije, mete i potvrda · tehnicki spremno, ceka pregled · issue #39

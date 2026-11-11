@@ -11,4 +11,24 @@ window.runRavanQA = async function(stage, check) {
   const p=ui.viewer.project(ui.scene.units[0]), cell=ui.viewer.hitTest(p.x,p.y);
   check('2D preklop zadrzava hex',cell.x===3 && cell.y===3);
   $('view').click(); ui.reset();
+  if(stage<8) return;
+  const pick=(x,y)=>{
+    const p=ui.viewer.project({x,y}), r=$('arena').getBoundingClientRect();
+    $('arena').dispatchEvent(new MouseEvent('click',{clientX:r.left+p.x*r.width/960,clientY:r.top+p.y*r.height/570}));
+  };
+  $('attack').click(); pick(3,3);
+  check('razlog blokade vidljiv',$('action-panel').textContent.includes('protivnika') && $('confirm').disabled);
+  pick(4,3);
+  check('pregled cene i ishoda',$('action-panel').textContent.includes('58 → 44') && $('action-panel').textContent.includes('Cena'));
+  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));
+  check('Escape otkazuje bez slanja',ui.actionPort.count()===0 && !$('confirm'));
+  $('heal').click(); pick(3,3);
+  check('lecenje prikazuje rezultat',$('action-panel').textContent.includes('64 → 76'));
+  $('cancel-action').click(); $('move').click(); pick(2,4);
+  check('kretanje prikazuje putanju',$('action-panel').textContent.includes('2 polja'));
+  const confirmation=$('confirm');
+  confirmation.click(); confirmation.click();
+  for(let i=0;i<25&&ui.actionPanel.isPending();i++) await new Promise(r=>setTimeout(r,60));
+  check('jedna potvrda, jedno slanje',ui.actionPort.count()===1 && ui.viewer.getSnapshot().units[0].y===4);
+  ui.reset(); $('attack').click(); pick(4,3);
 };

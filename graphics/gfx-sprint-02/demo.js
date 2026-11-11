@@ -13,7 +13,8 @@
     ],
     covers:[0,1,2,4,5].map(y=>({x:5,y})).concat([{id:'zaklon',x:5,y:3,hp:18,hpMax:18}])
   };
-  let selected = scene.active, flat = false, playing = false, sequence = 0;
+  let selected = scene.active, flat = false;
+  let actionPanel;
   const viewer = RavanGraphics.createRenderer(canvas, ART, drawHUD);
   const view = { $, copy, canvas, scene, viewer, text, button, select, reset, cellAt, drawHUD };
   const selectedUnit = state => state.units.find(u=>u.id===selected);
@@ -53,7 +54,7 @@
   }
   function select(id) { selected=id; viewer.select(id); drawHUD(viewer.getSnapshot()); }
   function reset(snapshot = scene) {
-    sequence++; playing=false; selected=snapshot.active;
+    actionPanel?.cancel(); selected=snapshot.active;
     viewer.reset(snapshot); select(selected);
     $('message').textContent='';
   }
@@ -68,6 +69,7 @@
   canvas.onpointerleave = () => { viewer.hover(null); $('hex').textContent='Pomeri pokazivac preko table.'; };
   canvas.onclick = event => {
     const cell=cellAt(event);
+    if(actionPanel.pick(cell)) return;
     const unit=viewer.getSnapshot().units.find(u=>cell && u.hp>0 && u.x===cell.x && u.y===cell.y);
     if(unit) select(unit.id);
   };
@@ -75,22 +77,9 @@
     flat=!flat; viewer.setMode(flat?'flat':'angled'); $('view').setAttribute('aria-pressed',String(flat));
     $('view').textContent=flat?'2.5D prikaz':'2D prikaz';
   };
-  const samples = {
-    attack:{type:'melee',actor:'a_radan',target:'e_0',result:{hp:[{id:'e_0',hp:44,delta:-14}]}},
-    move:{type:'move',actor:'a_radan',path:[{x:2,y:3},{x:2,y:4}],result:{}},
-    heal:{type:'sync',actor:'a_merin',target:'a_radan',duration:350,result:{hp:[{id:'a_radan',hp:76,delta:12}]}}
-  };
-  async function sample(key) {
-    if(playing) return;
-    reset(); playing=true;
-    const stamp=sequence;
-    await viewer.playEvent({...samples[key],id:'sample/'+key});
-    if(sequence!==stamp) return;
-    playing=false; $('message').textContent='Prikazan probni dogadjaj.';
-  }
-  for(const [key,label] of [['attack','Napad'],['move','Kretanje'],['heal','Lecenje']]){
-    $('actions').append(button(label,()=>sample(key),{id:key,className:key==='attack'?'primary':''}));
-  }
+  const actionPort=RavanFixtureActions();
+  actionPanel=RavanActionPanel(view,actionPort);
+  Object.assign(view,{actionPanel,actionPort});
   $('detail-actions').append(button('Ponovi scenu',()=>reset(),{id:'reset'}));
   reset();
   window.ravanSprint = view;

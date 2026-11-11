@@ -16,7 +16,7 @@ assets = {p.stem: 'data:image/webp;base64,' + base64.b64encode(p.read_bytes()).d
 if len(assets) != 7:
     parser.error("Missing RV-03 art. Use the complete graphics package or run prepare_art.py RV-03/assets.")
 parts = { 'STYLE': (root / 'view.css').read_text(), 'ASSETS': 'const ART = ' + json.dumps(assets) + ';',
-          'RENDERER': (root / 'renderer.js').read_text(), 'DEMO': (root / 'demo.js').read_text() }
+          'RENDERER': (root / 'renderer.js').read_text(), 'DEMO': '\n'.join(p.read_text() for p in sorted(root.glob('*.module.js'))) + '\n' + (root / 'demo.js').read_text() }
 source = args.source or 'sha256:' + hashlib.sha256(''.join(parts.values()).encode()).hexdigest()[:16]
 html = (root / 'index.html').read_text()
 for token, value in parts.items():
