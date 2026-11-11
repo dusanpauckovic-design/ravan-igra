@@ -8,3 +8,9 @@
 | 2026-11-11 | GFX-04 | Varijante varnica prema materijalu mete | Razlika izmedju oklopa, kamena i tkanine | Dogovor o metapodacima materijala | Za kasniji pregled |
 | 2026-11-11 | GFX-05 | Posebni simboli za nekoliko istovremenih oznaka | Citljivost u vecim borbama | Potrebni statusi iz engine-a | Za kasniji pregled |
 | 2026-11-11 | GFX-06 | Opcioni korak-po-korak pregled potvrdenih dogadjaja | Lakse hvatanje razlika tokom integracije | Potrebna evidencija iz gameplay prikaza | Za kasniji pregled |
+
+- E5-D1: probati svetliji rub istog ogrtaca na kisnoj podlozi i citljivost tri materijala u pokretu. Zaseban vizuelni eksperiment nakon Etape 5.
+- E5-D2: isprobati orijentir za povratak u kamp po mraku kada sat igre bude vezan za autoritativno doba dana.
+- E5-D3: probati kratak zvuk udara tetive za razlikovanje strelca bez pojacavanja vizuelnih efekata.
+- E5-D4: probati prikaz tragova upotrebe na predmetu tek kad igra razlikuje stanja istrosenosti.
+- E5-D5: prikaz poslednjeg potvrdenog odredista na Nastavi igru prosiriti na ostale regije posle usaglasavanja naziva lokacija.

@@ -8,12 +8,14 @@
   const ease = t => t * t * (3 - 2 * t);
   const TAU = Math.PI * 2;
   const SIZES = {
+    figure_hero: { height: 104, foot: .51 },
+    figure_scout: { height: 101, foot: .48 },
     figure_guard: { height: 101, foot: .48 },
     figure_archer: { height: 94, foot: .53 },
     figure_caster: { height: 99, foot: .49 },
     figure_wolf: { height: 57, foot: .52 }
   };
-  const contactAt = event => ({ ranged: .64, mark: .30, trailPlace: .35, trailHit: .25, cover: .43 })[event.type] || .46;
+  const contactAt = event => ({ ranged: .64, prepare:.34, release:.49, interrupt:.31, guard:.32, mark: .30, trailPlace: .35, trailHit: .25, cover: .43 })[event.type] || .46;
   const biomeTints={dolina:'#496b5340',suma:'#17493772',prevoj:'#7b6a5c68'};
   const actorScale={raider:1,shield:1.04,bow:.96,scout:.85,wolf:1,hound:.79,seer:1.05,giant:1.36};
   const attackTypes = new Set(['melee', 'ranged']);
@@ -147,6 +149,13 @@
           base.drawImage(layer, 0, 0);
         }
         if(biomeTints[state.biome]){base.fillStyle=biomeTints[state.biome];base.fillRect(0,0,W,H);}
+        if(state.approach){
+          const daylight=base.createLinearGradient(0,0,0,H);
+          daylight.addColorStop(0,'#e9c99724');
+          daylight.addColorStop(.55,'#667c3910');
+          daylight.addColorStop(1,'#224d4132');
+          base.fillStyle=daylight;base.fillRect(0,0,W,H);
+        }
         const shade = base.createRadialGradient(490, 287, 200, 490, 287, 565);
         shade.addColorStop(0, 'rgba(26,27,15,.04)'); shade.addColorStop(1, 'rgba(8,16,13,.82)');
         base.fillStyle = shade; base.fillRect(0, 0, W, H);
@@ -381,6 +390,7 @@
       const { x, y, width, height, foot, facing = 1, gait = 0 } = pose;
       const img = images[unit.sprite];
       if (!img?.naturalWidth) return;
+      const art = root.RavanAppearance?.texture(img, unit.identity) || img;
       const mirror = (unit.sprite === 'figure_wolf' ? -1 : 1) !== facing;
       ctx.save();
       ctx.translate(x, y);
@@ -389,18 +399,18 @@
       ctx.scale(mirror ? -1 : 1, 1);
       const left = -width * foot;
       if (Math.abs(gait) < .05) {
-        ctx.drawImage(img, left, -height, width, height);
+        ctx.drawImage(art, left, -height, width, height);
       } else {
         const bob = Math.abs(gait) * 2.3;
         const cut = Math.floor(img.naturalHeight * .76);
         const top = height * cut / img.naturalHeight;
         ctx.transform(1, 0, -Math.abs(gait) * .035, 1, 0, 0);
-        ctx.drawImage(img, 0, 0, img.naturalWidth, cut, left, -height - bob, width, top + 1);
+        ctx.drawImage(art, 0, 0, img.naturalWidth, cut, left, -height - bob, width, top + 1);
         const half = Math.floor(img.naturalWidth / 2);
         for (const [sx, sw, stride] of [[0, half, gait], [half, img.naturalWidth - half, -gait]]) {
           const part = img.naturalHeight - cut;
           const dx = left + width * sx / img.naturalWidth;
-          ctx.drawImage(img, sx, cut, sw, part, dx + stride * 2.2, -height + top - bob,
+          ctx.drawImage(art, sx, cut, sw, part, dx + stride * 2.2, -height + top - bob,
             width * sw / img.naturalWidth + .4, height - top + bob - Math.max(0, stride) * 3);
         }
       }
@@ -423,6 +433,10 @@
         ctx.beginPath();ctx.moveTo(8,anchor+13);ctx.lineTo(30,anchor-19);ctx.stroke();
         ctx.fillStyle=unit.elite?'#d8ad72':'#9d9885';
         ctx.fillRect(25,anchor-24,unit.elite?15:10,unit.elite?12:7);
+        if(state.approach&&unit.elite){
+          path([{x:5,y:anchor-24},{x:17,y:anchor-31},{x:27,y:anchor-22},{x:23,y:anchor-11},{x:10,y:anchor-14}]);
+          ctx.fillStyle='#756454';ctx.fill();ctx.strokeStyle='#d1b992';ctx.lineWidth=1.4;ctx.stroke();
+        }
       }else if(unit.kind==='seer'){
         ctx.beginPath();ctx.moveTo(21,0);ctx.lineTo(21,-height*.81);ctx.stroke();
         ellipse(21,-height*.83,5,5,'#d8b9ee');
@@ -430,6 +444,10 @@
         ctx.beginPath();ctx.moveTo(12,anchor-17);
         ctx.quadraticCurveTo(unit.kind==='bow'?36:28,anchor,12,anchor+17);
         ctx.lineTo(12,anchor-17);ctx.stroke();
+        if(state.approach){
+          ctx.lineWidth=1.35;ctx.strokeStyle='#f1dbc0';
+          ctx.beginPath();ctx.moveTo(11,anchor-17);ctx.lineTo(11,anchor+17);ctx.stroke();
+        }
       }else if(unit.kind==='hound'){
         ctx.strokeStyle='#c5ad72';ctx.beginPath();ctx.moveTo(7,anchor-6);ctx.lineTo(13,anchor+4);ctx.stroke();
       }
@@ -447,6 +465,7 @@
       }
       if (state.active === unit.id && unit.hp > 0) ellipse(x, y, 29, 10, null, '#b4dec3');
       if(unit.elite && unit.hp>0)ellipse(x,y,34,12,null,'#e2a65d');
+      if(unit.guarding&&state.approach&&unit.hp>0)ellipse(x,y,23,8,'#548e8536','#92cdbb');
       if (selected === unit.id && unit.hp > 0) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
       drawSprite(unit, pose);
     }
@@ -458,6 +477,10 @@
       ctx.fillStyle = unit.team === 'enemy' ? '#e29276' : '#b4c38a';
       ctx.fillRect(x - 20, y - height - 11, 40 * hp, 5);
       if(unit.elite && unit.hp>0)ellipse(x,y,34,12,null,'#e2a65d');
+      if (unit.tactical) {
+        const prepared=unit.tactical==='prepare';
+        tag(x,y-height-37,prepared?'Priprema':'Prekinut',prepared?'#ffd09f':'#bce8da');
+      }
       if (selected === unit.id || state.active === unit.id) {
         const name=unit.name.length>22 ? unit.name.slice(0,20)+'…' : unit.name;
         tag(x, y - height - 17, name + '  ' + unit.hp + '/' + unit.hpMax,
@@ -544,7 +567,7 @@
         }
       }
       if (active && attackTypes.has(active.event.type)) drawAttack(active.event, t);
-      if (active) { drawMagic(active.event, t); drawRoleEvent(active.event, t); }
+      if (active) { drawMagic(active.event, t); drawRoleEvent(active.event, t); drawTacticalEvent(active.event,t); }
       statuses.forEach(([unit, pose]) => drawUnitStatus(unit, pose));
       ctx.restore();
     }
@@ -645,6 +668,33 @@
       }
     }
 
+    function drawTacticalEvent(event,t) {
+      if(!['prepare','release','interrupt'].includes(event.type))return;
+      const contact=contactAt(event);
+      const unit=state.units.find(u=>u.id===(event.type==='interrupt'?event.target:event.actor));
+      if(!unit)return;
+      const at=project(unit);
+      if(event.type==='prepare'||event.type==='interrupt'){
+        const prepared=event.type==='prepare';
+        ctx.save();ctx.globalAlpha=Math.sin(Math.PI*t);
+        ellipse(at.x,at.y,37,14,null,prepared?'#efac78':'#bde3cf');
+        tag(at.x,at.y-102,prepared?'Priprema':'Prekinuto',prepared?'#ffd0a1':'#bde3cf');
+        ctx.restore();
+      }else if(t>=contact){
+        const progress=(t-contact)/(1-contact);
+        ctx.save();ctx.globalAlpha=1-progress;
+        for(const cell of event.cells||[]){
+          const p=project(cell);
+          ellipse(p.x,p.y,16+progress*32,7+progress*10,null,'#ebaa77');
+        }
+        for(const update of event.result?.hp||[]){
+          const hit=state.units.find(u=>u.id===update.id);
+          if(hit){const p=project(hit);tag(p.x,p.y-64-progress*22,String(update.delta),'#ffd098');}
+        }
+        ctx.restore();
+      }
+    }
+
     function drawRoleEvent(event,t) {
       if(!['guard','observe','heal'].includes(event.type))return;
       const unit=state.units.find(u=>u.id===(event.type==='guard'?event.actor:event.target));
@@ -686,6 +736,10 @@
       }
       if (event.result?.trails) state.trails = event.result.trails;
       if (event.result?.danger) state.danger = event.result.danger;
+      for(const update of event.result?.tactical||[]){
+        const unit=state.units.find(u=>u.id===update.id);
+        if(unit)unit.tactical=update.status;
+      }
       if (event.result?.active) state.active = event.result.active;
       if (event.result) onChange(copy(state));
     }
@@ -731,7 +785,7 @@
     function playEvent(event) {
       if (!state || !event?.id || seen.has(event.id) || active) return Promise.resolve('ignored');
       const safe = copy(event);
-      const fullDuration = safe.duration || (safe.type === 'move' ? 230 * (safe.path?.length || 1) : ({ranged: 660, push: 310, mark: 490, markEnd: 380, trailPlace: 490, trailHit: 620, cover: 650})[safe.type] || 590);
+      const fullDuration = safe.duration || (safe.type === 'move' ? 230 * (safe.path?.length || 1) : ({ranged: 660, push: 310, prepare:340, release:630, interrupt:410, guard:380, mark: 490, markEnd: 380, trailPlace: 490, trailHit: 620, cover: 650})[safe.type] || 590);
       const duration = reducedMotion ? Math.max(1, fullDuration * .33) : fullDuration;
       return new Promise(resolve => {
         active = { event: safe, previous: performance.now(), elapsed: 0, duration, resolve, contacted: false };

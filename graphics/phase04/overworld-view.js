@@ -44,6 +44,7 @@ function routeStroke(ctx,path,color,width){
  ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();
 }
 function ground(region,projection,low){
+ const finish=root.RavanE5World;
  const canvas=node('canvas','');
  canvas.width=Math.ceil(projection.width*36);
  canvas.height=Math.ceil((projection.bottom-projection.top+2)*36);
@@ -54,6 +55,7 @@ function ground(region,projection,low){
  for(const [index,tile] of region.cells.entries()){
   const polygon=projection.cell(index);
   fillPolygon(ctx,polygon,surface[tile.terrain]||grass);
+  if(finish?.paintCell(ctx,region,projection,index,tile,low))continue;
   ctx.save();ctx.globalAlpha=.15;ctx.translate(.014,0);
   fillPolygon(ctx,polygon,tile.decoration%2?light:'#15251f');ctx.restore();
  }
@@ -75,15 +77,17 @@ function ground(region,projection,low){
    fillPolygon(ctx,[[cx-.39,cy+.27],[cx-.23,cy-height*.4],[cx+.02,cy-height],[cx+.43,cy+.23]],'#393b38');
    fillPolygon(ctx,[[cx-.39,cy+.27],[cx+.02,cy-height],[cx+.12,cy+.20]],rock);
   }
-  if(tile.terrain==='water'&&!low){
+  if(!finish&&tile.terrain==='water'&&!low){
    const [cx,cy]=center;
    routeStroke(ctx,[[cx-.24,cy-.16],[cx-.03,cy-.10],[cx+.16,cy-.12]],'#68a49d',.025);
   }
  }
+ if(finish)finish.paintLight(ctx,region,projection);
  // Paint forest clusters in scan order so nearer crowns cover distant trunks.
  for(const [index,tile] of region.cells.entries()){
   if(tile.terrain!=='wood')continue;
   const [cx,cy]=projection.point(index);
+  if(finish?.paintTrees(ctx,region,projection,index,tile,low))continue;
   const count=low?1:2+tile.decoration%3;
   for(let n=0;n<count;n++){
    const x=cx+(n-(count-1)/2)*.22,y=cy+(n%2)*.13;
@@ -139,6 +143,8 @@ function mount(host,port,camera={}){
    id,index,name:names.get(id)||(id==='next'?'Sledeca regija':'Prethodna regija'),
    sign:id==='next'?'›':id==='previous'?'‹':id==='camp'?'⌂':'◆'
   }));
+  const trace=root.RavanE5World?.marker(s,region);
+  if(trace)list.push(trace);
   for(const group of visibleGroups)list.push({id:group.id,index:group.index,name:group.name||'Grupa',sign:'●',group:true});
   const signature=JSON.stringify(list);
   if(markerKey===signature)return;
@@ -150,7 +156,10 @@ function mount(host,port,camera={}){
    const badge=node('span','rv19-pin',entry.sign), name=node('span','rv19-name',entry.name);
    badge.setAttribute('aria-hidden','true');
    button.append(badge,name);
-   if(entry.group)button.addEventListener('click',()=>showGroup(entry));
+   if(entry.trace){
+    button.classList.add('rv-e5-trace-pin');
+    button.addEventListener('click',()=>root.RavanE5World.openTrace(stage));
+   }else if(entry.group)button.addEventListener('click',()=>showGroup(entry));
    else{button.dataset.act='ow-select';button.dataset.id=entry.id;}
    markers.append(button);
    return {...entry,button};
@@ -199,10 +208,22 @@ function mount(host,port,camera={}){
   ctx.drawImage(terrain,0,projection.top-1,projection.width,mapHeight);
   const discovered=new Set(s.discovered[s.region]||[]);
   for(let i=0;i<region.cells.length;i++)if(!discovered.has(i))fillPolygon(ctx,projection.cell(i),'#101d2082');
-  const plan=s.journey|| (s.selection?port.preview(s.selection)?.plan:null);
+  const markedPath=root.RavanE5Journey?.markedPath(s,region);
+  if(markedPath?.length){
+   const points=markedPath.map(projection.point);
+   routeStroke(ctx,points,'#203e31',.26);
+   ctx.setLineDash([.065,.11]);
+   routeStroke(ctx,points,'#d0e8a2',.115);
+   ctx.setLineDash([]);
+  }
+  const tracePreview=root.RavanE5World?.routePreview(s,stage);
+  const plan=s.journey||tracePreview||(s.selection?port.preview(s.selection)?.plan:null);
   if(plan?.path.length){
    const path=[s.index,...plan.path].map(projection.point);
-   routeStroke(ctx,path,'#1d241d',.19);routeStroke(ctx,path,ink,.085);
+   routeStroke(ctx,path,'#1d241d',.20);
+   if(plan.approach==='covered')ctx.setLineDash([.18,.12]);
+   routeStroke(ctx,path,plan.approach==='covered'?'#b2e2c7':ink,.092);
+   ctx.setLineDash([]);
   }
   ctx.restore();
   transform={ox,oy,scale};
@@ -215,6 +236,10 @@ function mount(host,port,camera={}){
    entry.button.hidden=px<12||px>width-12||py<24||py>height-48;
    entry.button.style.left=px+'px';entry.button.style.top=py+'px';
    entry.button.classList.toggle('known',discovered.has(entry.index));
+   const marked=!!markedPath?.length&&['river','forest'].includes(entry.id);
+   entry.button.classList.toggle('rv-e5-marked-end',marked);
+   if(marked)entry.button.setAttribute('aria-label',entry.name+' · Obelezena staza');
+   else if(entry.button.getAttribute('aria-label')!==entry.name)entry.button.setAttribute('aria-label',entry.name);
    entry.button.setAttribute('aria-pressed',String(s.selection===entry.id||s.journey?.id===entry.id));
   }
   Object.assign(camera,{key,zoom,pan,centered,low});
@@ -224,6 +249,7 @@ function mount(host,port,camera={}){
   const heading=host.closest('.rv19-map')?.querySelector('h1');
   if(heading&&heading.textContent!==biomes[region.biome])heading.textContent=biomes[region.biome]||region.biome;
  }
+ stage.addEventListener('ravan-trace-preview',draw);
  const observer=typeof ResizeObserver==='function'?new ResizeObserver(draw):null;
  observer?.observe(stage);
  draw();
