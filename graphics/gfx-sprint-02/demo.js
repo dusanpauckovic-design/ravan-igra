@@ -80,6 +80,9 @@
   const actionPort=RavanFixtureActions();
   actionPanel=RavanActionPanel(view,actionPort);
   Object.assign(view,{actionPanel,actionPort});
+  view.screens=RavanScreens(view);
+  view.partyPort=RavanFixtureParty();
+  RavanPartyPanel(view,view.partyPort);
   $('detail-actions').append(button('Ponovi scenu',()=>reset(),{id:'reset'}));
   reset();
   window.ravanSprint = view;
