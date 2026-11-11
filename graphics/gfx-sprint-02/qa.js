@@ -1,8 +1,24 @@
 window.runRavanQA = async function(stage, check) {
   const ui=window.ravanSprint, $=ui.$;
   await ui.viewer.ready;
+  if(stage>=18){
+    check('prvi ekran prikazuje cilj i obe ulazne komande',ui.screens.get()==='opening' && $('screen').textContent.includes('Tihog lovca') && !!$('opening-enter') && !!$('opening-party'));
+    check('prvi ekran staje u desktop viewport',$('opening-enter').getBoundingClientRect().bottom<=innerHeight && document.documentElement.scrollWidth<=innerWidth);
+    document.querySelectorAll('.opening-member')[1].click();
+    check('portret Ive otvara njenu karticu',ui.screens.get()==='party' && document.querySelector('[data-party=a_iva]').getAttribute('aria-pressed')==='true');
+    ui.partyView.openMember('a_radan');
+    ui.screens.open('opening');$('opening-enter').click();
+    check('prvi ulaz priprema susret',ui.screens.get()==='battle' && ui.viewer.getSnapshot().units[3].hp===28);
+    const resumed=ui.copy(ui.viewer.getSnapshot());resumed.units[3].hp=14;
+    ui.reset(resumed);ui.screens.open('opening');
+    check('nastavak cuva stanje susreta',$('opening-enter').textContent==='Nastavi susret');
+    $('opening-enter').click();
+    check('nastavak ne resetuje HP',ui.viewer.getSnapshot().units[3].hp===14);
+    ui.loadEncounter('Kameni prolaz','Savladaj Tihog lovca.',ui.scene);
+    check('borbeni HUD prikazuje HP trake',document.querySelectorAll('#roster progress').length===3);
+  }
   if(stage>=16){
-    check('zavrsna proba pocinje u druzini',ui.screens.get()==='party');
+    if(stage<18)check('zavrsna proba pocinje u druzini',ui.screens.get()==='party');
     document.querySelector('[data-screen=battle]').click();
   }
   const rect=$('arena').getBoundingClientRect(), actions=$('actions').getBoundingClientRect();
@@ -99,6 +115,11 @@ window.runRavanQA = async function(stage, check) {
   document.querySelector('#battle details').open=true;
   if(stage<14)return;
   check('pobeda otvara rezime i jedan izbor',ui.screens.get()==='outcome' && $('claim-reward').disabled);
+  if(stage>=18) {
+    ui.screens.open('opening');
+    check('sa pocetka se vraca na nepotvrdjenu nagradu',$('opening-enter').textContent==='Otvori rezime');
+    $('opening-enter').click();
+  }
   check('nedostupna nagrada ima razlog',document.querySelector('[data-reward=gold]').disabled && $('screen').textContent.includes('nedostupna'));
   document.querySelector('[data-reward=wood]').click();
   const claim=$('claim-reward'), prior=ui.outcomePort.count();
@@ -160,7 +181,9 @@ window.runRavanQA = async function(stage, check) {
     ui.reset();
     check('reset uklanja sve oznake',guide()===null);
   }
-  document.querySelector('[data-screen=party]').click();
+  if(stage>=18){
+    ui.startEncounter();ui.screens.open('opening');
+  } else document.querySelector('[data-screen=party]').click();
   document.addEventListener('click',e=>{if(e.isTrusted)window.__trusted=(window.__trusted||0)+1;},true);
   document.addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Enter')window.__trustedEnter=(window.__trustedEnter||0)+1;},true);
 

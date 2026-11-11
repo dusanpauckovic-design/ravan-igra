@@ -61,7 +61,7 @@ def on_result(js, value):
             sys.path.insert(0, str(Path(__file__).parent))
             sys.dont_write_bytecode = True
             from native_qa import run
-            qt.QTimer.singleShot(250, lambda: run(widget, results, lambda: capture(results)))
+            qt.QTimer.singleShot(250, lambda: run(widget, results, lambda: capture(results), stage=stage))
         else:
             qt.QTimer.singleShot(250, lambda: capture(results))
 

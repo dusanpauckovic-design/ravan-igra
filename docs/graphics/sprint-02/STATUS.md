@@ -14,3 +14,5 @@ Predaje su kumulativne demonstracije. Svi podaci u preview-u su probni.
 - [GFX-15](GFX-15.md) · Opciona pomoc i povratna informacija · tehnicki spremno, ceka pregled · issue #46
 - [GFX-16](GFX-16.md) · Zaokruzen UI/UX tok i RV-23 predaja · tehnicki spremno, ceka pregled · issue #47
 - [GFX-17](GFX-17.md) · Oznake meta i pregled putanje · samostalna graficka dorada na posebnoj grani.
+
+- [GFX-18](GFX-18.md) · Prvi ekran i dorada svih UI ekrana · zasebna graficka grana.
