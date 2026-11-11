@@ -12,7 +12,9 @@
 .rv-e5-route span:first-of-type{color:#f5cd89;font-weight:600}
 .rv-e5-route[data-route=covered] span:first-of-type{color:#bce5cf}
 .rv-e5-route span:last-of-type{color:#d8dccc;width:100%}
-.rv-e5-trace [data-act]{min-height:34px}
+.rv-e5-trace button{min-height:34px;padding:4px 11px;border:1px solid #988360;border-radius:4px;background:#403722;color:#ffebc9;cursor:pointer;font:inherit}
+.rv-e5-route[data-route=covered] button{background:#2b4035;border-color:#7fa68b;color:#d9f1df}
+.rv-e5-trace button:focus-visible,.rv-e5-trace button[aria-pressed=true]{outline:2px solid #f5d9a4;outline-offset:2px}
 @media(min-width:900px){
  .rv-e5-world-layout.rv-e5-with-trace{grid-template-columns:minmax(0,1fr) minmax(225px,23%)}
  .rv-e5-trace{align-self:start}

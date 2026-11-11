@@ -105,7 +105,9 @@
   if(trace.status==='observed')panel.dataset.choices='true';
   if(trace.status==='approaching'){
    panel.dataset.route=trace.approach;
-   panel.querySelector('p').textContent=accents[trace.approach]||trace.name;
+   const [clue, progress]=panel.querySelectorAll('p');
+   clue.textContent=accents[trace.approach]||trace.name;
+   progress?.remove();
   }
   for(const button of panel.querySelectorAll('[data-act="ow-approach"]')){
    const item=trace.approaches.find(option=>option.id===button.dataset.id);
