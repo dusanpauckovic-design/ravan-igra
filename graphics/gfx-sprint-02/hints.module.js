@@ -7,16 +7,16 @@ window.RavanHints=function mountHints(ui) {
   const toggle=button('Preskoci pomoc',()=>{enabled=false;option.checked=false;render();},{id:'skip-hints'});
   bar.append(words,toggle);
   $('action-panel').before(bar);
-  const option=document.createElement('input');option.type='checkbox';option.id='hint-toggle';option.checked=true;
+  const option=document.createElement('input');option.type='checkbox';option.id='hint-toggle';option.checked=false;
   const mute=document.createElement('input');mute.type='checkbox';mute.id='mute';mute.checked=true;
   const label=text('label','','preference');label.append(option,' Saveti');
   const audioLabel=text('label','','preference');audioLabel.append(mute,' Bez zvuka');
   $('detail-actions').append(label,audioLabel);
-  let enabled=true, current='choose', audio=null, comboSeen=false;
+  let enabled=false, current='choose', audio=null, comboSeen=false;
   const prompts={
     choose:'Izaberi akciju. Meta se bira na tabli.',
     target:'Izaberi metu ili polje na tabli.',
-    preview:'Proveri ishod. Potvrdi ili pritisni Escape.',
+    preview:'Proveri ishod pa potvrdi ili odustani.',
     blocked:'Promeni metu prema razlogu ispod.',
     combo:'Oznacena meta moze da se odgurne na pripremljen trag.'
   };

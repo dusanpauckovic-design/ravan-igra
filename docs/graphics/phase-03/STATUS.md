@@ -7,3 +7,4 @@ Grana `graphics/phase-03-ui`. Kumulativni UI koristi probne podatke.
 - [UI-03](UI-03.md) · Inventar, trgovac i plen · spremno za pregled · #64
 - [UI-04](UI-04.md) · Dolina prevoja i kamp · spremno za pregled · #65
 - [UI-05](UI-05.md) · Povezan probni RPG tok i predaja za RV-33 · spremno za pregled · #66
+- [UI-FIX](UI-FIX.md) · Borba preko celog prozora i komande na klik · graficka predaja za #67 i #68 · potvrda nativnog fullscreena ceka podrzani browser

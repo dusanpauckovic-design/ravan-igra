@@ -74,6 +74,34 @@ window.runPhaseQA=async function(stage,check){
   tap('#inventory-search');$('inventory-search').value='ne postoji';$('inventory-search').dispatchEvent(new Event('input'));
   check('prazna pretraga ima objasnjenje',$('screen').textContent.includes('Nema predmeta'));
   tap('[data-screen=camp]');
+  if(stage>=6){
+    ui.startEncounter();
+    const board=$('arena').getBoundingClientRect(), dock=$('battle-dock').getBoundingClientRect();
+    check('tabla puni viewport i zaglavlje je sklonjeno',board.width===innerWidth&&board.height===innerHeight&&document.querySelector('.mast').getBoundingClientRect().height===0);
+    const verify=()=>{
+      const state=ui.viewer.getSnapshot();
+      for(let y=0;y<state.height;y++)for(let x=0;x<state.width;x++){
+        const p=ui.viewer.boardToClient(ui.viewer.project({x,y}));
+        const boardPoint=ui.viewer.clientToBoard(p.x,p.y), c=ui.viewer.hitTest(boardPoint.x,boardPoint.y);
+        if(!c||c.x!==x||c.y!==y||p.y>=$('battle-dock').getBoundingClientRect().top)return false;
+      }
+      return true;
+    };
+    check('svaki heks je dostupan iznad trake',verify());
+    $('view').click();check('2D i 2.5D imaju tacan hit-test',verify());$('view').click();
+    $('move').click();
+    let p=ui.viewer.boardToClient(ui.viewer.project({x:4,y:4}));
+    $('arena').dispatchEvent(new MouseEvent('click',{clientX:p.x,clientY:p.y}));
+    check('pregled prikazuje putanju bez kretanja',ui.viewer.getSnapshot().units[0].y===3&&$('confirm').textContent==='Potvrdi kretanje'&&ui.viewer.getTargeting().path.length===1);
+    check('otvoren preview ne pokriva heksove',verify());
+    $('cancel-action').click();
+    $('battle-details').click();$('battle-settings').click();
+    check('jedan panel prikazuje samo izabrani sadrzaj',$('drawer-inspect').hidden&&!$('detail-actions').hidden);
+    $('drawer-close').click();
+    $('battle-sheet').click();
+    // Return to the campaign setup for the native-click path.
+    ui.screens.open('camp');
+  }
   window.__trusted=0;window.__trustedEnter=0;
   document.addEventListener('click',e=>{if(e.isTrusted)window.__trusted++;},true);
   document.addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Enter')window.__trustedEnter++;},true);

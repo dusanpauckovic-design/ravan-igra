@@ -42,11 +42,21 @@
     const turn = text('div','','turn-card');
     turn.append(text('span','NA POTEZU','active-tag'), text('strong',active?.name || '—'));
     $('turn').append(turn);
+    const order=$('battle-order');
+    const allies=state.units.filter(unit=>unit.team==='ally'&&unit.hp>0);
+    const next=allies.findIndex(unit=>unit.id===state.active);
+    order.textContent='';
+    if(next>=0)for(const u of [...allies.slice(next),...allies.slice(0,next)]){
+      const b=button(u.name,()=>{select(u.id);view.battleShell.inspect();},{className:'order-person'});
+      b.setAttribute('aria-label','Detalji · '+u.name);
+      if(u.id===state.active)b.setAttribute('aria-current','true');
+      order.append(b);
+    }
     $('selection').textContent = current ? 'Izabrano · '+current.name : '';
     const roster = $('roster');
     const priorFocus = roster.contains(document.activeElement) ? document.activeElement.dataset.unit : null;
     roster.textContent = '';
-    for (const unit of state.units.filter(u=>u.team==='ally')) {
+    for (const unit of state.units) {
       const el = button('',()=>select(unit.id),{className:'unit'});
       el.dataset.unit = unit.id;
       el.setAttribute('aria-pressed',String(unit.id===selected));
@@ -64,7 +74,7 @@
   }
   function select(id) { selected=id; viewer.select(id); drawHUD(viewer.getSnapshot()); }
   function reset(snapshot = encounter.snapshot) {
-    view.onReset?.(); actionPanel?.cancel(); selected=snapshot.active;
+    view.onReset?.(); view.battleShell?.close(); actionPanel?.cancel(); selected=snapshot.active;
     viewer.reset(snapshot); select(selected);
     $('message').textContent='';
     view.hints?.set('choose');
@@ -78,23 +88,23 @@
     view.screens.open('battle');
   }
   function cellAt(event) {
-    const rect=canvas.getBoundingClientRect();
-    return viewer.hitTest((event.clientX-rect.left)*canvas.width/rect.width,(event.clientY-rect.top)*canvas.height/rect.height);
+    const point=viewer.clientToBoard(event.clientX,event.clientY);
+    return viewer.hitTest(point.x,point.y);
   }
-  canvas.onpointermove = event => {
-    const cell=cellAt(event); viewer.hover(cell);
-    if(!cell){$('hex').textContent='Izvan table';return;}
+  function describe(cell){
     const entry=viewer.describeCell(cell);
     const type={earth:'zemlja',grass:'trava',mud:'blato',stone:'kamen'}[entry.kind];
     const label=entry.cover ? entry.cover.breakable ? ' · lomljiv zaklon '+entry.cover.hp+' HP' : ' · prepreka' : '';
     $('hex').textContent='Hex '+cell.x+', '+cell.y+' · '+type+label;
-  };
-  canvas.onpointerleave = () => { viewer.hover(null); $('hex').textContent='Pomeri pokazivac preko table.'; };
+  }
+  canvas.onpointermove = event => viewer.hover(cellAt(event));
+  canvas.onpointerleave = () => viewer.hover(null);
   canvas.onclick = event => {
     const cell=cellAt(event);
-    if(view.isReplayRunning?.() || actionPanel.pick(cell)) return;
-    const unit=viewer.getSnapshot().units.find(u=>cell && u.hp>0 && u.x===cell.x && u.y===cell.y);
-    if(unit) select(unit.id);
+    if(!cell||view.isReplayRunning?.()||actionPanel.pick(cell)) return;
+    const unit=viewer.getSnapshot().units.find(u=>u.hp>0 && u.x===cell.x && u.y===cell.y);
+    if(unit)select(unit.id);
+    describe(cell);view.battleShell.inspect();
   };
   $('view').onclick=()=>{
     flat=!flat; viewer.setMode(flat?'flat':'angled'); $('view').setAttribute('aria-pressed',String(flat));
@@ -104,6 +114,7 @@
   actionPanel=RavanActionPanel(view,actionPort);
   Object.assign(view,{actionPanel,actionPort});
   view.screens=RavanScreens(view);
+  view.battleShell=RavanBattleShell(view);
   view.partyPort=RavanFixtureParty();
   view.partyView=RavanPartyPanel(view,view.partyPort);
   view.skillPort=RavanFixtureSkills(RavanSkillCatalog);

@@ -27,6 +27,33 @@
     const images = {};
     let state, mode = 'angled', selected = null, hovered = null, speed = 1;
     let targeting = null;
+    // The renderer keeps its logical plane. The viewport owns the CSS-to-board transform.
+    let viewport = null;
+    const fit = () => {
+      if(!viewport) return {scale:1,x:0,y:0};
+      const {width,height,top,bottom}=viewport;
+      const available=Math.max(1,height-top-bottom);
+      const scale=Math.min(width/W,available/H);
+      return {scale,x:(width-W*scale)/2,y:top+(available-H*scale)/2};
+    };
+    function resize(width,height,{top=0,bottom=0,dpr=1}={}){
+      if(width<=0||height<=0)return;
+      dpr=Math.max(1,Math.min(3,dpr));
+      if(viewport&&width===viewport.width&&height===viewport.height&&top===viewport.top&&bottom===viewport.bottom&&dpr===viewport.dpr)return;
+      viewport={width,height,top,bottom,dpr};
+      canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
+      draw();
+    }
+    function clientToBoard(clientX,clientY){
+      const rect=canvas.getBoundingClientRect(), p=fit();
+      if(!viewport)return {x:(clientX-rect.left)*W/rect.width,y:(clientY-rect.top)*H/rect.height};
+      return {x:(clientX-rect.left-p.x)/p.scale,y:(clientY-rect.top-p.y)/p.scale};
+    }
+    function boardToClient(point){
+      const rect=canvas.getBoundingClientRect(), p=fit();
+      if(!viewport)return {x:rect.left+point.x*rect.width/W,y:rect.top+point.y*rect.height/H};
+      return {x:rect.left+p.x+point.x*p.scale,y:rect.top+p.y+point.y*p.scale};
+    }
     let active = null, frame = 0, cameraEffects = true, reducedMotion = false;
     let landscape = null, terrainLayer = null, enhancedTerrain = true, enhancedFigures = true;
     const seen = new Set();
@@ -120,7 +147,10 @@
         shade.addColorStop(0, 'rgba(26,27,15,.04)'); shade.addColorStop(1, 'rgba(8,16,13,.82)');
         base.fillStyle = shade; base.fillRect(0, 0, W, H);
       }
-      ctx.drawImage(landscape, 0, 0);
+      if(!viewport){ctx.drawImage(landscape,0,0);return;}
+      const {width,height}=viewport;
+      const scale=Math.max(width/W,height/H), w=W*scale,h=H*scale;
+      ctx.drawImage(landscape,(width-w)/2,(height-h)/2,w,h);
     }
 
     function terrainAt(cell) {
@@ -423,8 +453,13 @@
     function draw() {
       if (!state) return;
       const t = active ? Math.min(1, active.elapsed / active.duration) : 0;
+      const dpr=viewport?.dpr || 1;
+      ctx.setTransform(dpr,0,0,dpr,0,0);
       background();
       ctx.save();
+      const placement=fit();
+      ctx.translate(placement.x,placement.y);
+      ctx.scale(placement.scale,placement.scale);
       if (cameraEffects && !reducedMotion && active?.event.impact === 'heavy') {
         const kick = (t - contactAt(active.event)) / .19;
         if (kick >= 0 && kick < 1) ctx.translate(Math.sin(kick * Math.PI * 3) * (1 - kick) * 4, (1 - kick) * 1.4);
@@ -583,6 +618,7 @@
       }
       if (event.result?.trails) state.trails = event.result.trails;
       if (event.result?.danger) state.danger = event.result.danger;
+      if (event.result?.active) state.active = event.result.active;
       if (event.result) onChange(copy(state));
     }
 
@@ -647,7 +683,7 @@
     }
 
     return {
-      ready, project, hitTest, renderSnapshot, reset, playEvent,
+      ready, project, hitTest, renderSnapshot, reset, playEvent, resize, clientToBoard, boardToClient,
       setTargeting(guide) { targeting=guide ? copy(guide) : null; draw(); },
       getTargeting() { return copy(targeting); },
       cancel() { stop(); draw(); },

@@ -213,3 +213,43 @@ body{min-height:100vh}
 #screen-back{margin-left:auto}
 #screen-back:not([hidden])+nav{margin-left:0}
 @media(max-width:900px){.mast nav button{padding-inline:7px}}
+
+/* Battle owns the available viewport independently of the browser fullscreen API. */
+#app[data-view=battle]{position:fixed;top:0;right:0;bottom:0;left:0;max-width:none;width:100%;margin:0;padding:0;overflow:hidden}
+#app[data-view=battle]>.mast,#app[data-view=battle]>footer{display:none}
+#app:fullscreen{width:100%;height:100%;max-width:none;background:var(--deep);overflow:auto}
+#battle{position:absolute;top:0;right:0;bottom:0;left:0;isolation:isolate;background:#151e18;color:var(--ink)}
+.battle-frame,.battle-frame canvas{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%}
+.battle-top{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}
+.battle-goal,.battle-tools{pointer-events:auto}
+.battle-goal{background:#141d16dc;border-radius:7px;padding:6px 9px;min-width:0}
+.battle-goal h1{font-size:clamp(17px,2vw,23px);margin:0 0 2px}
+.battle-goal p{font-size:12px;color:var(--muted)}
+#battle-order,.battle-tools,.dock-tools{display:flex;flex-wrap:wrap}
+#battle-order{margin-top:4px}
+#battle-order button,.battle-tools button,.dock-tools button{min-height:30px;margin:2px 3px 0 0}
+#battle-order [aria-current=true]{border-color:var(--brass)}
+.battle-tools{justify-content:flex-end}
+.battle-dock{position:absolute;bottom:8px;bottom:max(8px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 18px);padding:7px 9px;background:#17231bec;border:1px solid #667969;border-radius:9px}
+.battle-controls{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:7px}
+#battle-dock #actions{display:flex;flex-wrap:wrap;justify-content:center;gap:0}
+#battle-dock #actions button{padding:4px 9px;margin:2px 3px 0 0}
+#battle-dock .turn-card{padding:4px 7px}
+#battle-dock .turn-card strong{font-size:17px}
+#battle-dock #action-panel:not(:empty){margin:0 0 5px;padding:6px 7px}
+#battle-dock #action-panel p{margin:2px 0}
+#battle-dock .action-controls{margin-top:4px}
+#battle-dock #message:not(:empty){margin:2px 0 5px}
+.battle-drawer{position:absolute;z-index:2;top:106px;right:12px;width:min(305px,calc(100% - 24px));max-height:calc(100% - 250px);overflow:auto;padding:9px;background:#19251bef;border:1px solid #67796b;border-radius:8px}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.drawer-head h2{margin:0}
+#drawer-inspect #hex,#drawer-inspect #selection{font-size:12px;margin-bottom:5px}
+#battle-sheet{margin-top:7px}
+#fullscreen-status{position:absolute;top:83px;right:12px;max-width:min(390px,calc(100% - 24px));background:#47352aec;border:1px solid #b5906a;border-radius:6px;padding:7px 9px;font-size:12px;z-index:3}
+@media(max-width:690px){
+ .battle-top{top:5px;left:6px;right:6px;gap:4px}
+ .battle-top button,.dock-tools button{padding-inline:5px}
+ .battle-dock{max-width:calc(100% - 10px);padding:5px}
+ .battle-controls{gap:2px}
+ .battle-drawer{top:98px;max-height:calc(100% - 240px)}
+}

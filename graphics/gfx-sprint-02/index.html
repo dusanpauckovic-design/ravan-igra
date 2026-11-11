@@ -6,19 +6,27 @@
 <style>/*STYLE*/</style>
 <body><main id="app">
 <header class="mast"><span class="brand">RAVAN</span><span class="demo">Demonstracija</span><nav id="nav" aria-label="Ekrani"></nav></header>
-<section id="battle" class="layout">
- <section class="stage" aria-labelledby="arena-title">
-  <div class="scene-head"><div><h1 id="arena-title">Kameni prolaz</h1><p id="objective">Cilj · Savladaj Tihog lovca.</p></div><button id="view" aria-pressed="false">2D prikaz</button></div>
-  <div class="frame"><canvas id="arena" width="960" height="570" tabindex="0" aria-label="Hex tabla" aria-describedby="board-controls hex"></canvas></div>
-  <div class="board-foot"><span id="hex" aria-live="polite">Pomeri pokazivac preko table.</span><span id="selection"></span></div>
-  <p id="board-controls" class="board-controls">Tacke oznacavaju dostupne mete. Strelice pomeraju fokus, Enter otvara pregled.</p>
+<section id="battle" aria-labelledby="arena-title">
+ <div class="battle-frame"><canvas id="arena" width="960" height="570" tabindex="0" aria-label="Hex tabla"></canvas></div>
+ <div class="battle-top">
+  <div class="battle-goal"><span class="demo">Demonstracija</span><h1 id="arena-title">Kameni prolaz</h1><p id="objective">Cilj · Savladaj Tihog lovca.</p><div id="battle-order" aria-label="Red poteza"></div></div>
+  <div class="battle-tools"><button id="view" aria-pressed="false">2D prikaz</button><button id="fullscreen" aria-pressed="false">Ceo ekran</button><button id="battle-exit">Pocetak</button></div>
+ </div>
+ <p id="fullscreen-status" role="status" hidden></p>
+ <section id="battle-drawer" class="battle-drawer" aria-label="Detalji borbe" hidden>
+  <div class="drawer-head"><h2 id="drawer-title">Detalji</h2><button id="drawer-close">Zatvori</button></div>
+  <div id="drawer-inspect"><p id="hex" aria-live="polite"></p><p id="selection"></p><div id="roster"></div><button id="battle-sheet">List lika</button></div>
+  <div id="drawer-techniques" hidden></div>
+  <div id="detail-actions" hidden></div>
  </section>
- <aside class="panel" aria-label="Borbene komande">
-  <div id="turn"></div><h2>Akcije</h2><div id="actions"></div>
+ <div id="battle-dock" class="battle-dock">
   <div id="action-panel"></div><p id="message" role="status"></p>
-  <h2>Druzina</h2><div id="roster"></div>
-  <details><summary>Prikaz i detalji</summary><div id="detail-actions"></div></details>
- </aside>
+  <div class="battle-controls">
+    <div id="turn"></div>
+    <div id="actions" aria-label="Akcije"></div>
+    <div class="dock-tools"><button id="battle-techniques">Tehnike</button><button id="battle-details">Detalji</button><button id="battle-settings">Postavke</button></div>
+  </div>
+ </div>
 </section>
 <section id="screen" hidden></section>
 <footer><span>@VERSION@ · probni podaci</span></footer>

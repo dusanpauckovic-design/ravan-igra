@@ -1,7 +1,9 @@
 /* The view requests a preview and submits its opaque token once. */
 window.RavanActionPanel = function mountActions(ui, port) {
   const {$,button,text,viewer,canvas} = ui;
-  const actions = [['attack','Napad'],['move','Kretanje'],['heal','Lecenje']];
+  const actions = [['attack','Napad'],['move','Kretanje'],['heal','Lecenje'],['guard','Gard'],['pass','Preskoci'],['mark','Oznaci']];
+  const labels=new Map(actions);
+  const confirmations={attack:'Potvrdi napad',move:'Potvrdi kretanje',heal:'Potvrdi lecenje',guard:'Potvrdi gard',pass:'Potvrdi preskakanje',mark:'Potvrdi oznaku'};
   let action = null, target = null, cursor = null, preview = null, candidates = [], pending = false, revision = 0;
   const setMessage = value => { $('message').textContent = value; };
   function draw() {
@@ -9,10 +11,10 @@ window.RavanActionPanel = function mountActions(ui, port) {
     for(const [key] of actions) $(key).setAttribute('aria-pressed',String(key===action));
     if(!action) return;
     panel.append(text('strong',pending?'Potez se izvodi':preview?.ok?'Pregled poteza':'Izaberi metu'));
-    if(!pending) panel.append(text('p',preview?.ok?preview.summary:preview?.reason || (action==='move'?'Izaberi slobodan hex.':'Izaberi borca na tabli.')));
+    if(!pending) panel.append(text('p',preview?.ok?preview.summary:preview?.reason || labels.get(action)+' · Izaberi metu na tabli.'));
     if(preview?.ok) panel.append(text('small',preview.cost));
     const controls=text('div','','action-controls');
-    controls.append(button('Potvrdi',confirm,{id:'confirm',disabled:!preview?.ok||pending,className:'primary'}),
+    controls.append(button(confirmations[action],confirm,{id:'confirm',disabled:!preview?.ok||pending,className:'primary'}),
       button('Odustani',returnToAction,{id:'cancel-action',disabled:pending}));
     panel.append(controls);
   }
@@ -25,11 +27,13 @@ window.RavanActionPanel = function mountActions(ui, port) {
   }
   function choose(key) {
     if(pending || ui.isReplayRunning?.()) return;
+    ui.battleShell?.close();
     const state=viewer.getSnapshot();
     cursor=state.units.find(u=>u.id===state.active) || {x:0,y:0};
     action=key; target=null; preview=null;
     candidates=port.targets?.({action,state}) || [];
     setMessage(''); draw(); guide(); ui.onActionStage?.('target');
+    if(['guard','pass'].includes(key)||port.blocked?.({action,state})){pick(cursor);return;}
     canvas.focus({preventScroll:true});
     describeCursor();
   }
@@ -70,7 +74,10 @@ window.RavanActionPanel = function mountActions(ui, port) {
       ui.onActionComplete?.(response);
     }
   }
-  for(const [key,label] of actions) $('actions').append(button(label,()=>choose(key),{id:key}));
+  for(const [key,label] of actions){
+    const root=key==='mark'?$('drawer-techniques'):$('actions');
+    root.append(button(label,()=>choose(key),{id:key}));
+  }
   canvas.addEventListener('keydown',event=>{
     if(!action || pending) return;
     if(event.key==='Enter') {
@@ -97,13 +104,29 @@ window.RavanActionPanel = function mountActions(ui, port) {
 window.RavanFixtureActions = function createFixtureActions() {
   let next=0, current=null, count=0;
   const key=p=>p.x+','+p.y;
+  function blocked({action,state}){
+    if(action==='mark'&&state.active!=='a_iva')return 'Oznaku moze da postavi Iva kada je na potezu.';
+    return '';
+  }
   function plan({action,target,state}) {
     const actor=state.units.find(u=>u.id===state.active);
     const unit=state.units.find(u=>u.x===target.x && u.y===target.y && u.hp>0);
     const reject=reason=>({ok:false,reason});
     if(!actor || actor.hp===0) return reject('Borac nije dostupan.');
+    const reason=blocked({action,state});
+    if(reason)return reject(reason);
     let event,summary,cost,outcome;
-    if(action==='attack'){
+    if(action==='guard'||action==='pass'){
+      const order=state.units.filter(u=>u.team==='ally'&&u.hp>0);
+      const following=order[(order.indexOf(actor)+1)%order.length];
+      event={type:action==='guard'?'guard':'sync',actor:actor.id,duration:240,result:{active:following.id}};
+      summary=action==='guard'?actor.name+' zauzima gard.':actor.name+' zavrsava potez.';
+      cost='Sledeci: '+following.name;
+    }else if(action==='mark'){
+      if(unit?.team!=='enemy')return reject('Izaberi protivnika za oznaku.');
+      event={type:'mark',actor:actor.id,target:unit.id,duration:360,result:{marks:[{id:unit.id,mark:{by:actor.id}}]}};
+      summary='Oznaci metu · '+unit.name;cost='Cena · tehnika u probi';
+    }else if(action==='attack'){
       if(unit?.team!=='enemy') return reject('Za napad izaberi protivnika.');
       const a=actor.x-(actor.y-(actor.y&1))/2, b=unit.x-(unit.y-(unit.y&1))/2, dy=actor.y-unit.y;
       if(Math.max(Math.abs(a-b),Math.abs(dy),Math.abs(a-b+dy))>1) return reject('Meta je van dometa bliskog napada.');
@@ -151,5 +174,5 @@ window.RavanFixtureActions = function createFixtureActions() {
     const {event,summary,outcome}=current; current=null; count++;
     return {ok:true,event,message:summary,outcome};
   }
-  return {preview,targets,submit,count:()=>count};
+  return {preview,targets,submit,blocked,count:()=>count};
 };
