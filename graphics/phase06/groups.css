@@ -1,0 +1,9 @@
+.rv19-marker[data-kind=patrol]{border-color:#a9cad4;transform:translate(-50%,-95%)}
+.rv19-marker[data-kind=caravan]{border-color:#d6b175;transform:translate(-50%,-95%)}
+.rv19-marker[data-kind=raiders]{border-color:#dc9a85;transform:translate(-50%,-95%)}
+.rv19-marker[data-kind=patrol] .rv19-pin{color:#b8dae5}
+.rv19-marker[data-kind=caravan] .rv19-pin{color:#f2cd88}
+.rv19-marker[data-kind=raiders] .rv19-pin{color:#f1a28d}
+.rv-e6-group-card{position:absolute;left:9px;top:9px;z-index:3;max-width:265px;background:#152820f0;border:1px solid #8fa28b;border-radius:5px;padding:9px 11px}
+.rv-e6-group-card[data-live=false]{border-style:dashed}
+.rv-e6-group-card p{white-space:pre-line;margin:0 0 7px;color:#f1e6cc}

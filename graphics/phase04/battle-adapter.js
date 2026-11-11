@@ -26,7 +26,7 @@
 
   function snapshot(battle, { width = 11, height = 7, pickSprite } = {}) {
     return {
-      width, height, biome:battle.generated?.biome, approach:battle.generated?.approach,
+      width, height, biome:battle.generated?.biome, context:clone(battle.generated?.context), approach:battle.generated?.approach,
       terrain:(battle.terrain?.mud||[]).map(cell=>({...hex(cell),kind:'mud'})), active: battle.current || null,
       units: battle.units.map(unit => {
         const identity = mainIdentity(unit);

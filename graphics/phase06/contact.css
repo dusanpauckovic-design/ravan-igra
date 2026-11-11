@@ -1,0 +1,11 @@
+.rv-e6-contact{grid-column:1/-1;padding:12px;border:1px solid #a28c69;border-radius:6px;background:linear-gradient(105deg,#293e38,#172622)}
+.rv-e6-contact[data-terrain=pass]{background:linear-gradient(105deg,#46443a,#202825)}
+.rv-e6-contact h2{margin:0;color:#f4e0b7;font:22px Georgia,serif}
+.rv-e6-contact p{margin:3px 0 8px}
+.rv-e6-contact button{padding:6px 12px;min-height:36px;border:1px solid #a39371;border-radius:4px}
+.rv-viewport[data-e6-terrain=river] .battle-goal{border-left:2px solid #8fc4bc}
+.rv-viewport[data-e6-terrain=forest] .battle-goal{border-left:2px solid #b2c288}
+.rv-viewport[data-e6-terrain=pass] .battle-goal{border-left:2px solid #c7b3a1}
+.rv-viewport[data-e6-terrain=river] #combat-svg{filter:saturate(.82) hue-rotate(8deg)}
+.rv-viewport[data-e6-terrain=forest] #combat-svg{filter:saturate(1.15)}
+.rv-viewport[data-e6-terrain=pass] #combat-svg{filter:saturate(.64)}
