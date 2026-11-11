@@ -39,7 +39,12 @@ if 'inspect-trace' in html:
     scripts += '\n' + (root / 'world-trace.js').read_text(encoding='utf-8')
 if 'interruptPreparation' in html:
     css += '\n' + (root / 'tactical-view.css').read_text(encoding='utf-8')
-    scripts += '\n' + (root / 'tactical-view.js').read_text(encoding='utf-8')
+    app_start = "<script>'use strict';\nconst C=RavanCore"
+    if html.count(app_start) != 1:
+        parser.error('Expected the tactical view to bind before campaign keyboard handlers.')
+    tactical = (root / 'tactical-view.js').read_text(encoding='utf-8')
+    html = html.replace(app_start, '<script>' + tactical + '</script>' + app_start, 1)
+    end = html.lower().rfind('</body>')
 if 'traceLoot' in html:
     css += '\n' + (root / 'progression-view.css').read_text(encoding='utf-8')
     scripts += '\n' + (root / 'progression-view.js').read_text(encoding='utf-8')

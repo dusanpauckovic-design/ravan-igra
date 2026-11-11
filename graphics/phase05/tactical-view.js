@@ -3,12 +3,49 @@
  'use strict';
  const app=document.getElementById('app');
  const svgNS='http://www.w3.org/2000/svg';
+ let fit=false;
+ const fullscreen=()=>document.fullscreenElement||document.webkitFullscreenElement;
+ function setFit(view,value){
+  fit=value;
+  view.classList.toggle('rv-e5-window-fit',value);
+  const button=view.querySelector('[data-act="fullscreen"]');
+  if(!button)return;
+  button.setAttribute('aria-pressed',String(value||!!fullscreen()));
+  const label=button.querySelector('span:last-child');
+  const next=value?'Izadji iz prikaza prozora':'Ceo ekran';
+  if(label&&label.textContent!==next)label.textContent=next;
+ }
+ app.addEventListener('click',event=>{
+  const button=event.target.closest?.('[data-act="fullscreen"]');
+  const view=button?.closest('.rv-e5-tactical');
+  if(!view||fullscreen())return;
+  event.stopImmediatePropagation();
+  if(fit){setFit(view,false);return;}
+  const element=document.documentElement;
+  const request=element.requestFullscreen||element.webkitRequestFullscreen;
+  const fallback=()=>{
+   const current=app.querySelector('.rv-e5-tactical');
+   if(current&&!fullscreen())setFit(current,true);
+  };
+  if(!request){fallback();return;}
+  try{request.call(element)?.catch(fallback);}
+  catch{fallback();}
+ },true);
+ root.addEventListener('keydown',event=>{
+  if(!fit||event.key!=='Escape'||document.getElementById('modal').open)return;
+  const view=app.querySelector('.rv-e5-tactical');
+  if(!view)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  setFit(view,false);
+ },true);
+
  function decorate(){
   const view=app.querySelector('.rv-viewport'), header=view?.querySelector('.battle-goal');
-  if(!header)return;
+  if(!header){fit=false;return;}
   const state=root.RavanGameplayUI?.snapshot(), board=state?.board;
-  if(!board?.approach)return;
+  if(!board?.approach){fit=false;return;}
   view.classList.add('rv-e5-tactical');
+  if(fit)setFit(view,true);
   const signal=board.units.find(unit=>unit.hp>0&&unit.tactical==='prepare')||
    board.units.find(unit=>unit.hp>0&&unit.tactical==='interrupt');
   const copy=signal?.tactical==='prepare'?'Priprema udara · pomeri se van oznacenih polja':

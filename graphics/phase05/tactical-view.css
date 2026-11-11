@@ -5,3 +5,4 @@
 .rv-e5-svg-status[data-signal=prepare]{fill:#ffd0a7;font-size:20px}
 .rv-e5-tactical .rv-viewport-commands [data-id=guard]{border-bottom-color:#92cdbb}
 @media(max-width:600px){.rv-e5-tactical-status{max-width:190px;font-size:11px}}
+.rv-e5-window-fit .battle-tools [data-act=fullscreen]{border-color:#d5bc85;box-shadow:0 0 0 1px #d5bc8555}

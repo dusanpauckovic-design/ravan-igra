@@ -12,7 +12,7 @@
     move: 'Kretanje', push: 'Odgurivanje', melee: 'Bliski napad', ranged: 'Daljinski napad',
     trailPlace: 'Postavljanje traga', trailHit: 'Aktivacija traga', mark: 'Oznaka',
     markEnd: 'Istek ili potrosnja oznake', cover: 'Zaklon', sync: 'Rezultat akcije',
-    prepare:'Priprema', release:'Najavljeni udar', interrupt:'Prekinuta priprema', guard:'Gard'
+    prepare:'Priprema', release:'Najavljeni udar', interrupt:'Prekinuta priprema'
   };
 
   const identitySprites = { hero:'figure_hero', hero_alt:'figure_scout' };
@@ -97,7 +97,6 @@
     }
     const before = snapshot(beforeBattle, options), after = snapshot(afterBattle, options);
     const events = visualEvents(receipt.visuals || []);
-    if(receipt.action==='guard'&&after.approach)events.push({type:'guard',actor:receipt.actor});
     const oldUnits = new Map(before.units.map(u => [u.id, u]));
     const oldTrails = before.trails;
     const append = (event, field, value) => {
