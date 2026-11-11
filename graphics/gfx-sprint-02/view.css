@@ -253,3 +253,72 @@ body{min-height:100vh}
  .battle-controls{gap:2px}
  .battle-drawer{top:98px;max-height:calc(100% - 240px)}
 }
+
+/* Skill graph and illustrated surfaces share the Ravan palette. */
+.ravan-glyph{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;color:var(--accent,var(--brass));font:700 21px Georgia,serif}
+.skill-atlas{--accent:#e9c88f;--accent-rgb:233,200,143;display:grid;grid-template-columns:minmax(0,2.3fr) minmax(230px,1fr);gap:15px;align-items:start}
+.skill-atlas[data-tone=sage]{--accent:#b3d5ae;--accent-rgb:179,213,174}
+.skill-atlas[data-tone=violet]{--accent:#cfc0ed;--accent-rgb:207,192,237}
+.skill-atlas[data-tone=teal]{--accent:#a5dace;--accent-rgb:165,218,206}
+.visual-skill-tabs button{display:inline-flex;align-items:center;padding:3px 12px 3px 6px}
+.visual-skill-tabs button .ravan-glyph{width:28px;height:26px;font-size:17px}
+.skill-board{position:relative;border:1px solid #526257;border-radius:9px;padding:16px 12px 12px;background:
+  radial-gradient(ellipse at 38% 41%,rgba(var(--accent-rgb),.13),transparent 66%),
+  linear-gradient(145deg,#101a17dd,#0c1715ee),var(--scene) center / cover;box-shadow:inset 0 0 60px #080e0c8c}
+.skill-graph{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(85px,auto);align-items:start}
+.skill-graph canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.skill-node,.skill-node[aria-pressed=true]{position:relative;justify-self:center;display:grid;justify-items:center;align-content:start;min-width:0;width:100%;max-width:145px;border:0;background:transparent;padding:4px 3px;color:#e7e1d5}
+.skill-node strong{display:block;font-size:13px;line-height:1.22;margin-top:5px;overflow-wrap:anywhere}
+.skill-node.locked{color:#c1c8bd}
+.skill-node .skill-seal{position:relative;width:52px;height:52px;border:1px solid #77887d;border-radius:50%;background:radial-gradient(circle,#2c3e36,#151f1a 78%);color:#c3cabe;font-size:26px;box-shadow:inset 0 0 0 4px #111914}
+.skill-node.learned .skill-seal{color:#bfe6c4;border-color:#9bcbab}
+.skill-node.open .skill-seal{color:var(--accent);border-color:var(--accent)}
+.skill-node[aria-pressed=true] .skill-seal,.skill-node:hover .skill-seal{outline:1px solid var(--accent);outline-offset:4px;box-shadow:0 0 22px rgba(var(--accent-rgb),.22),inset 0 0 0 4px #111914}
+.skill-node[aria-pressed=true] strong{color:var(--accent)}
+.skill-sign{position:absolute;right:-4px;bottom:-2px;display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#18251e;border:1px solid currentColor;font:700 12px Arial,sans-serif}
+.skill-legend{display:flex;flex-wrap:wrap;justify-content:center;margin-top:6px;padding-top:9px;border-top:1px solid #53645877;color:#d7ddd2;font-size:12px}
+.skill-legend>span{margin:0 8px 3px}
+.skill-legend b{margin-right:5px}.legend-learned b{color:#a6d7b4}.legend-open b{color:#e9c88f}.legend-locked b{color:#b2bdb1}
+.skill-detail{padding:17px 20px 20px;border-top:2px solid var(--accent);background:radial-gradient(ellipse at 0 0,rgba(var(--accent-rgb),.14),transparent 68%),#1a2620}
+.skill-detail h2{font:29px Georgia,serif;margin:5px 0}
+.skill-emblem,.item-emblem{width:60px;height:60px;font-size:36px;border:1px solid currentColor;border-radius:50%;background:#17251f}
+.skill-effect{font-size:15px;line-height:1.55;margin:12px 0 15px}
+@media(max-width:770px){.skill-atlas{grid-template-columns:1fr}}
+@media(max-width:450px){.skill-board{padding:12px 5px}.skill-node .skill-seal{width:43px;height:43px}.skill-node strong{font-size:12px}.skill-graph{grid-auto-rows:minmax(77px,auto)}.visual-skill-tabs button{padding-right:8px}}
+
+.sheet-profile,.camp-hero,.creator-identity{border:1px solid #78837166;border-radius:8px;background:linear-gradient(90deg,#121b16fa,#14201980 62%,#14201940),var(--scene) var(--scene-position) / cover}
+.sheet-profile{min-height:158px;padding:12px 20px;align-items:center}
+.sheet-profile img{width:104px;height:126px;filter:drop-shadow(0 8px 7px #0b110e)}
+.sheet-profile h2{font-size:clamp(24px,4vw,38px);overflow-wrap:anywhere}
+.sheet-profile>div{min-width:0}
+.sheet-stat summary strong,.sheet-stat summary span{display:block}
+.sheet-stat summary strong{font:26px Georgia,serif;color:var(--brass)}
+.sheet-stat summary span{font-size:12px;margin-top:3px}
+.inventory-layout .item-entry{display:flex;justify-content:flex-start;align-items:center;text-align:left;min-height:55px}
+.item-entry>.ravan-glyph{border:1px solid #63745e;background:#17241d;border-radius:6px;margin-right:9px}
+.item-label strong,.item-label small{display:block}
+.inventory-detail .item-hero{padding:15px 14px 5px;border-radius:6px;background:radial-gradient(ellipse at 20px 15px,#465344,#202b24 75%)}
+.item-emblem{border-radius:10px}
+.map-field{background:linear-gradient(#14272039,#141e18a6),var(--scene) var(--scene-position) / cover;box-shadow:inset 0 0 65px #101a15}
+.map-roads line.nearby{stroke:#f5d498;stroke-dasharray:0}
+.map-roads line.known{stroke:#c6af82}
+.map-roads line.unseen{stroke:#a5aea473;stroke-dasharray:3 8}
+.map-pin,.map-pin[aria-pressed=true]{display:grid;justify-items:center;min-width:0;padding:3px 7px;border-color:transparent;background:#14201ce8}
+.map-pin[aria-pressed=true]{border-color:var(--brass)}
+.map-pin .map-emblem{width:30px;height:28px}
+.map-pin[aria-current=location] .map-emblem{color:#d0e4af;text-shadow:0 0 13px #c6e2a6}
+.camp-hero{display:grid;justify-items:start;align-content:end;min-height:230px;padding:22px clamp(16px,4vw,42px)}
+.camp-hero .points{margin:8px 0 13px}
+.camp-service h2{margin:0}
+.camp-service button{display:flex;align-items:center;text-align:left;width:100%;background:transparent;border:0;padding:0}
+.camp-service button strong{margin-left:8px;font-size:15px}
+.camp-service .screen-desc{margin-bottom:0}
+.creator-identity{padding:clamp(12px,3vw,27px)}
+.creator-identity .rpg-option img{width:70px;height:90px;filter:drop-shadow(0 4px 4px #0b110e)}
+.attribute .ravan-glyph{display:inline-grid;font-size:19px;width:24px}
+.reward-list .ravan-glyph{margin-bottom:3px;border:1px solid #62715d;border-radius:50%;background:#19281e}
+.intro-scene{min-height:360px;display:flex;flex-wrap:wrap;align-content:end;align-items:center;gap:8px;padding:clamp(20px,5vw,58px);border:1px solid var(--line);border-radius:8px;background:linear-gradient(90deg,#141d17f0,#141d1769 75%),var(--scene) var(--scene-position) / cover}
+.intro-scene h1,.intro-scene p{flex-basis:100%}
+.map-roads{top:0;right:0;bottom:0;left:0}
+.skill-return{display:none}
+@media(max-width:770px){.skill-return{display:inline-block;margin-left:6px}}

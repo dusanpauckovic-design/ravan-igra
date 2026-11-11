@@ -4,6 +4,28 @@ window.runPhaseQA=async function(stage,check){
   const tap=s=>{const b=document.querySelector(s);if(!b)throw Error('Nedostaje '+s);b.click();};
   const choose=(id)=>tap('[data-option="'+id+'"]');
   const name=value=>{$('creator-name').value=value;$('creator-name').dispatchEvent(new Event('input'));};
+  async function skillQA(){
+    tap('[data-screen=skills]');
+    const graph=()=>document.querySelector('.skill-graph');
+    const graphFits=()=>graph().getBoundingClientRect().right<=innerWidth&&document.documentElement.scrollWidth<=innerWidth;
+    const canvas=graph().querySelector('canvas'), pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+    check('graf prikazuje veze izmedju cvorova',pixels.some((value,index)=>index%4===3&&value>0));
+    tap('[data-skill=steady]');
+    check('zakljucan cvor pokazuje preduslov i nema komandu', $('learn').disabled&&$('screen').textContent.includes('Prvo nauci Daleki hitac'));
+    const before=ui.skillPort.points();
+    tap('[data-skill=longshot]');
+    const learn=$('learn');learn.click();learn.click();await settle();
+    check('ucenje otkljucava naslednika uz jedan poen',ui.skillPort.points()===before-1&&ui.skillPort.status('steady').key==='open');
+    tap('[data-branch=violet]');
+    check('magija prikazuje sve cetiri grane i zadrzava fokus',graph().querySelectorAll('[data-skill]').length===9&&document.activeElement.dataset.branch==='violet'&&graphFits());
+    tap('[data-skill=otisakPlus]');
+    check('cvor daje jednu karticu detalja i zadrzava fokus',document.querySelectorAll('.skill-detail').length===1&&(innerWidth>770?document.activeElement.dataset.skill==='otisakPlus':document.activeElement.matches('.skill-detail h2'))&&graphFits());
+    if(innerWidth<=770){
+      tap('.skill-return');check('povratak iz detalja fokusira cvor',document.activeElement.dataset.skill==='otisakPlus');
+    }
+  }
+  const settle=()=>new Promise(r=>setTimeout(r,90));
+  if(stage===8){await skillQA();return;}
   const fill=(mode)=>{
     tap('#opening-new');tap('#creator-next');
     check('prazan identitet objasnjen',document.querySelector('#screen [role=status]').textContent.includes('ime'));
@@ -34,7 +56,6 @@ window.runPhaseQA=async function(stage,check){
   tap('[data-sheet=hero]');
   if(stage<3)return;
   tap('[data-screen=inventory]');
-  const settle=()=>new Promise(r=>setTimeout(r,90));
   tap('[data-item=iron-knife]');tap('#item-equip');await settle();
   check('opremanje menja slot jednom',ui.inventoryPort.get().items.find(x=>x.equipped==='weapon').id==='iron-knife');
   tap('[data-item=iron-knife]');tap('#item-favorite');await settle();
@@ -74,6 +95,7 @@ window.runPhaseQA=async function(stage,check){
   tap('#inventory-search');$('inventory-search').value='ne postoji';$('inventory-search').dispatchEvent(new Event('input'));
   check('prazna pretraga ima objasnjenje',$('screen').textContent.includes('Nema predmeta'));
   tap('[data-screen=camp]');
+  if(stage>=7){await skillQA();tap('[data-screen=camp]');}
   if(stage>=6){
     ui.startEncounter();
     const board=$('arena').getBoundingClientRect(), dock=$('battle-dock').getBoundingClientRect();

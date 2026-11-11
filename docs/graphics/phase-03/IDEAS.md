@@ -7,3 +7,4 @@
 - UI-04: proveriti citljivost otkrivanja na uskom prikazu.
 - UI-05: korisnicki test prvog povratka u kamp posle nagrade.
 - UI-FIX: u korisnickom testu na uzem prozoru proveriti da li se dodatne tehnike lako nalaze tokom poteza.
+- Vizuelna dorada: kada bude vise oblasti, probati posebnu topografsku kartu po oblasti i testirati citljivost puteva sa vecim brojem lokacija.

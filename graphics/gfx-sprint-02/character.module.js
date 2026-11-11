@@ -73,19 +73,24 @@ window.RavanCharacterCreation=function mountCreation(ui,port){
     });
     root.append(tabs);
     const panel=text('section','','paper creator-panel');
+    panel.dataset.step=String(step);
     panel.append(text('h2',labels[step]));
     if(step===0){
       const label=text('label','Ime lika','rpg-input');
       const input=document.createElement('input');input.id='creator-name';input.maxLength=24;input.value=d.name;
       input.oninput=()=>port.command({type:'set',field:'name',value:input.value});label.append(input);
-      panel.append(label,cards(root,'look','Izgled · bez bonusa',state,draw));
+      const identity=text('div','','creator-identity');
+      window.RavanVisuals.scenery(identity);
+      identity.append(label,cards(root,'look','Izgled · bez bonusa',state,draw));
+      panel.append(identity);
     }
     if(step===1)panel.append(cards(root,'origin','Prethodni zivot',state,draw));
     if(step===2){
       const attrs=text('div','','attribute-row');
-      for(const [key,n] of Object.entries(d.attributes)){
+      const icons=['sword','map','spark','heart','shield','eye'];
+      for(const [index,[key,n]] of Object.entries(d.attributes).entries()){
         const cell=text('div','','attribute');
-        cell.append(text('strong',state.attributes[key]),button('−',()=>setAttribute(key,-1),{disabled:n===0}),text('output',String(n)),button('+',()=>setAttribute(key,1),{disabled:n===state.limit||state.remaining===0}));
+        cell.append(window.RavanVisuals.icon(icons[index]),text('strong',state.attributes[key]),button('−',()=>setAttribute(key,-1),{disabled:n===0}),text('output',String(n)),button('+',()=>setAttribute(key,1),{disabled:n===state.limit||state.remaining===0}));
         attrs.append(cell);
       }
       panel.append(text('p','Preostalo: '+state.remaining+' / '+state.budget,'points'),attrs,cards(root,'talent','Talenat',state,draw),cards(root,'flaw','Slabost',state,draw));
@@ -117,11 +122,14 @@ window.RavanCharacterCreation=function mountCreation(ui,port){
   function intro(root){
     const {hero,scene}=port.get();
     const title=text('h1',scene==='dialogue'?'Na ivici doline':scene==='decision'?'Izbor prilaza':'Put je otvoren');title.tabIndex=-1;
-    root.append(title);
-    if(scene==='dialogue')root.append(text('p','Putnik na stazi pokazuje dva prilaza prevoju.','screen-desc'),button('Preskoci razgovor',()=>advance(),{id:'skip-talk'}),button('Nastavi razgovor',()=>advance()));
-    if(scene==='decision')root.append(text('p','Izaberi put kojim ces uci u oblast.','screen-desc'),
+    const scenePanel=text('section','','intro-scene');
+    window.RavanVisuals.scenery(scenePanel,'center 62%');
+    root.append(scenePanel);
+    scenePanel.append(title);
+    if(scene==='dialogue')scenePanel.append(text('p','Putnik na stazi pokazuje dva prilaza prevoju.','screen-desc'),button('Preskoci razgovor',()=>advance(),{id:'skip-talk'}),button('Nastavi razgovor',()=>advance()));
+    if(scene==='decision')scenePanel.append(text('p','Izaberi put kojim ces uci u oblast.','screen-desc'),
       button('Visoki greben',()=>decide('ridge'),{id:'route-ridge'}),button('Staza uz reku',()=>decide('river'),{id:'route-river'}));
-    if(scene==='ready')root.append(text('p',hero.name+' · '+(hero.route==='ridge'?'Visoki greben':'Staza uz reku'),'screen-desc'),button('Udji u igru',()=>ui.enterWorld?.()||ui.startEncounter(),{id:'enter-world',className:'primary'}));
+    if(scene==='ready')scenePanel.append(text('p',hero.name+' · '+(hero.route==='ridge'?'Visoki greben':'Staza uz reku'),'screen-desc'),button('Udji u igru',()=>ui.enterWorld?.()||ui.startEncounter(),{id:'enter-world',className:'primary'}));
     function advance(){port.command({type:'advance'});screens.open('intro');}
     function decide(choice){port.command({type:'decide',choice});screens.open('intro');}
   }

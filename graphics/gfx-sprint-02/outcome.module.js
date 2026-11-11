@@ -53,7 +53,7 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
       for(const r of model.rewards){
         const el=button('',()=>{selected=r.id;notice='';draw(root)},{className:'build',disabled:!!model.claimed || !!r.reason || busy});
         el.dataset.reward=r.id;el.setAttribute('aria-pressed',String((model.claimed||selected)===r.id));
-        el.append(text('strong',r.name),text('span',r.effect));
+        el.append(window.RavanVisuals.icon(r.id==='stone'?'stone':'spark'),text('strong',r.name),text('span',r.effect));
         if(r.reason)el.append(text('small',r.reason,'reward-reason'));
         rewards.append(el);
       }
