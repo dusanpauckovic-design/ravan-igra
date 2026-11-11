@@ -83,7 +83,8 @@
   const option=snapshot.trace?.approaches.find(item=>item.id===id);
   if(!Array.isArray(option?.path)||!option.path.length)return null;
   const cells=snapshot.regions[snapshot.region].cells;
-  if(!option.path.every(i=>Number.isInteger(i)&&cells[i]?.cost>0))return null;
+  const seen=new Set(snapshot.discovered[snapshot.region]||[]);
+  if(!option.path.every(i=>Number.isInteger(i)&&cells[i]?.cost>0&&seen.has(i)))return null;
   return {path:option.path,approach:id};
  }
  function wrapTrace(){
@@ -123,14 +124,18 @@
    card.replaceChildren(name,cost,condition,button);
    if(Array.isArray(item.path)&&item.path.length){
     const preview=document.createElement('button');preview.type='button';
-    preview.textContent='Prikazi put';preview.setAttribute('aria-pressed','false');
-    preview.setAttribute('aria-label','Prikazi put: '+item.name);
+    preview.textContent=item.pathComplete===false?'Prikazi poznati deo':'Prikazi put';
+    preview.setAttribute('aria-pressed','false');
+    preview.setAttribute('aria-label',preview.textContent+': '+item.name);
     preview.addEventListener('click',()=>{
      stage.dataset.tracePreview=item.id;
      for(const other of panel.querySelectorAll('[aria-pressed]'))other.setAttribute('aria-pressed',String(other===preview));
      stage.dispatchEvent(new Event('ravan-trace-preview'));
     });
     button.before(preview);
+   }else if(item.pathComplete===false){
+    const hiddenPath=document.createElement('small');hiddenPath.textContent='Prilaz pocinje van istrazenog terena.';
+    button.before(hiddenPath);
    }
   }
  }
