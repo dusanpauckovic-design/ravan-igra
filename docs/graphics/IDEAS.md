@@ -13,3 +13,4 @@
 - E5-D2: isprobati orijentir za povratak u kamp po mraku kada sat igre bude vezan za autoritativno doba dana.
 - E5-D3: probati kratak zvuk udara tetive za razlikovanje strelca bez pojacavanja vizuelnih efekata.
 - E5-D4: probati prikaz tragova upotrebe na predmetu tek kad igra razlikuje stanja istrosenosti.
+- E5-D5: prikaz poslednjeg potvrdenog odredista na Nastavi igru prosiriti na ostale regije posle usaglasavanja naziva lokacija.

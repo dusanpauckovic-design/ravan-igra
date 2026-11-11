@@ -48,5 +48,8 @@ if 'interruptPreparation' in html:
 if 'traceLoot' in html:
     css += '\n' + (root / 'progression-view.css').read_text(encoding='utf-8')
     scripts += '\n' + (root / 'progression-view.js').read_text(encoding='utf-8')
+if 'markedForestPath' in html:
+    css += '\n' + (root / 'journey-view.css').read_text(encoding='utf-8')
+    scripts += '\n' + (root / 'journey-view.js').read_text(encoding='utf-8')
 html = html[:end] + '<style>' + css + '</style><script>' + scripts + '</script>\n' + html[end:]
 args.output.write_text(html, encoding='utf-8')

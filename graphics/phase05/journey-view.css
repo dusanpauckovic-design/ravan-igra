@@ -1,0 +1,20 @@
+.rv-e5-entry .rv-title-choices{gap:7px}
+.rv-e5-entry .rv-title-choices .rv-title-primary{box-shadow:0 3px 24px #1a100c8c}
+.rv-e5-entry .rv-title-choices [data-act=import]{font-size:.83em;min-height:36px;opacity:.9}
+.rv-e5-entry .rv-e5-continue-place{display:block;font-size:11px;letter-spacing:.06em;margin-top:3px}
+.rv-e5-journey-scene .v5-story-controls .rv-e5-primary,.rv-e5-primary#creator-next,.rv19-map .rv-e5-primary,.rv-e5-tactical .rv-e5-primary{
+ border:1px solid #e8c68c;background:#e7c78e;color:#201d16;border-radius:4px
+}
+.rv19-map .rv-e5-primary{min-height:36px;padding:5px 12px}
+.rv-e5-dialogue-mode{border:1px solid #baac8c!important;background:#141c1bea!important;color:#eee0c2!important;min-height:36px}
+.rv-e5-scene-help{color:#e4c89a;margin:9px 0 4px;font-size:13px}
+.rv-e5-journey-scene .v5-story-foot{justify-content:flex-end}
+.rv-e5-marked-caption{grid-column:1/-1;margin:3px 0 0;color:#d6e6b7;font-size:13px}
+.rv-e5-marked-caption:before{content:'';display:inline-block;width:25px;border-top:2px dotted #c6df9c;margin-right:8px;vertical-align:middle}
+.rv19-stage .rv-e5-marked-end{border-color:#b8cf8b}
+.rv19-stage .rv-e5-marked-end .rv19-pin{color:#d6eba6}
+.rv-e5-trace.rv-e5-resolved{border-color:#8fa272!important}
+@media(max-width:650px){.rv-e5-journey-scene .v5-story-foot{padding-bottom:7px}}
+.rv-e5-journey-scene.v5-cinema{min-height:100vh;min-height:100dvh}
+.rv-e5-journey-scene .v5-cinema-art,.rv-e5-journey-scene .v5-cinema-shade{top:0;right:0;bottom:0;left:0}
+.rv-e5-journey-scene .v5-story-content{position:relative}

@@ -208,6 +208,14 @@ function mount(host,port,camera={}){
   ctx.drawImage(terrain,0,projection.top-1,projection.width,mapHeight);
   const discovered=new Set(s.discovered[s.region]||[]);
   for(let i=0;i<region.cells.length;i++)if(!discovered.has(i))fillPolygon(ctx,projection.cell(i),'#101d2082');
+  const markedPath=root.RavanE5Journey?.markedPath(s,region);
+  if(markedPath?.length){
+   const points=markedPath.map(projection.point);
+   routeStroke(ctx,points,'#203e31',.26);
+   ctx.setLineDash([.065,.11]);
+   routeStroke(ctx,points,'#d0e8a2',.115);
+   ctx.setLineDash([]);
+  }
   const tracePreview=root.RavanE5World?.routePreview(s,stage);
   const plan=s.journey||tracePreview||(s.selection?port.preview(s.selection)?.plan:null);
   if(plan?.path.length){
@@ -228,6 +236,10 @@ function mount(host,port,camera={}){
    entry.button.hidden=px<12||px>width-12||py<24||py>height-48;
    entry.button.style.left=px+'px';entry.button.style.top=py+'px';
    entry.button.classList.toggle('known',discovered.has(entry.index));
+   const marked=!!markedPath?.length&&['river','forest'].includes(entry.id);
+   entry.button.classList.toggle('rv-e5-marked-end',marked);
+   if(marked)entry.button.setAttribute('aria-label',entry.name+' · Obelezena staza');
+   else if(entry.button.getAttribute('aria-label')!==entry.name)entry.button.setAttribute('aria-label',entry.name);
    entry.button.setAttribute('aria-pressed',String(s.selection===entry.id||s.journey?.id===entry.id));
   }
   Object.assign(camera,{key,zoom,pan,centered,low});
