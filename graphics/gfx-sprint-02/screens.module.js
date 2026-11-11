@@ -9,7 +9,7 @@ window.RavanScreens = function mountScreens(ui) {
   function open(id, returning=false) {
     if(id!=='battle'&&!views.has(id)) return;
     if(id!=='battle' && (ui.actionPanel.isPending()||ui.isReplayRunning?.())) return;
-    if(id!=='battle') ui.actionPanel.cancel();
+    if(id!=='battle') {ui.actionPanel.cancel();ui.battleShell?.close();}
     if(current!==id){
       scroll.set(current,window.scrollY);
       if(!returning&&stable.has(current)&&history[history.length-1]!==current)history.push(current);
@@ -30,6 +30,7 @@ window.RavanScreens = function mountScreens(ui) {
       views.get(id)(container);
       container.querySelector('h1')?.focus({preventScroll:true});
     }
+    if(id==='battle')ui.battleShell?.resize();
     window.scrollTo(0,returning?(scroll.get(id)||0):0);
   }
   function register(id,label,draw,{hidden=false}={}) {

@@ -12,7 +12,8 @@ def run(widget, results, done, *, stage=16):
 
     def click(selector, *, cell=False):
         if cell:
-            return """JSON.stringify((()=>{const c=document.getElementById('arena'),r=c.getBoundingClientRect(),p=ravanSprint.viewer.project({x:4,y:3});return [r.left+p.x*r.width/960,r.top+p.y*r.height/570]})())"""
+            x,y=(4,3) if cell is True else cell
+            return """JSON.stringify((()=>{const c=document.getElementById('arena'),r=c.getBoundingClientRect(),v=ravanSprint.viewer,p=v.project({x:%s,y:%s});if(v.boardToClient){const q=v.boardToClient(p);return [q.x,q.y];}return [r.left+p.x*r.width/960,r.top+p.y*r.height/570]})())""" % (x,y)
         return """JSON.stringify((()=>{const e=document.querySelector(%s);if(!e)return null;const r=e.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2]})())""" % json.dumps(selector)
 
     def assertion(js):
@@ -62,6 +63,60 @@ def run(widget, results, done, *, stage=16):
             ('click',click('#next-encounter'),110,'Povratak u kamp'),
             ('assert',assertion("ravanSprint.screens.get()==='camp' && ravanSprint.worldPort.get().resolved.includes('pass') && ravanSprint.outcomePort.get().claimed==='stone' && window.__trusted>=12 && window.__trustedEnter===2"),10,'native klikovi i Enter zatvaraju RPG petlju')
         ]
+    if stage==26:
+        original_size=(widget.width,widget.height)
+        steps=[
+            ('click',click('#camp-map'),100,'Mapa'),
+            ('click',click('[data-location=river]'),100,'Obala'),
+            ('click',click('#world-travel'),100,'Putovanje'),
+            ('click',click('[data-location=pass]'),100,'Prolaz'),
+            ('click',click('#world-travel'),100,'Putovanje do prolaza'),
+            ('click',click('#world-activity'),120,'Ulazak u borbu'),
+            ('click',click('#fullscreen'),350,'Ceo ekran ili fallback'),
+            ('inspect',"JSON.stringify({native:document.fullscreenElement===document.getElementById('app'),pressed:document.getElementById('fullscreen').getAttribute('aria-pressed'),message:document.getElementById('fullscreen-status').textContent})",10,'fullscreen API'),
+            ('click',click('#battle-details'),100,'Detalji'),
+            ('click',click('#battle-sheet'),120,'List lika'),
+            ('click',click('[data-screen=battle]'),120,'Povratak u borbu'),
+            ('click',click('#battle-techniques'),100,'Tehnike'),
+            ('click',click('#mark'),110,'Nedostupna tehnika'),
+            ('assert',assertion("document.getElementById('action-panel').textContent.includes('Iva')"),10,'klik daje razlog nedostupnosti'),
+            ('click',click('#cancel-action'),90,'Odustani'),
+            ('click',click('#guard'),100,'Gard'),
+            ('click',click('#confirm'),420,'Potvrdi gard'),
+            ('assert',assertion("ravanSprint.viewer.getSnapshot().active==='a_iva'"),10,'gard prelazi na Ivu'),
+            ('click',click('#battle-techniques'),100,'Tehnika Ive'),
+            ('click',click('#mark'),100,'Oznaci'),
+            ('click',click('',cell=True),100,'Meta'),
+            ('click',click('#confirm'),530,'Potvrdi oznaku'),
+            ('assert',assertion("!!ravanSprint.viewer.getSnapshot().units[3].mark"),10,'oznaka primenjena klikom'),
+            ('click',click('#pass'),100,'Preskoci'),
+            ('click',click('#confirm'),390,'Potvrdi preskakanje'),
+            ('click',click('#pass'),100,'Preskoci Merina'),
+            ('click',click('#confirm'),390,'Potvrdi preskakanje'),
+            ('click',click('#move'),100,'Kretanje'),
+            ('click',click('',cell=(2,4)),100,'Prvi izbor'),
+            ('click',click('',cell=(4,4)),100,'Promeni heks'),
+            ('resize',(1024,640),240,'Smanji prozor'),
+            ('geometry',"""JSON.stringify((()=>{const v=ravanSprint.viewer,p=v.boardToClient(v.project({x:4,y:4})),
+              q=v.clientToBoard(p.x,p.y),cell=v.hitTest(q.x,q.y);
+              return {viewport:innerWidth,canvas:document.getElementById('arena').getBoundingClientRect().width,
+                cell,targeting:v.getTargeting(),aboveDock:p.y<document.getElementById('battle-dock').getBoundingClientRect().top}})())""",10,'resize cuva izabranu metu i hit-test'),
+            ('click',click('#confirm'),420,'Potvrdi kretanje u manjem prozoru'),
+            ('resize',original_size,240,'Vrati velicinu prozora'),
+            ('assert',assertion("ravanSprint.viewer.getSnapshot().units[0].x===4 && ravanSprint.viewer.getSnapshot().units[0].y===4"),10,'promena mete cuva poslednji heks'),
+            ('click',click('#attack'),100,'Napad'),
+            ('click',click('',cell=True),100,'Meta napada'),
+            ('click',click('#confirm'),800,'Potvrdi napad'),
+            ('click',click('#attack'),100,'Drugi napad'),
+            ('click',click('',cell=True),100,'Meta napada'),
+            ('click',click('#confirm'),800,'Zavrsi borbu'),
+            ('click',click('[data-reward=stone]'),100,'Nagrada'),
+            ('click',click('#claim-reward'),100,'Preuzmi nagradu'),
+            ('click',click('#next-encounter'),130,'Povratak u kamp'),
+            ('assert',assertion("ravanSprint.screens.get()==='camp' && ravanSprint.worldPort.get().resolved.includes('pass') && window.__trusted>=28 && window.__trustedEnter===0"),10,'cela borba i nagrada samo klikovima'),
+        ]
+        if original_size!=(1280,800):
+            steps=[step for step in steps if step[0] not in ('resize','geometry')]
     iterator=iter(steps)
 
     def next_step():
@@ -72,7 +127,10 @@ def run(widget, results, done, *, stage=16):
             done()
             return
         kind,js,delay,label=current
-        if kind=='key':
+        if kind=='resize':
+            widget.resize(*js)
+            qt.QTimer.singleShot(delay,next_step)
+        elif kind=='key':
             target.setFocus()
             for typ in (qt.QEvent.KeyPress,qt.QEvent.KeyRelease):
                 qt.QApplication.sendEvent(target,qt.QKeyEvent(typ,qt.Qt.Key_Return,qt.Qt.NoModifier,'\r'))
@@ -86,6 +144,23 @@ def run(widget, results, done, *, stage=16):
         kind,_,delay,label=current
         if kind=='assert':
             check(label,value=='yes')
+        elif kind=='geometry':
+            result=json.loads(value)
+            print('RAVAN RESIZE '+json.dumps(result),flush=True)
+            cell=result['cell'] or {}
+            targeting=result['targeting'] or {}
+            check(label,result['viewport']==result['canvas']==1024
+                  and cell.get('x')==4 and cell.get('y')==4
+                  and targeting.get('target',{}).get('x')==4
+                  and targeting.get('target',{}).get('y')==4
+                  and result['aboveDock'])
+        elif kind=='inspect':
+            result=json.loads(value)
+            print('RAVAN FULLSCREEN '+json.dumps(result),flush=True)
+            check('fullscreen status odgovara stanju browsera',
+                  result['pressed']==str(result['native']).lower() and (result['native'] or bool(result['message'])))
+            if result['native']:
+                widget.evalJS("document.exitFullscreen()")
         else:
             try:
                 point=json.loads(value)
