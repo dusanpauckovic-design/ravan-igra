@@ -7,6 +7,12 @@
   const mix = (a, b, t) => ({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) });
   const ease = t => t * t * (3 - 2 * t);
   const TAU = Math.PI * 2;
+  const SIZES = {
+    figure_guard: { height: 101, foot: .48 },
+    figure_archer: { height: 94, foot: .53 },
+    figure_caster: { height: 99, foot: .49 },
+    figure_wolf: { height: 57, foot: .52 }
+  };
   const copy = value => JSON.parse(JSON.stringify(value));
 
   function createRenderer(canvas, sources, onChange = () => {}) {
@@ -119,10 +125,28 @@
       ctx.stroke();
     }
 
-    function drawCover(cover, p) {
-      ellipse(p.x + 4, p.y + 3, 31, 10, '#10150e66');
-      image('terrain_rock', p.x - 33, p.y - 42, 66, 46);
-      if (cover.hpMax) tag(p.x, p.y - 40, String(cover.hp), '#e8d1a8');
+    function shadow(p, rx, ry, strength = .58) {
+      ctx.save();
+      ctx.translate(p.x + 7, p.y + 3);
+      ctx.scale(rx, ry);
+      const shade = ctx.createRadialGradient(0, 0, .08, 0, 0, 1);
+      shade.addColorStop(0, 'rgba(9,13,8,' + strength + ')');
+      shade.addColorStop(1, 'rgba(9,13,8,0)');
+      ellipse(0, 0, 1, 1, shade);
+      ctx.restore();
+    }
+
+    function drawCover(cover, p, selectedPoint) {
+      const softened = selectedPoint && p.y > selectedPoint.y &&
+        p.y - selectedPoint.y < 63 && Math.abs(p.x - selectedPoint.x) < 56;
+      shadow(p, 42, 13);
+      ctx.save();
+      ctx.globalAlpha = softened ? .48 : 1;
+      const large = cover.hpMax > 0;
+      image('terrain_rock', p.x - (large ? 48 : 33), p.y - (large ? 60 : 42),
+        large ? 96 : 66, large ? 65 : 46);
+      ctx.restore();
+      if (large) tag(p.x + 17, p.y - 49, String(cover.hp), '#e8d1a8');
     }
 
     function tag(x, y, label, color) {
@@ -133,26 +157,41 @@
       ctx.fillStyle = color; ctx.fillText(label, x, y);
     }
 
-    function drawUnit(unit, p, t) {
-      const chosen = selected === unit.id;
-      const ally = unit.team !== 'enemy';
+    function unitPose(unit, p, t) {
       const attack = active?.event;
       const target = attack && state.units.find(u => u.id === attack.target);
       let offset = 0;
       if (attack?.type === 'melee' && attack.actor === unit.id && target) {
         offset = Math.sign(project(target).x - p.x) * Math.sin(Math.PI * t) * 19;
       }
-      const x = p.x + offset;
-      ellipse(x + 3, p.y + 2, 24, 8, '#12171191');
-      if (chosen) ellipse(x, p.y, 26, 9, '#dcc18c21', '#efd199');
+      const profile = SIZES[unit.sprite] || SIZES.figure_guard;
       const img = images[unit.sprite];
-      const h = unit.sprite === 'figure_wolf' ? 58 : 102;
-      const w = img?.naturalHeight ? h * img.naturalWidth / img.naturalHeight : h * .75;
-      image(unit.sprite, x - w / 2, p.y - h, w, h);
+      const height = profile.height;
+      const width = img?.naturalHeight ? height * img.naturalWidth / img.naturalHeight : height * .75;
+      return { x: p.x + offset, y: p.y, width, height, foot: profile.foot };
+    }
+
+    function drawUnit(unit, pose) {
+      const { x, y, width, height, foot } = pose;
+      shadow({ x, y }, unit.sprite === 'figure_wolf' ? 41 : 29, 11);
+      if (selected === unit.id) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
+      image(unit.sprite, x - width * foot, y - height, width, height);
+    }
+
+    function drawUnitStatus(unit, pose) {
+      const { x, y, height } = pose;
       const hp = unit.hp / unit.hpMax;
-      ctx.fillStyle = '#131914'; ctx.fillRect(x - 20, p.y - h - 11, 40, 5);
-      ctx.fillStyle = ally ? '#b4c38a' : '#e29276'; ctx.fillRect(x - 20, p.y - h - 11, 40 * hp, 5);
-      if (chosen) tag(x, p.y - h - 17, unit.name, '#f4daa5');
+      ctx.fillStyle = '#131914'; ctx.fillRect(x - 20, y - height - 11, 40, 5);
+      ctx.fillStyle = unit.team === 'enemy' ? '#e29276' : '#b4c38a';
+      ctx.fillRect(x - 20, y - height - 11, 40 * hp, 5);
+      if (selected === unit.id) tag(x, y - height - 17, unit.name + '  ' + unit.hp + '/' + unit.hpMax, '#f4daa5');
+    }
+
+    function sceneEntries() {
+      return [
+        ...state.covers.filter(c => c.hp !== 0).map(c => ({ item: c, cover: true, p: project(c) })),
+        ...state.units.filter(u => u.hp > 0).map(u => ({ item: u, cover: false, p: project(u) }))
+      ].sort((a, b) => a.p.y - b.p.y || Number(b.cover) - Number(a.cover));
     }
 
     function draw(time = performance.now()) {
@@ -160,11 +199,19 @@
       const t = active ? Math.min(1, (time - active.start) * speed / active.duration) : 0;
       background();
       cells().forEach(drawTile);
-      const entries = [
-        ...state.covers.filter(c => c.hp !== 0).map(c => ({ item: c, cover: true, p: project(c) })),
-        ...state.units.filter(u => u.hp > 0).map(u => ({ item: u, cover: false, p: project(u) }))
-      ].sort((a, b) => a.p.y - b.p.y || Number(b.cover) - Number(a.cover));
-      entries.forEach(e => e.cover ? drawCover(e.item, e.p) : drawUnit(e.item, e.p, t));
+      const entries = sceneEntries();
+      const chosen = entries.find(e => !e.cover && e.item.id === selected);
+      const statuses = [];
+      for (const entry of entries) {
+        if (entry.cover) {
+          drawCover(entry.item, entry.p, chosen?.p);
+        } else {
+          const pose = unitPose(entry.item, entry.p, t);
+          drawUnit(entry.item, pose);
+          statuses.push([entry.item, pose]);
+        }
+      }
+      statuses.forEach(([unit, pose]) => drawUnitStatus(unit, pose));
       if (active?.event.type === 'melee' && t > .35 && t < .7) {
         const target = state.units.find(u => u.id === active.event.target);
         if (target) {
@@ -221,6 +268,7 @@
       hover(cell) { hovered = cell; draw(); },
       setMode(next) { mode = next; draw(); },
       setSpeed(next) { speed = next; },
+      getDrawOrder() { return sceneEntries().map(e => e.item.id || 'rock:' + e.item.x + ',' + e.item.y); },
       getSnapshot() { return copy(state); }
     };
   }

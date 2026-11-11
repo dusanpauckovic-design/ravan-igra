@@ -12,7 +12,7 @@
     covers: [0, 1, 2, 4, 5].map(y => ({ x: 5, y })).concat([{ id: 'zaklon', x: 5, y: 3, hp: 18, hpMax: 18 }])
   };
   const viewer = RavanGraphics.createRenderer(canvas, ART, updateRoster);
-  let selected = null, flat = false;
+  let selected = null, flat = false, behind = false;
   const melee = { id: 'probe/melee', type: 'melee', actor: 'a_radan', target: 'e_0', path: [], result: {} };
 
   function updateRoster(state) {
@@ -42,7 +42,7 @@
     for (const [i, b] of [...$('roster').children].entries()) b.setAttribute('aria-pressed', viewer.getSnapshot().units[i].id === selected);
   }
   function reset() {
-    selected = null; viewer.reset(scene); select('a_radan');
+    behind = false; selected = null; viewer.reset(scene); select('a_radan');
     $('hex').textContent = 'Hex —';
   }
   function bind(label, action, primary = false) {
@@ -75,8 +75,28 @@
     $('message').textContent = 'Radan zamahuje.';
     if (await viewer.playEvent(melee) === 'complete') $('message').textContent = 'Radan se vratio u stav.';
   }
+  function toggleCover() {
+    const changed = JSON.parse(JSON.stringify(scene));
+    changed.covers = changed.covers.filter(c => c.id || ![2, 4].includes(c.y));
+    behind = !behind;
+    Object.assign(changed.units[0], { x: 5, y: behind ? 2 : 4 });
+    viewer.reset(changed);
+    select('a_radan');
+    $('message').textContent = behind ? 'Radan je iza zaklona.' : 'Radan je ispred zaklona.';
+  }
+  function qa(stage, check) {
+    toggleCover();
+    let order = viewer.getDrawOrder();
+    check('Radan behind cover', order.indexOf('a_radan') < order.indexOf('zaklon'));
+    toggleCover();
+    order = viewer.getDrawOrder();
+    check('Radan in front of cover', order.indexOf('a_radan') > order.indexOf('zaklon'));
+    const picked = $('roster').children[0];
+    check('selected Radan and HP stay readable', picked.getAttribute('aria-pressed') === 'true' && picked.textContent.includes('78/78'));
+  }
   bind('Napad', attack, true);
   bind('Ponovi', attack);
+  bind('Ispred/iza zaklona', toggleCover).classList.add('wide');
   reset();
-  window.ravanDemo = { viewer, scene, reset };
+  window.ravanDemo = { viewer, scene, reset, qa, toggleCover };
 })();

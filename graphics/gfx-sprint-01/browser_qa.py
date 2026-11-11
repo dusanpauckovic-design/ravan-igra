@@ -35,8 +35,12 @@ def finished(js, value):
         save(os.environ.get('RAVAN_QA_VIEW', '1280x800'))
         if version == 1 and size[0] == 1280:
             evaluate("document.getElementById('view').click(); 'flat';")
+        elif version == 2 and size[0] == 1280:
+            evaluate("window.ravanDemo.toggleCover(); 'cover';")
         else:
             finish()
+    elif value == 'cover':
+        qt.QTimer.singleShot(100, lambda: (save('Iza_Zaklona_1280x800'), finish()))
     elif value == 'flat':
         qt.QTimer.singleShot(100, lambda: (save('2D_1280x800'), finish()))
 
@@ -82,7 +86,7 @@ script = r"""
     $('arena').dispatchEvent(new MouseEvent('click', {clientX:rect.left + field.x * rect.width/960,clientY:rect.top + field.y * rect.height/570}));
     check('select Merin by projected hex', $('roster').children[2].getAttribute('aria-pressed') === 'true');
     click('Napad');
-    await sleep(800);
+    for (let i = 0; i < 20 && !$('message').textContent.includes('stav'); i++) await sleep(100);
     check('attack returns to stance', $('message').textContent.includes('stav'));
     if (stage >= 2) await window.ravanDemo.qa(stage, check, sleep);
     reset();
