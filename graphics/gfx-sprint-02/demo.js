@@ -151,6 +151,9 @@
   RavanSheet(view,view.sheetPort);
   view.inventoryPort=RavanInventoryFixture(view.characterPort);
   view.inventory=RavanInventory(view,view.inventoryPort);
+  view.worldPort=RavanWorldFixture();
+  view.world=RavanWorld(view,view.worldPort);
+  view.enterWorld=view.world.openCamp;
   RavanOpening(view);
   reset();
   window.ravanSprint = view;

@@ -11,7 +11,7 @@ window.RavanOpening = function mountOpening(ui) {
     intro.append(title,text('p',encounter.objective,'opening-objective'));
     const controls=text('div','','opening-actions');
     const model=ui.characterPort.get();
-    const resume=button('Nastavi',()=>model.scene&&model.scene!=='ready' ? screens.open('intro') : ui.enterWorld?.()||ui.enterEncounter(),{id:'opening-resume',disabled:!started&&!model.hero});
+    const resume=button('Nastavi',()=>model.scene&&model.scene!=='ready' ? screens.open('intro') : model.hero&&ui.enterWorld ? ui.enterWorld() : ui.enterEncounter(),{id:'opening-resume',disabled:!started&&!model.hero});
     controls.append(button('Nova igra',()=>ui.creator.newGame(),{id:'opening-new',className:'primary'}),resume,
       button('Brza arena',()=>ui.startEncounter(),{id:'opening-enter'}),
       button('Pripremi druzinu',()=>screens.open('party'),{id:'opening-party'}));

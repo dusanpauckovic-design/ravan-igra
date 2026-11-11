@@ -54,4 +54,16 @@ window.runPhaseQA=async function(stage,check){
   tap('#inventory-loot');tap('#item-loot');await settle();
   check('prodaja oslobadja mesto za plen',ui.inventoryPort.get().items.some(x=>x.id==='resin')&&ui.inventoryPort.get().gold===8);
   tap('#inventory-bag');tap('[data-item=iron-knife]');
+  if(stage<4)return;
+  tap('[data-screen=camp]');
+  tap('#camp-prepare');check('priprema trosi jednu zalihu i zakljucava ponavljanje',ui.worldPort.get().supplies===2&&$('camp-prepare').disabled);
+  tap('#camp-rest');check('odmor menja stanje kampa',ui.worldPort.get().rested);
+  tap('#camp-map');
+  check('neotkriven prolaz nije dostupan',document.querySelector('[data-location=pass]').disabled);
+  tap('[data-location=river]');
+  check('brzi put ima razlog pre prve posete',$('world-fast').disabled&&$('screen').textContent.includes('prvom posetom'));
+  tap('#world-travel');tap('#world-activity');
+  check('putovanje otkriva prolaz i aktivnost daje zalihe',ui.worldPort.get().current==='river'&&ui.worldPort.get().supplies===4&&!document.querySelector('[data-location=pass]').disabled);
+  tap('[data-location=camp]');tap('#world-fast');
+  check('brzi povratak radi nakon posete',ui.worldPort.get().current==='camp'&&$('screen').textContent.includes('Ovde si'));
 };
