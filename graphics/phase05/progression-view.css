@@ -1,0 +1,44 @@
+.rv-e5-reward-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:9px;margin:10px 0}
+.rv-e5-reward{display:grid;grid-template-columns:60px minmax(0,1fr);align-items:center;gap:5px 8px;padding:8px;background:linear-gradient(135deg,#333027,#1b2420 70%);border:1px solid #8e7958;border-radius:5px}
+.rv-e5-reward[data-material=wood]{border-color:#78886d;background:linear-gradient(135deg,#31382a,#19231e 70%)}
+.rv-e5-item-art{display:block;width:60px;height:auto}
+.rv-e5-reward h4{color:#f4dfb9;margin:0 0 3px;font:19px Georgia,serif}
+.rv-e5-reward .rv-e5-benefit{color:#efca88;font-size:13px;font-weight:650;margin:0}
+.rv-e5-condition,.rv-e5-reward .rv-e5-condition{color:#cbd1be;font-size:12px;line-height:1.4;margin:4px 0}
+.rv-e5-reward button{justify-self:end;grid-column:2;background:#403725;color:#ffebc6;border:1px solid #a38c62;border-radius:4px;padding:5px 12px;min-height:34px}
+.rv-e5-journey-identity{display:inline-flex;align-items:center;gap:6px;margin:3px 0 4px;color:#e0cfa6;font-size:12px;vertical-align:middle}
+.rv-e5-journey-identity img{width:29px;height:29px;object-fit:cover;object-position:65% 24%;border:1px solid #ac9773;border-radius:50%}
+.rv-e5-inventory .inventory-detail{border-color:#7e896d;background:linear-gradient(140deg,#24332a,#18241e 65%)}
+.rv-e5-compare{padding:10px 12px;margin:9px 0;background:#131e19;border:1px solid #646f5b;border-radius:5px}
+.rv-e5-compare h3{font:20px Georgia,serif;color:#e6c99b;margin:0 0 7px}
+.rv-e5-compare-names{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.rv-e5-compare-names div{background:#202e26;padding:7px 8px}
+.rv-e5-compare-names small,.rv-e5-compare-names strong{display:block}
+.rv-e5-compare-names small{color:#c8c9b0}
+.rv-e5-deltas{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:8px 0 0}
+.rv-e5-deltas dd{margin:0;font-weight:650}
+.rv-e5-deltas .gain{color:#a8dfb6}
+.rv-e5-deltas .loss{color:#f4ba97}
+.rv-e5-progression .rv-e5-current-path{border-left:2px solid #d8b47b;background:linear-gradient(90deg,#786b3e27,transparent 65%)}
+.rv-e5-progression .rv-e5-next-skill{box-shadow:inset 0 0 0 1px #d2b685,0 0 16px #bb965b30}
+.rv-e5-next-label{font-size:10px;color:#ffe0a4;font-weight:650}
+@media(max-width:540px){.rv-e5-reward-group{grid-template-columns:minmax(0,1fr)}}
+.rv-e5-inventory-host .inventory-filters{display:grid;grid-template-columns:minmax(120px,2fr) minmax(120px,1fr) minmax(120px,1fr);gap:6px}
+.rv-e5-artifact-detail .item-hero{display:grid;grid-template-columns:80px minmax(0,1fr);gap:0 12px;align-items:center}
+.rv-e5-artifact-detail .item-hero canvas{grid-row:span 2;width:80px;height:auto}
+.rv-e5-artifact-detail .item-hero h2,.rv-e5-artifact-detail .item-hero p{margin:0}
+.rv-e5-progression .v4-tree{
+ background:radial-gradient(ellipse at 47% 25%,#2e4133a3,transparent 62%),linear-gradient(115deg,#152720de,#0b1716e9),var(--tree-scene) center/cover;
+ border-color:#7c8167
+}
+.rv-e5-progression .rv20-path{min-height:103px;align-items:center}
+.rv-e5-progression .v4-branch-label{font-size:14px;letter-spacing:.01em}
+.rv-e5-progression .rv20-node .v4-node-icon{width:45px;height:45px;background:#162821;border-width:1px}
+.rv-e5-progression .rv20-node.open .v4-node-icon{background:radial-gradient(circle,#82663953,#172820 73%)}
+.rv-e5-progression .rv20-node.known .v4-node-icon{background:radial-gradient(circle,#54866b55,#172820 73%)}
+.rv-e5-progression .v4-skill-detail{border-color:#78856c;background:linear-gradient(150deg,#2d3d2e,#152620 68%)}
+@media(max-width:580px){
+ .rv-e5-inventory-host .inventory-filters{grid-template-columns:1fr 1fr}
+ .rv-e5-inventory-host #inventory-search{grid-column:1/-1}
+ .rv-e5-progression .rv20-path{min-height:84px}
+}

@@ -40,5 +40,8 @@ if 'inspect-trace' in html:
 if 'interruptPreparation' in html:
     css += '\n' + (root / 'tactical-view.css').read_text(encoding='utf-8')
     scripts += '\n' + (root / 'tactical-view.js').read_text(encoding='utf-8')
+if 'traceLoot' in html:
+    css += '\n' + (root / 'progression-view.css').read_text(encoding='utf-8')
+    scripts += '\n' + (root / 'progression-view.js').read_text(encoding='utf-8')
 html = html[:end] + '<style>' + css + '</style><script>' + scripts + '</script>\n' + html[end:]
 args.output.write_text(html, encoding='utf-8')
