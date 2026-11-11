@@ -1,0 +1,12 @@
+.rv-e6-journal{grid-column:1/-1;border:1px solid #76816b;border-radius:6px;background:#182720;padding:9px 12px}
+.rv-e6-journal>summary{font-weight:bold;font-size:15px}
+.rv-e6-record{padding:6px 9px;border-top:1px solid #455c4d}
+.rv-e6-record summary[data-certainty=verified]{color:#cbe5a3}
+.rv-e6-record summary[data-certainty=observed]{color:#eac98c}
+.rv-e6-record small{color:#c6cbb6}
+.rv-e6-record p{margin:5px 0;color:#f0e7d1}
+.rv19-stage .rv-e6-evidence{transform:translate(-106%,-120%);z-index:2;border-color:#d1ac70}
+.rv19-stage .rv-e6-evidence[data-certainty=verified]{border-color:#bed692}
+.rv19-map.rv-e6-journal-open .rv19-stage{height:clamp(320px,53vh,620px)}
+.rv-e6-journal[open]{max-height:245px;overflow:auto}
+.rv-e6-record button{border:1px solid #8c9678;border-radius:4px;margin:3px 6px 2px 0;padding:5px 9px;background:#283b2f;color:#f0e6cc}

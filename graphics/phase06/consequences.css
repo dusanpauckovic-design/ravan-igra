@@ -1,0 +1,8 @@
+.rv19-stage[data-light=warm] .rv19-canvas{filter:sepia(.2) saturate(1.15) brightness(1.06)}
+.rv-e6-consequences{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.rv-e6-consequences p,.rv-e6-recipe{margin:0;padding:5px 8px;border:1px solid #7f9871;border-radius:4px;background:#203329;color:#e1edbd}
+.rv-e6-consequences .rv-e6-recipe,.rv-e6-recipe{border-color:#a99564;color:#f0ddb0}
+.rv19-marker.rv-e6-secured{border-color:#c8da9a}
+.rv19-marker.rv-e6-secured .rv19-pin:after,.rv19-region.rv-e6-secured strong:after{content:' ✓';color:#d6eeb0}
+.rv-e6-recipe-found .rv19-marker.known[data-id=ruins]{border-color:#d6b779}
+.rv-e6-recipe-found .rv19-marker.known[data-id=ruins] .rv19-pin:after{content:' ▤';color:#f5d995}

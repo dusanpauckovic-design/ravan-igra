@@ -55,6 +55,7 @@ function ground(region,projection,low){
  for(const [index,tile] of region.cells.entries()){
   const polygon=projection.cell(index);
   fillPolygon(ctx,polygon,surface[tile.terrain]||grass);
+  if(root.RavanE6Terrain?.cell(ctx,region,projection,index,tile,low))continue;
   if(finish?.paintCell(ctx,region,projection,index,tile,low))continue;
   ctx.save();ctx.globalAlpha=.15;ctx.translate(.014,0);
   fillPolygon(ctx,polygon,tile.decoration%2?light:'#15251f');ctx.restore();
@@ -83,10 +84,12 @@ function ground(region,projection,low){
   }
  }
  if(finish)finish.paintLight(ctx,region,projection);
+ root.RavanE6Terrain?.light(ctx,region,projection);
  // Paint forest clusters in scan order so nearer crowns cover distant trunks.
  for(const [index,tile] of region.cells.entries()){
   if(tile.terrain!=='wood')continue;
   const [cx,cy]=projection.point(index);
+  if(root.RavanE6Terrain?.tree(ctx,region,projection,index,tile,low))continue;
   if(finish?.paintTrees(ctx,region,projection,index,tile,low))continue;
   const count=low?1:2+tile.decoration%3;
   for(let n=0;n<count;n++){
@@ -98,6 +101,7 @@ function ground(region,projection,low){
    fillPolygon(ctx,[[x-.16,y-.11],[x,y-height],[x+.018,y-.10]],region.biome==='suma'?'#56775c':'#6f8256');
   }
  }
+ root.RavanE6Terrain?.anchors(ctx,region,projection);
  return canvas;
 }
 function mount(host,port,camera={}){
@@ -132,7 +136,8 @@ function mount(host,port,camera={}){
  const quality=control('Detalji','Smanji graficke detalje',()=>{
   low=!low;quality.setAttribute('aria-pressed',String(low));terrain=null;draw();
  });
- quality.setAttribute('aria-pressed','false');
+ quality.setAttribute('aria-pressed',String(low));
+ root.RavanE6Consequences?.tools(stage,toolbar,camera);
  function markersFor(s){
   const names=new Map(s.campaign.locations.map(location=>[location.id,location.name]));
   const entries=Object.entries(region.places);
@@ -145,7 +150,9 @@ function mount(host,port,camera={}){
   }));
   const trace=root.RavanE5World?.marker(s,region);
   if(trace)list.push(trace);
-  for(const group of visibleGroups)list.push({id:group.id,index:group.index,name:group.name||'Grupa',sign:'●',group:true});
+  for(const group of visibleGroups)list.push(root.RavanE6Groups?.marker(group)||{id:group.id,index:group.index,name:group.name||'Grupa',sign:'●',group:true});
+  root.RavanE6Groups?.sync(stage,s,camera);
+  list.push(...(root.RavanE6Journal?.markers(s,region)||[]));
   const signature=JSON.stringify(list);
   if(markerKey===signature)return;
   markerKey=signature;markers.textContent='';
@@ -159,7 +166,16 @@ function mount(host,port,camera={}){
    if(entry.trace){
     button.classList.add('rv-e5-trace-pin');
     button.addEventListener('click',()=>root.RavanE5World.openTrace(stage));
-   }else if(entry.group)button.addEventListener('click',()=>showGroup(entry));
+   }else if(entry.evidence){
+    button.classList.add('rv-e6-evidence');button.dataset.certainty=entry.certainty;
+    button.addEventListener('click',()=>root.RavanE6Journal?.open(stage,entry.id));
+   }else if(entry.group){
+    if(entry.kind)button.dataset.kind=entry.kind;
+    button.addEventListener('click',()=>{
+     if(root.RavanE6Groups)root.RavanE6Groups.select(stage,port.snapshot(),entry.id,camera);
+     else showGroup(entry);
+    });
+   }
    else{button.dataset.act='ow-select';button.dataset.id=entry.id;}
    markers.append(button);
    return {...entry,button};
@@ -179,7 +195,10 @@ function mount(host,port,camera={}){
   }
   if(key!==nextKey){
    key=nextKey;
-   if(camera.key!==key){zoom=1;pan=[0,0];centered=false;}
+   if(camera.key!==key){
+    const saved=camera.regionalViews?.get(key);
+    zoom=saved?.zoom||1;pan=saved?.pan||[0,0];centered=!!saved?.centered;
+   }
    groupDetail.hidden=true;overview.textContent='';
    s.regions.forEach((item,index)=>{
     const card=node('div','rv19-region');
@@ -191,6 +210,7 @@ function mount(host,port,camera={}){
     overview.append(card);
    });
   }
+  root.RavanE6Consequences?.overview(overview,s);
   markersFor(s);
   const started=performance.now(), dpr=Math.min(root.devicePixelRatio||1,2);
   const backing=[Math.round(width*dpr),Math.round(height*dpr)];
@@ -242,7 +262,12 @@ function mount(host,port,camera={}){
    else if(entry.button.getAttribute('aria-label')!==entry.name)entry.button.setAttribute('aria-label',entry.name);
    entry.button.setAttribute('aria-pressed',String(s.selection===entry.id||s.journey?.id===entry.id));
   }
+  root.RavanE6Consequences?.markers(pointList,s);
   Object.assign(camera,{key,zoom,pan,centered,low});
+  if(root.RavanE6Consequences){
+   camera.regionalViews??=new Map();
+   camera.regionalViews.set(key,{zoom,pan,centered});
+  }
   stage.dataset.drawMs=(performance.now()-started).toFixed(2);
   stage.dataset.visible=String(pointList.filter(entry=>!entry.button.hidden).length);
   stage.dataset.region=String(s.region);
@@ -250,6 +275,13 @@ function mount(host,port,camera={}){
   if(heading&&heading.textContent!==biomes[region.biome])heading.textContent=biomes[region.biome]||region.biome;
  }
  stage.addEventListener('ravan-trace-preview',draw);
+ stage.addEventListener('ravan-e6-locate',event=>{
+  const index=event.detail, s=port.snapshot();
+  if(!transform||!s.discovered[s.region]?.includes(index))return;
+  const [x,y]=projection.point(index);
+  pan=[(projection.width/2-x)*transform.scale,((projection.top+projection.bottom)/2-y)*transform.scale];
+  centered=false;draw();
+ });
  const observer=typeof ResizeObserver==='function'?new ResizeObserver(draw):null;
  observer?.observe(stage);
  draw();

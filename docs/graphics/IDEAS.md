@@ -14,3 +14,9 @@
 - E5-D3: probati kratak zvuk udara tetive za razlikovanje strelca bez pojacavanja vizuelnih efekata.
 - E5-D4: probati prikaz tragova upotrebe na predmetu tek kad igra razlikuje stanja istrosenosti.
 - E5-D5: prikaz poslednjeg potvrdenog odredista na Nastavi igru prosiriti na ostale regije posle usaglasavanja naziva lokacija.
+
+- E6-D1: razmotriti sitnu siluetu stvarnog orijentira na regionalnoj kartici.
+- E6-D2: razmotriti filter samo za potvrde ako kampanja prikupi vise tragova.
+- E6-D3: probati kratku promenu oblika na gubitku vidokruga uz reduced motion.
+- E6-D4: razmotriti diskretne varijante ambijentalnog zvuka za tri materijala terena.
+- E6-D5: povezati ton svetla sa dobom dana kada postoji zvanican ugovor.

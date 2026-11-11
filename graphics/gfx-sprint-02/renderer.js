@@ -156,6 +156,7 @@
           daylight.addColorStop(1,'#224d4132');
           base.fillStyle=daylight;base.fillRect(0,0,W,H);
         }
+        root.RavanE6Contact?.paint(base,state.context,W,H);
         const shade = base.createRadialGradient(490, 287, 200, 490, 287, 565);
         shade.addColorStop(0, 'rgba(26,27,15,.04)'); shade.addColorStop(1, 'rgba(8,16,13,.82)');
         base.fillStyle = shade; base.fillRect(0, 0, W, H);
