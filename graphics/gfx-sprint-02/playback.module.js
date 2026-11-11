@@ -36,6 +36,7 @@ window.RavanReplayPanel=function mountReplay(ui) {
     const start=copy(scene);
     start.covers=start.covers.filter(c=>c.id||c.y!==4);
     Object.assign(start.covers.find(c=>c.id==='zaklon'),{x:5,y:4});
+    if(ui.loadEncounter)ui.loadEncounter('Kameni prolaz','Savladaj Tihog lovca.',scene);
     reset(start);applySpeed();
     running=true;
     const stamp=++generation;

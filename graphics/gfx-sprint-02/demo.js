@@ -19,6 +19,7 @@
     covers:[0,1,2,4,5].map(y=>({x:5,y})).concat([{id:'zaklon',x:5,y:3,hp:18,hpMax:18}])
   };
   let selected = scene.active, flat = false;
+  let encounter={title:'Kameni prolaz',objective:'Savladaj Tihog lovca.',snapshot:scene};
   let actionPanel;
   const viewer = RavanGraphics.createRenderer(canvas, ART, drawHUD);
   const view = { $, copy, canvas, scene, viewer, text, button, select, reset, cellAt, drawHUD };
@@ -58,10 +59,18 @@
     }
   }
   function select(id) { selected=id; viewer.select(id); drawHUD(viewer.getSnapshot()); }
-  function reset(snapshot = scene) {
+  function reset(snapshot = encounter.snapshot) {
     view.onReset?.(); actionPanel?.cancel(); selected=snapshot.active;
     viewer.reset(snapshot); select(selected);
     $('message').textContent='';
+    view.hints?.set('choose');
+  }
+  function loadEncounter(title,objective,snapshot){
+    encounter={title,objective,snapshot:copy(snapshot)};
+    $('arena-title').textContent=title;
+    $('objective').textContent='Cilj · '+objective;
+    reset();
+    view.screens.open('battle');
   }
   function cellAt(event) {
     const rect=canvas.getBoundingClientRect();
@@ -113,6 +122,15 @@
   view.outcomePort=RavanFixtureOutcome();
   view.outcome=RavanOutcomePanel(view,view.outcomePort);
   view.hints=RavanHints(view);
+  view.loadEncounter=loadEncounter;
+  view.getEncounter=()=>encounter;
+  view.startEncounter=()=>{
+    const start=copy(scene);
+    start.units[3].hp=28;
+    loadEncounter('Kameni prolaz','Savladaj Tihog lovca.',start);
+  };
+  view.onActionComplete=response=>{if(response.outcome) view.outcome.show(response.outcome);};
   reset();
   window.ravanSprint = view;
+  view.screens.open('party');
 })();

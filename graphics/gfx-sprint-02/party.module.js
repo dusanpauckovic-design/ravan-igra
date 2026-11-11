@@ -70,7 +70,10 @@ window.RavanPartyPanel = function mountParty(ui,port) {
     }
     if(u.slots[slot]) techniques.append(button('Isprazni slot',()=>submit(root,{slot,technique:null}),{disabled:busy}));
     const result=text('p',notice,'screen-desc'); result.setAttribute('role','status');
-    detail.append(techniques,result,button('Nazad na borbu',()=>screens.open('battle'),{className:'primary',id:'party-back'}));
+    const onward=text('div','','action-controls');
+    onward.append(button('Pregledaj vestine',()=>screens.open('skills'),{className:'primary',id:'party-skills'}),
+      button('Nazad na borbu',()=>screens.open('battle'),{id:'party-back'}));
+    detail.append(techniques,result,onward);
     layout.append(list,detail); root.append(layout);
   }
   async function submit(root,patch){

@@ -64,7 +64,7 @@ window.RavanFixtureActions = function createFixtureActions() {
     const unit=state.units.find(u=>u.x===target.x && u.y===target.y && u.hp>0);
     const reject=reason=>({ok:false,reason});
     if(!actor || actor.hp===0) return reject('Borac nije dostupan.');
-    let event,summary,cost;
+    let event,summary,cost,outcome;
     if(action==='attack'){
       if(unit?.team!=='enemy') return reject('Za napad izaberi protivnika.');
       const a=actor.x-(actor.y-(actor.y&1))/2, b=unit.x-(unit.y-(unit.y&1))/2, dy=actor.y-unit.y;
@@ -72,6 +72,7 @@ window.RavanFixtureActions = function createFixtureActions() {
       const hp=Math.max(0,unit.hp-14);
       event={type:'melee',actor:actor.id,target:unit.id,result:{hp:[{id:unit.id,hp,delta:hp-unit.hp}]}};
       summary=unit.name+' · '+unit.hp+' → '+hp+' HP'; cost='Cena · glavna akcija';
+      if(hp===0 && !state.units.some(u=>u.team==='enemy'&&u.id!==unit.id&&u.hp>0))outcome='victory';
     }else if(action==='heal'){
       if(unit?.id!==actor.id) return reject('Zavoj je dostupan samo aktivnom borcu.');
       if(unit.hp===unit.hpMax) return reject('Zivot je vec pun.');
@@ -87,13 +88,13 @@ window.RavanFixtureActions = function createFixtureActions() {
       summary='Odrediste · hex '+target.x+', '+target.y; cost='Putanja · '+path.length+' polja';
     }
     const token='intent/'+(++next);
-    current={token,event:{...event,id:token},summary};
+    current={token,event:{...event,id:token},summary,outcome};
     return {ok:true,token,summary,cost};
   }
   async function submit(token) {
     if(!current || current.token!==token) return {ok:false,reason:'Pregled vise nije vazeci.'};
-    const {event,summary}=current; current=null; count++;
-    return {ok:true,event,message:summary};
+    const {event,summary,outcome}=current; current=null; count++;
+    return {ok:true,event,message:summary,outcome};
   }
   return {preview,submit,count:()=>count};
 };

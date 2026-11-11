@@ -27,7 +27,9 @@ window.RavanSkillPanel=function mountSkillPanel(ui,catalog,port){
     root.textContent='';
     const heading=text('div','','screen-head');
     const title=text('h1','Vestine'); title.tabIndex=-1;
-    heading.append(title,text('strong',port.points()+' poena','points'),button('Nazad na borbu',()=>screens.open('battle'),{id:'skills-back'}));
+    heading.append(title,text('strong',port.points()+' poena','points'),
+      button('Nazad na borbu',()=>screens.open('battle'),{id:'skills-back'}),
+      button('Udji u susret',()=>ui.startEncounter(),{id:'start-encounter',className:'primary'}));
     root.append(heading);
     const tabs=text('nav','','skill-tabs');
     for(const [name,keys] of Object.entries(groups)){

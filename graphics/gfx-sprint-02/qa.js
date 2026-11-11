@@ -1,6 +1,10 @@
 window.runRavanQA = async function(stage, check) {
   const ui=window.ravanSprint, $=ui.$;
   await ui.viewer.ready;
+  if(stage>=16){
+    check('zavrsna proba pocinje u druzini',ui.screens.get()==='party');
+    document.querySelector('[data-screen=battle]').click();
+  }
   const rect=$('arena').getBoundingClientRect(), actions=$('actions').getBoundingClientRect();
   check('tabla i akcije staju u viewport',rect.bottom<=innerHeight && actions.bottom<=innerHeight && document.documentElement.scrollWidth<=innerWidth);
   check('cilj susreta vidljiv',$('objective').textContent.includes('Tihog lovca'));
@@ -105,7 +109,10 @@ window.runRavanQA = async function(stage, check) {
   $('trial-defeat').click();
   check('poraz daje checkpoint bez nagrade',!!$('checkpoint')&&!$('claim-reward'));
   $('checkpoint').click();await Promise.resolve();
-  check('checkpoint vraca pocetnu scenu',ui.viewer.getSnapshot().units[3].hp===58 && $('arena-title').textContent==='Kameni prolaz');
+  if(stage>=16){
+    check('checkpoint vraca pocetak aktuelnog susreta',ui.viewer.getSnapshot().units[3].hp===37 && $('arena-title').textContent==='Patrola doline');
+    ui.loadEncounter('Kameni prolaz','Savladaj Tihog lovca.',ui.scene);
+  }else check('checkpoint vraca pocetnu scenu',ui.viewer.getSnapshot().units[3].hp===58 && $('arena-title').textContent==='Kameni prolaz');
   ui.outcome.show('victory');
   if(stage<15)return;
   document.querySelector('[data-screen=battle]').click();ui.reset();
@@ -119,5 +126,16 @@ window.runRavanQA = async function(stage, check) {
   check('pomoc se preskace bez blokiranja potvrde',$('hint').hidden && !$('confirm').disabled);
   $('hint-toggle').checked=true;$('hint-toggle').dispatchEvent(new Event('change'));
   check('pomoc se moze vratiti iz detalja',ui.hints.enabled()&&!$('hint').hidden);
+  if(stage<16)return;
+  const extended=ui.copy(ui.scene);
+  extended.units[0].name='Radan Sa Veoma Dugackim Imenom Za Proveru';
+  ui.reset(extended);
+  const name=document.querySelector('[data-unit=a_radan] strong');
+  check('dugacko ime zadrzava pun tekst i raspored',name.textContent===extended.units[0].name && name.scrollWidth>=name.clientWidth && document.documentElement.scrollWidth<=innerWidth);
+  ui.reset();
+  check('smanjeno kretanje i mute dostupni',ui.hints.muted() && !!Array.from(ui.replay.speed.options).find(o=>o.value==='reduced'));
+  document.querySelector('[data-screen=party]').click();
+  document.addEventListener('click',e=>{if(e.isTrusted)window.__trusted=(window.__trusted||0)+1;},true);
+  document.addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Enter')window.__trustedEnter=(window.__trustedEnter||0)+1;},true);
 
 };

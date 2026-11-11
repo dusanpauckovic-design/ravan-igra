@@ -368,7 +368,8 @@
       ctx.fillStyle = unit.team === 'enemy' ? '#e29276' : '#b4c38a';
       ctx.fillRect(x - 20, y - height - 11, 40 * hp, 5);
       if (selected === unit.id || state.active === unit.id) {
-        tag(x, y - height - 17, unit.name + '  ' + unit.hp + '/' + unit.hpMax,
+        const name=unit.name.length>22 ? unit.name.slice(0,20)+'…' : unit.name;
+        tag(x, y - height - 17, name + '  ' + unit.hp + '/' + unit.hpMax,
           selected === unit.id ? '#f4daa5' : '#c5ead4');
       }
     }

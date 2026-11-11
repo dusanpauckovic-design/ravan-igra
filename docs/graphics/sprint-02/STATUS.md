@@ -12,3 +12,4 @@ Predaje su kumulativne demonstracije. Svi podaci u preview-u su probni.
 - [GFX-13](GFX-13.md) · Ritam napada i reakcija · tehnicki spremno, ceka pregled · issue #44
 - [GFX-14](GFX-14.md) · Rezime, nagrada i sledeci susret · tehnicki spremno, ceka pregled · issue #45
 - [GFX-15](GFX-15.md) · Opciona pomoc i povratna informacija · tehnicki spremno, ceka pregled · issue #46
+- [GFX-16](GFX-16.md) · Zaokruzen UI/UX tok i RV-23 predaja · tehnicki spremno, ceka pregled · issue #47

@@ -1,11 +1,11 @@
 window.RavanFixtureOutcome=function createOutcomePort() {
   let serial=0, current=null, submissions=0;
   const copy=value=>JSON.parse(JSON.stringify(value));
-  function open(kind){
+  function open(kind,context={}){
     current={
       id:'result/'+(++serial), kind,
       title:kind==='victory'?'Prolaz je otvoren':'Druzina se povukla',
-      summary:kind==='victory'?'Tihi lovac je savladan. Odaberi sta druzina nosi dalje.':'Prolaz je i dalje zatvoren. Vrati se na pocetak susreta.',
+      summary:kind==='victory'?(context.enemy||'Protivnik')+' je savladan. Odaberi sta druzina nosi dalje.':'Prolaz je i dalje zatvoren. Vrati se na pocetak susreta.',
       rewards:kind==='victory'?[
         {id:'wood',name:'Drvo za kamp',effect:'+9 drveta za gradnju'},
         {id:'stone',name:'Kamen za zaklon',effect:'+3 kamena za obnovu'},
@@ -32,7 +32,9 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
   const {$,button,text,screens,viewer,copy,scene,reset}=ui;
   let selected=null, busy=false, notice='';
   function show(kind) {
-    port.open(kind);
+    if(ui.isReplayRunning?.()||ui.actionPanel.isPending())return;
+    const enemy=viewer.getSnapshot().units.find(u=>u.team==='enemy');
+    port.open(kind,{enemy:enemy?.name});
     selected=null;notice='';busy=false;
     screens.open('outcome');
   }
@@ -57,7 +59,7 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
         ? button('Sledeci susret',()=>send(root,'nextEncounter'),{className:'primary',id:'next-encounter',disabled:busy})
         : button('Potvrdi nagradu',()=>send(root,'claimReward'),{className:'primary',id:'claim-reward',disabled:!selected||busy}));
     }else {
-      panel.append(text('h2','Checkpoint · Kameni prolaz'),text('p','Vraca pocetno stanje susreta.','screen-desc'),
+      panel.append(text('h2','Checkpoint · '+ui.getEncounter().title),text('p','Vraca pocetno stanje susreta.','screen-desc'),
         button('Vrati se na checkpoint',()=>send(root,'loadCheckpoint'),{id:'checkpoint',className:'primary',disabled:busy}));
     }
     const feedback=text('p',notice,'screen-desc');feedback.setAttribute('role','status');
@@ -76,16 +78,13 @@ window.RavanOutcomePanel=function mountOutcome(ui,port){
     if(type==='claimReward'){
       notice='Izbor prihvacen u probi.'; if(screens.get()==='outcome')draw(root); return;
     }
-    const next=copy(scene);
     if(type==='nextEncounter'){
+      const next=copy(scene);
       Object.assign(next.units[3],{name:'Divlja zver',x:4,y:4,hp:37,hpMax:37});
-      $('arena-title').textContent='Patrola doline';
-      $('objective').textContent='Cilj · Savladaj Divlju zver.';
+      ui.loadEncounter('Patrola doline','Savladaj Divlju zver.',next);
     }else{
-      $('arena-title').textContent='Kameni prolaz';
-      $('objective').textContent='Cilj · Savladaj Tihog lovca.';
+      reset();screens.open('battle');
     }
-    reset(next);screens.open('battle');
   }
   screens.register('outcome','Rezime',draw,{hidden:true});
   ui.onPlaybackComplete=show;
