@@ -24,3 +24,11 @@
  .rv-e5-full{max-height:177px}
  .rv-e5-identity{gap:7px 16px}
 }
+.rv-e5-superseded{display:none!important}
+.rv-e5-sheet-figure{width:clamp(44px,9vw,95px);height:112px;flex:none;object-fit:contain;align-self:end;filter:drop-shadow(4px 6px 5px #0b110e)}
+.rv-e5-sheet-label{color:#e6cca0;font-size:13px;margin:3px 0}
+@media(max-width:520px){
+ .sheet-profile:has(.rv-e5-sheet-figure) {padding:10px;gap:7px}
+ .sheet-profile:has(.rv-e5-sheet-figure) img{width:62px;height:86px}
+ .rv-e5-sheet-figure{height:79px}
+}

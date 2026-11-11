@@ -8,3 +8,5 @@
 | 2026-11-11 | GFX-04 | Varijante varnica prema materijalu mete | Razlika izmedju oklopa, kamena i tkanine | Dogovor o metapodacima materijala | Za kasniji pregled |
 | 2026-11-11 | GFX-05 | Posebni simboli za nekoliko istovremenih oznaka | Citljivost u vecim borbama | Potrebni statusi iz engine-a | Za kasniji pregled |
 | 2026-11-11 | GFX-06 | Opcioni korak-po-korak pregled potvrdenih dogadjaja | Lakse hvatanje razlika tokom integracije | Potrebna evidencija iz gameplay prikaza | Za kasniji pregled |
+
+- E5-D1: probati svetliji rub istog ogrtaca na kisnoj podlozi i citljivost tri materijala u pokretu. Zaseban vizuelni eksperiment nakon Etape 5.

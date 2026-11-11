@@ -12,7 +12,7 @@
   forest:{name:'Sumarski plast',color:'#52715b',edge:'#9da77a',hem:.88},
   stone:{name:'Siva kabanica',color:'#657689',edge:'#b3b2a6',hem:.75}
  };
- const images=new Map();
+ const images=new Map(), textures=new WeakMap(), urls=new WeakMap();
  function image(src){
   if(!images.has(src))images.set(src,new Promise((resolve,reject)=>{
    const picture=new Image();picture.onload=()=>resolve(picture);picture.onerror=reject;picture.src=src;
@@ -24,22 +24,42 @@
   points.forEach(([x,y],i)=>i?ctx.lineTo(x*w,y*h):ctx.moveTo(x*w,y*h));
   ctx.closePath();
  }
- function paint(canvas,figure,face,outfit){
+ function texture(figure,identity){
+  const look=normalize(identity);
+  if(!look||!figure.naturalWidth)return null;
+  const {face,outfit}=look, key=face+'/'+outfit, material=outfits[outfit];
+  if(!textures.has(figure))textures.set(figure,new Map());
+  const variants=textures.get(figure);
+  if(variants.has(key))return variants.get(key);
+  const canvas=document.createElement('canvas');
+  const w=canvas.width=figure.naturalWidth,h=canvas.height=figure.naturalHeight;
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(figure,0,0);
+  const shape=faces[face].cloth.map(([x,y])=>[x,.16+(y-.16)*material.hem]);
+  path(ctx,shape,w,h);ctx.clip();
+  ctx.globalCompositeOperation='source-atop';
+  ctx.globalAlpha=.65;ctx.fillStyle=material.color;ctx.fillRect(0,0,w,h);
+  ctx.globalAlpha=.34;ctx.strokeStyle=material.edge;ctx.lineWidth=Math.max(1,w*.022);
+  path(ctx,shape,w,h);ctx.stroke();
+  variants.set(key,canvas);
+  return canvas;
+ }
+ function url(identity,assets){
+  const look=normalize(identity), src=look&&assets[faces[look.face].figure];
+  if(!src)return Promise.resolve(null);
+  return image(src).then(figure=>{
+   const art=texture(figure,identity);
+   if(!urls.has(art))urls.set(art,art.toDataURL());
+   return urls.get(art);
+  }).catch(()=>null);
+ }
+ function paint(canvas,figure,look){
   const dpr=Math.min(2,root.devicePixelRatio||1);
   const w=canvas.width=Math.round(220*dpr), h=canvas.height=Math.round(260*dpr);
-  const ctx=canvas.getContext('2d');
-  const scale=Math.min(w*.93/figure.width,h*.95/figure.height);
-  const iw=figure.width*scale,ih=figure.height*scale;
-  ctx.translate((w-iw)/2,h-ih);
-  ctx.drawImage(figure,0,0,iw,ih);
-  const shape=face.cloth.map(([x,y])=>[x,.16+(y-.16)*outfit.hem]);
-  ctx.save();
-  path(ctx,shape,iw,ih);ctx.clip();
-  ctx.globalCompositeOperation='source-atop';
-  ctx.globalAlpha=.65;ctx.fillStyle=outfit.color;ctx.fillRect(0,0,iw,ih);
-  ctx.globalAlpha=.34;ctx.strokeStyle=outfit.edge;ctx.lineWidth=Math.max(1,iw*.022);
-  path(ctx,shape,iw,ih);ctx.stroke();
-  ctx.restore();
+  const art=texture(figure,{version:1,portrait:look.face,palette:look.outfit});
+  const scale=Math.min(w*.93/art.width,h*.95/art.height);
+  const iw=art.width*scale, ih=art.height*scale;
+  canvas.getContext('2d').drawImage(art,(w-iw)/2,h-ih,iw,ih);
  }
  function normalize(identity){
   if(!identity||identity.version!==1||!Object.prototype.hasOwnProperty.call(faces,identity.portrait)||
@@ -58,10 +78,10 @@
   canvas.dataset.appearance=key;
   return image(assets[face.figure]).then(figure=>{
    if(canvas.dataset.appearance!==key)return false;
-   paint(canvas,figure,face,outfit);
+   paint(canvas,figure,appearance);
    canvas.dataset.ready=key;
    return true;
   }).catch(()=>false);
  }
- root.RavanAppearance=Object.freeze({faces,outfits,normalize,choose,draw});
+ root.RavanAppearance=Object.freeze({faces,outfits,normalize,choose,draw,texture,url});
 })(globalThis);

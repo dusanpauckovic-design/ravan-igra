@@ -8,6 +8,8 @@
   const ease = t => t * t * (3 - 2 * t);
   const TAU = Math.PI * 2;
   const SIZES = {
+    figure_hero: { height: 104, foot: .51 },
+    figure_scout: { height: 101, foot: .48 },
     figure_guard: { height: 101, foot: .48 },
     figure_archer: { height: 94, foot: .53 },
     figure_caster: { height: 99, foot: .49 },
@@ -381,6 +383,7 @@
       const { x, y, width, height, foot, facing = 1, gait = 0 } = pose;
       const img = images[unit.sprite];
       if (!img?.naturalWidth) return;
+      const art = root.RavanAppearance?.texture(img, unit.identity) || img;
       const mirror = (unit.sprite === 'figure_wolf' ? -1 : 1) !== facing;
       ctx.save();
       ctx.translate(x, y);
@@ -389,18 +392,18 @@
       ctx.scale(mirror ? -1 : 1, 1);
       const left = -width * foot;
       if (Math.abs(gait) < .05) {
-        ctx.drawImage(img, left, -height, width, height);
+        ctx.drawImage(art, left, -height, width, height);
       } else {
         const bob = Math.abs(gait) * 2.3;
         const cut = Math.floor(img.naturalHeight * .76);
         const top = height * cut / img.naturalHeight;
         ctx.transform(1, 0, -Math.abs(gait) * .035, 1, 0, 0);
-        ctx.drawImage(img, 0, 0, img.naturalWidth, cut, left, -height - bob, width, top + 1);
+        ctx.drawImage(art, 0, 0, img.naturalWidth, cut, left, -height - bob, width, top + 1);
         const half = Math.floor(img.naturalWidth / 2);
         for (const [sx, sw, stride] of [[0, half, gait], [half, img.naturalWidth - half, -gait]]) {
           const part = img.naturalHeight - cut;
           const dx = left + width * sx / img.naturalWidth;
-          ctx.drawImage(img, sx, cut, sw, part, dx + stride * 2.2, -height + top - bob,
+          ctx.drawImage(art, sx, cut, sw, part, dx + stride * 2.2, -height + top - bob,
             width * sw / img.naturalWidth + .4, height - top + bob - Math.max(0, stride) * 3);
         }
       }

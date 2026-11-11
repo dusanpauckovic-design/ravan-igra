@@ -14,16 +14,29 @@
     markEnd: 'Istek ili potrosnja oznake', cover: 'Zaklon', sync: 'Rezultat akcije'
   };
 
+  const identitySprites = { hero:'figure_hero', hero_alt:'figure_scout' };
+  function mainIdentity(unit) {
+    const identity = unit.identity;
+    if (unit.heroId === 'main' && identity?.version === 1 &&
+        Object.prototype.hasOwnProperty.call(identitySprites, identity.portrait) &&
+        ['earth','forest','stone'].includes(identity.palette)) return clone(identity);
+    return null;
+  }
+
   function snapshot(battle, { width = 11, height = 7, pickSprite } = {}) {
     return {
       width, height, biome:battle.generated?.biome,
       terrain:(battle.terrain?.mud||[]).map(cell=>({...hex(cell),kind:'mud'})), active: battle.current || null,
-      units: battle.units.map(unit => ({
-        ...hex(unit), id: unit.id, name: unit.name, role: unit.role || '', team: unit.team,
-        kind:unit.kind, elite:!!unit.elite, guarding:!!unit.guarding,
-        hp: unit.hp, hpMax: unit.hpMax, mark: clone(unit.mark) || null,
-        sprite: pickSprite?.(unit) || heroes[unit.heroId] || (unit.team==='enemy'&&enemySprites[unit.kind]) || (beasts.has(unit.kind) ? 'figure_wolf' : 'figure_guard')
-      })),
+      units: battle.units.map(unit => {
+        const identity = mainIdentity(unit);
+        return {
+          ...hex(unit), id: unit.id, name: unit.name, role: unit.role || '', team: unit.team,
+          kind:unit.kind, elite:!!unit.elite, guarding:!!unit.guarding,
+          hp: unit.hp, hpMax: unit.hpMax, mark: clone(unit.mark) || null,
+          ...(identity && {identity}),
+          sprite: pickSprite?.(unit) || (identity && identitySprites[identity.portrait]) || heroes[unit.heroId] || (unit.team==='enemy'&&enemySprites[unit.kind]) || (beasts.has(unit.kind) ? 'figure_wolf' : 'figure_guard')
+        };
+      }),
       covers: battle.obstacles.map(cover => ({ ...hex(cover), id: cover.id, hp: cover.hp, hpMax: cover.hpMax })),
       trails: clone(battle.trails || []),
       danger: battle.units.flatMap(u => (Array.isArray(u.intent) ? u.intent : u.intent?.cells || [])).filter(p => Number.isInteger(p.x) && Number.isInteger(p.y)).map(hex)
