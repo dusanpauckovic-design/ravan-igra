@@ -50,7 +50,8 @@
    const start=button.dataset.id.startsWith('start:');
    panel.append(start?button.closest('p'):button);
   }
-  const map=app.querySelector('.rv19-stage,svg[aria-label="Mapa regije"]');
+  const map=app.querySelector('.rv19-stage')?.parentElement
+   ||app.querySelector('svg[aria-label="Mapa regije"]');
   if(map)map.before(panel);else original.before(panel);
   original.hidden=true;
  }
