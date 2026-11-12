@@ -29,7 +29,9 @@
  }
  function contact(event){
   if(!enabled||!context||context.state!=='running')return;
-  const cue=profiles[event.type];if(!cue)return;
+  const custom=root.RavanE7Feedback?.cue(event);
+  if(custom===null)return;
+  const cue=custom||profiles[event.type];if(!cue)return;
   const [frequency,duration]=cue, time=context.currentTime;
   const oscillator=context.createOscillator(), envelope=context.createGain();
   oscillator.type=event.type==='heal'?'sine':'triangle';
