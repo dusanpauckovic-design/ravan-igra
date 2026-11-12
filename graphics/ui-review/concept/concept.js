@@ -17,18 +17,21 @@
 
   function grid() {
     const cells = [];
+    const corners = [[-42,0],[-21,-24],[21,-24],[42,0],[21,24],[-21,24]];
     for (let row = 0; row < 6; row++) {
       for (let col = 0; col < 10; col++) {
-        const x = 195 + col * 67 + row * 20;
-        const y = 20 + row * 42;
-        const selected = row === 3 && col === 6 && target;
+        const x = 142 + col * 63;
+        const y = 25 + row * 48 + col % 2 * 24;
+        const selected = row === 3 && col === 7 && target;
         const reach = action === 'move' && col > 1 && col < 5 && row > 2;
-        cells.push('<polygon class="'+(selected?'target':reach?'reach':'')+'" points="'+[
-          [x,y],[x+44,y],[x+68,y+21],[x+44,y+42],[x,y+42],[x-24,y+21]
-        ].map(point=>point.join(',')).join(' ')+'"/>');
+        const points = corners.map(([dx,dy]) => {
+          const depth = y + dy;
+          return [425 + (x+dx-425)*(.59+depth*.00165), depth].join(',');
+        });
+        cells.push('<polygon class="'+(selected?'target':reach?'reach':'')+'" points="'+points.join(' ')+'"/>');
       }
     }
-    return '<svg class="board" viewBox="90 0 940 270" preserveAspectRatio="none" aria-hidden="true">'+cells.join('')+'</svg>';
+    return '<svg class="board" viewBox="0 0 850 320" preserveAspectRatio="none" aria-hidden="true">'+cells.join('')+'</svg>';
   }
 
   function menu() {

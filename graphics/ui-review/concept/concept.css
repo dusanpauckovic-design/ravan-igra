@@ -76,6 +76,7 @@ h1,h2 {font-family:Georgia,serif; font-weight:400}
 .field::before {
   content:"";position:absolute;top:28%;right:0;bottom:0;left:0;
   background:linear-gradient(0deg,#14110e 0%,#1a110b00 76%),url('__GROUND__') center/cover;
+  -webkit-mask-image:linear-gradient(transparent,#000 42%);
   mask-image:linear-gradient(transparent,#000 42%)
 }
 [data-look=vellum] .field {filter:saturate(.8)}
@@ -95,9 +96,9 @@ h1,h2 {font-family:Georgia,serif; font-weight:400}
   color:#f6e6d1;background:#181614ed;padding:2px 6px;border:1px solid #9f8363
 }
 .hero {left:32%;top:77%}.guard {left:42%;top:58%;height:clamp(77px,19vh,165px)}
-.beast {left:66%;top:67%}.other {left:74%;top:47%;height:clamp(65px,15vh,148px)}
+.beast {left:66%;top:62%}.other {left:74%;top:47%;height:clamp(65px,15vh,148px)}
 .target-button {
-  position:absolute; left:66%;top:62%; transform:translate(-50%,-50%);width:115px;height:85px;
+  position:absolute; left:66%;top:55%; transform:translate(-50%,-50%);width:115px;height:85px;
   background:transparent;border-color:transparent;color:transparent
 }
 .target-button:hover,.target-button:focus-visible {border-color:#f2ba9d;color:transparent}
