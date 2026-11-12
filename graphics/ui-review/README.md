@@ -17,3 +17,13 @@ Igriva baza je E8 merge `fc158d7cb3d88c5ecc1d6cbd1e44434953aafaa4`. Predlog kori
 ```sh
 python3 graphics/ui-review/build.py /path/to/Ravan_E8-Merged.html Ravan_UI_Proba.html
 ```
+
+## V01 · Dva vizuelna pravca
+
+Klikabilni predlog prikazuje meni i preskocivi intro, bojiste i kamp. Zar i pepeo koristi toplo svetlo i tamne materijale. Hladni rukopis koristi svetlu podlogu sa hladnim panelima. E8 prikaz ucitava spojenu igru u izolovanom okviru za poredjenje. Igriva proba u parent direktorijumu sluzi za zasebnu proveru komandi i A/B rasporeda.
+
+```sh
+python3 graphics/ui-review/concept/build.py /path/to/Ravan_E8-Merged.html /path/to/E8-source/assets Ravan_V01_Vizuelni_Predlog.html
+```
+
+Komande u vizuelnom predlogu demonstriraju prelaze i stanja. Audio ulaz ceka odabrani lokalni Sonne piano fajl. Produkciona primena ceka izbor i vizuelno odobrenje iz plana #90.
