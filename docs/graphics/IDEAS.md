@@ -20,3 +20,9 @@
 - E6-D3: probati kratku promenu oblika na gubitku vidokruga uz reduced motion.
 - E6-D4: razmotriti diskretne varijante ambijentalnog zvuka za tri materijala terena.
 - E6-D5: povezati ton svetla sa dobom dana kada postoji zvanican ugovor.
+
+- E7-D1: probati rucno radjene neutralne portrete porodica kada se potvrde licne reference.
+- E7-D2: probati simbol oporavka na horizontali sa inicijativom.
+- E7-D3: probati difuznu svetlost koju baca Otisak na okolne ivice.
+- E7-D4: razmotriti uporedne primere za parove iz zvanicnog kataloga.
+- E7-D5: proveriti sinteticke tonove na zvucnicima i slusalicama u zasebnom audio QA prolazu.

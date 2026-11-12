@@ -340,8 +340,11 @@
       }
       const profile = (enhancedFigures && SILHOUETTES[unit.sprite]) || SIZES[unit.sprite] || SIZES.figure_guard;
       const img = images[unit.sprite];
-      const height = profile.height*(unit.team==='enemy'?(actorScale[unit.kind]||1):1);
-      const width = img?.naturalHeight ? height * img.naturalWidth / img.naturalHeight : height * .75;
+      const form = root.RavanE7Families?.pose(unit,attack,t,facing,reducedMotion);
+      const stance = root.RavanE7Elite?.stance(unit,attack,t,facing,reducedMotion);
+      offset += form?.offset||0; tilt += (form?.tilt||0)+(stance?.tilt||0);
+      const height = (form?.height||1)*(stance?.height||1)*profile.height*(unit.team==='enemy'?(actorScale[unit.kind]||1):1);
+      const width = (form?.width||1)*(stance?.width||1)*(img?.naturalHeight ? height * img.naturalWidth / img.naturalHeight : height * .75);
       return { x: p.x + offset, y: p.y, width, height, foot: profile.foot, facing, tilt };
     }
 
@@ -469,6 +472,7 @@
       if(unit.guarding&&state.approach&&unit.hp>0)ellipse(x,y,23,8,'#548e8536','#92cdbb');
       if (selected === unit.id && unit.hp > 0) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
       drawSprite(unit, pose);
+      if(unit.hp>0)root.RavanE7Families?.equipment(ctx,unit,pose);
     }
 
     function drawUnitStatus(unit, pose) {
@@ -480,7 +484,7 @@
       if(unit.elite && unit.hp>0)ellipse(x,y,34,12,null,'#e2a65d');
       if (unit.tactical) {
         const prepared=unit.tactical==='prepare';
-        tag(x,y-height-37,prepared?'Priprema':'Prekinut',prepared?'#ffd09f':'#bce8da');
+        tag(x,y-height-37,prepared?'Priprema':unit.tactical==='recover'?'Oporavak':'Prekinut',prepared?'#ffd09f':'#bce8da');
       }
       if (selected === unit.id || state.active === unit.id) {
         const name=unit.name.length>22 ? unit.name.slice(0,20)+'…' : unit.name;
@@ -551,7 +555,9 @@
       drawMaterials();
       cells().forEach(drawTile);
       drawTargeting();
-      (state.trails || []).forEach(trail => drawRune(project(trail), '#8ee3da'));
+      (state.trails || []).forEach(trail => {
+        if(!root.RavanE7Energy?.trail(ctx,project(trail),trail))drawRune(project(trail), '#8ee3da');
+      });
       const entries = sceneEntries(t);
       const chosen = entries.find(e => !e.cover && e.item.id === selected);
       const statuses = [];
@@ -568,7 +574,7 @@
         }
       }
       if (active && attackTypes.has(active.event.type)) drawAttack(active.event, t);
-      if (active) { drawMagic(active.event, t); drawRoleEvent(active.event, t); drawTacticalEvent(active.event,t); }
+      if (active) { root.RavanE7Elite?.cue(ctx,active.event,t,state,project,reducedMotion); if(!root.RavanE7Energy?.cue(ctx,active.event,t,state,project,reducedMotion,contactAt(active.event)))drawMagic(active.event, t); drawRoleEvent(active.event, t); drawTacticalEvent(active.event,t); }
       statuses.forEach(([unit, pose]) => drawUnitStatus(unit, pose));
       ctx.restore();
     }
@@ -688,6 +694,7 @@
           const p=project(cell);
           ellipse(p.x,p.y,16+progress*32,7+progress*10,null,'#ebaa77');
         }
+        if(!event.result?.hp?.length)tag(at.x,at.y-78,'Bez gubitka HP','#e7d1ae');
         for(const update of event.result?.hp||[]){
           const hit=state.units.find(u=>u.id===update.id);
           if(hit){const p=project(hit);tag(p.x,p.y-64-progress*22,String(update.delta),'#ffd098');}
@@ -741,6 +748,8 @@
         const unit=state.units.find(u=>u.id===update.id);
         if(unit)unit.tactical=update.status;
       }
+      const mode=event.result?.eliteMode;
+      if(mode){const unit=state.units.find(u=>u.id===mode.id);if(unit)unit.eliteMode=mode.value;}
       if (event.result?.active) state.active = event.result.active;
       if (event.result) onChange(copy(state));
     }

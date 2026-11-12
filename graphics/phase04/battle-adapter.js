@@ -32,10 +32,10 @@
         const identity = mainIdentity(unit);
         return {
           ...hex(unit), id: unit.id, name: unit.name, role: unit.role || '', team: unit.team,
-          kind:unit.kind, elite:!!unit.elite, guarding:!!unit.guarding,
+          kind:unit.kind, family:unit.family, eliteMode:unit.eliteMode, elite:!!unit.elite, guarding:!!unit.guarding,
           hp: unit.hp, hpMax: unit.hpMax, mark: clone(unit.mark) || null,
           ...(identity && {identity}),
-          ...(battle.generated?.approach && {tactical:unit.intent?.length?'prepare':unit.aiPhase==='interrupted'?'interrupt':null}),
+          ...((battle.generated?.approach||unit.eliteMode) && {tactical:unit.intent?.length?'prepare':unit.aiPhase==='interrupted'?'interrupt':unit.aiPhase==='recover'?'recover':null}),
           sprite: pickSprite?.(unit) || (identity && identitySprites[identity.portrait]) || heroes[unit.heroId] || (unit.team==='enemy'&&enemySprites[unit.kind]) || (beasts.has(unit.kind) ? 'figure_wolf' : 'figure_guard')
         };
       }),
@@ -68,21 +68,25 @@
           const index = path.findIndex((p, j) => j >= offset && same(p, trail.at));
           if (index < 0) break;
           appendMove(index + 1);
-          events.push({ type:'trailHit', actor:trail.by, target:trail.target, at:hex(trail.at) });
+          events.push({ type:'trailHit', actor:trail.by, target:trail.target, at:hex(trail.at), effectId:trail.effectId });
           i++;
         }
         appendMove(path.length);
       } else if (v.type === 'attack') {
-        events.push({ type:v.ranged ? 'ranged' : 'melee', actor:v.actor, target:v.target, at:clone(v.at), outcome:v.outcome });
+        events.push({ type:v.ranged ? 'ranged' : 'melee', actor:v.actor, target:v.target, at:clone(v.at), outcome:v.outcome, effectId:v.effectId });
       } else if (v.type === 'push') {
         events.push({ type:'push', actor:v.actor, target:v.target, from:clone(v.from), path:[hex(v.to)] });
       } else if (v.type === 'trail') {
-        events.push({ type:'trailHit', actor:v.by, target:v.target, at:hex(v.at) });
+        events.push({ type:'trailHit', actor:v.by, target:v.target, at:hex(v.at), effectId:v.effectId });
+      } else if(v.type==='zonePlaced'&&v.at){
+        events.push({type:'trailPlace',actor:v.actor,at:hex(v.at),effectId:v.effectId});
       } else if (v.type === 'markSpent') {
         events.push({ type:'markEnd', actor:v.actor, target:v.target,
           result:{ marks:[{id:v.target,mark:null}] } });
       } else if (['prepare','release','interrupt'].includes(v.type)) {
         events.push({type:v.type,actor:v.actor,target:v.target,cells:(v.cells||[]).map(hex)});
+      } else if(v.type==='eliteMode' && ['steady','driven'].includes(v.mode)){
+        events.push({type:'eliteMode',actor:v.actor,mode:v.mode});
       } else if (v.type === 'cover') {
         events.push({ type:'cover', at:hex(v.at) });
       }
@@ -97,6 +101,9 @@
     }
     const before = snapshot(beforeBattle, options), after = snapshot(afterBattle, options);
     const events = visualEvents(receipt.visuals || []);
+    for(const event of events.filter(item=>item.type==='eliteMode')){
+      event.result={eliteMode:{id:event.actor,value:event.mode}};
+    }
     const oldUnits = new Map(before.units.map(u => [u.id, u]));
     const oldTrails = before.trails;
     const append = (event, field, value) => {
@@ -123,7 +130,8 @@
     }
 
     for (const trail of after.trails.filter(t => !oldTrails.some(old => same(old, t)))) {
-      events.unshift({ type:'trailPlace', actor:trail.by, at:hex(trail) });
+      if(!events.some(e=>e.type==='trailPlace'&&same(e.at,trail)))
+        events.unshift({ type:'trailPlace', actor:trail.by, at:hex(trail),effectId:trail.effectId });
     }
     let trailState = clone(oldTrails);
     for (const event of events) {
@@ -177,10 +185,14 @@
       append(event, 'hp', { id:change.id, hp:change.after, delta:change.delta });
     }
 
+    if(receipt.effectId){
+      const event=events.find(e=>e.type==='heal'||(['ranged','melee'].includes(e.type)&&e.actor===receipt.actor));
+      if(event)event.effectId ||= receipt.effectId;
+    }
     return {
       before, after,
       events: events.map((event, index) => ({
-        ...event, guarded:!!oldUnits.get(event.target)?.guarding, id:JSON.stringify([battleId, receipt.seq, index]), path:event.path || [],
+        ...event, surface:event.type==='move'&&before.terrain.some(tile=>tile.kind==='mud'&&same(tile,event.path.at(-1)))?'mud':undefined, guarded:!!oldUnits.get(event.target)?.guarding, id:JSON.stringify([battleId, receipt.seq, index]), path:event.path || [],
         label:labels[event.type], result:event.result || {}
       }))
     };
