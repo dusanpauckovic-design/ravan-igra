@@ -472,7 +472,10 @@
       if(unit.guarding&&state.approach&&unit.hp>0)ellipse(x,y,23,8,'#548e8536','#92cdbb');
       if (selected === unit.id && unit.hp > 0) ellipse(x, y, 25, 8, '#dcc18c2c', '#efd199');
       drawSprite(unit, pose);
-      if(unit.hp>0)root.RavanE7Families?.equipment(ctx,unit,pose);
+      if(unit.hp>0){
+        root.RavanE7Families?.equipment(ctx,unit,pose);
+        root.RavanE8Equipment?.paintFighter(ctx,unit,pose);
+      }
     }
 
     function drawUnitStatus(unit, pose) {

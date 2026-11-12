@@ -25,6 +25,7 @@
   }
 
   function snapshot(battle, { width = 11, height = 7, pickSprite } = {}) {
+    const equipment = root.RavanE8Equipment?.battleEquipment(battle);
     return {
       width, height, biome:battle.generated?.biome, context:clone(battle.generated?.context), approach:battle.generated?.approach,
       terrain:(battle.terrain?.mud||[]).map(cell=>({...hex(cell),kind:'mud'})), active: battle.current || null,
@@ -35,6 +36,7 @@
           kind:unit.kind, family:unit.family, eliteMode:unit.eliteMode, elite:!!unit.elite, guarding:!!unit.guarding,
           hp: unit.hp, hpMax: unit.hpMax, mark: clone(unit.mark) || null,
           ...(identity && {identity}),
+          ...(equipment?.[unit.id] && {equipment:equipment[unit.id]}),
           ...((battle.generated?.approach||unit.eliteMode) && {tactical:unit.intent?.length?'prepare':unit.aiPhase==='interrupted'?'interrupt':unit.aiPhase==='recover'?'recover':null}),
           sprite: pickSprite?.(unit) || (identity && identitySprites[identity.portrait]) || heroes[unit.heroId] || (unit.team==='enemy'&&enemySprites[unit.kind]) || (beasts.has(unit.kind) ? 'figure_wolf' : 'figure_guard')
         };

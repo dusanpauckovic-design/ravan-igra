@@ -1,0 +1,10 @@
+.rv-e8-expedition{margin:9px 0;padding:10px 13px;border:1px solid #89916d;border-radius:7px;background:#1b2d24}
+.rv-e8-expedition h2{font:21px Georgia,serif;color:#ead6ac;margin:0}
+.rv-e8-expedition p{margin:5px 0}
+.rv-e8-exp-goal{color:#f4ead1}
+.rv-e8-exp-status{display:flex;flex-wrap:wrap;gap:6px}
+.rv-e8-exp-status span{padding:3px 6px;background:#283d31;color:#e8dfc5}
+.rv-e8-expedition details{margin:6px 0}
+.rv-e8-expedition summary{cursor:pointer;color:#d7c796}
+.rv-e8-expedition button{margin:3px 7px 0 0}
+.rv-e8-battle-progress{color:#dce3b9}

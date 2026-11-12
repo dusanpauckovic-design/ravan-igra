@@ -1,0 +1,9 @@
+.rv-e8-formation{padding:8px 10px;border:1px solid #7c826a;border-radius:7px;background:#1b2b24;margin-bottom:10px}
+.rv-e8-formation-row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:4px 0}
+.rv-e8-formation-row strong{min-width:108px;color:#e9d4a9}
+.rv-e8-formation-row button{padding:4px 7px;color:#ede1c1;background:#26392e;border:1px solid #7b8b71;border-radius:4px}
+.rv-e8-formation-row button[aria-pressed=true]{border-color:#e4c58b;color:#ffe8b3}
+.rv-e8-cooperation{padding:7px 10px;margin-bottom:8px;border:1px solid #688171;border-radius:5px}
+.rv-e8-cooperation summary{cursor:pointer;color:#e7d9b1}
+.rv-e8-party-technique{color:#dfcba6}
+@media(max-width:1100px){.rosterlayout .herogrid{grid-template-columns:repeat(auto-fit,minmax(122px,1fr))}.rosterlayout .heropicture{min-height:88px;height:105px}}

@@ -26,3 +26,9 @@
 - E7-D3: probati difuznu svetlost koju baca Otisak na okolne ivice.
 - E7-D4: razmotriti uporedne primere za parove iz zvanicnog kataloga.
 - E7-D5: proveriti sinteticke tonove na zvucnicima i slusalicama u zasebnom audio QA prolazu.
+
+- E8-D1 · Razmotriti varijantu osvetljenja kampa kada izvor svetla bude vezan za ugovor o dobu dana.
+- E8-D2 · Razmotriti pregled saradnje po susednim poljima kad se potvrdi interfejs za formacije.
+- E8-D3 · Probati samostalni pregled siluete sa i bez opreme kada atlas podrzi slojeve portreta.
+- E8-D4 · Razmotriti dnevnik posledica ekspedicije kad postoje stabilni izvori podataka za opremu, svet i razvoj.
+- E8-D5 · Proveriti fullscreen na stvarnom Mac desktopu i preslusati E7/E8 zvuk na uredjaju.
