@@ -1,0 +1,115 @@
+:root.rv-review {
+  --rv-review-ink: #101716;
+  --rv-review-paper: #ead9b9;
+  --rv-review-metal: #b99a67;
+  --rv-review-line: #b99a6766;
+  --rv-review-rust: #df9d7c;
+}
+
+.rv-review-compare {
+  position: fixed; z-index: 10; right: 12px; bottom: 10px;
+  border: 1px solid #b99a67a6; border-radius: 3px; background: #121916f5;
+  color: #f1dfbf; padding: 7px 10px; font: 600 12px/1.25 system-ui, sans-serif;
+}
+.rv-review-compare:focus-visible, .rv-review :is(#app, #modal) button:focus-visible {
+  outline: 2px solid #ffe4a3; outline-offset: 3px;
+}
+
+.rv-review .rv-title {
+  --ravan-cover-tone: linear-gradient(90deg,#0b1313bd 0%,#10181720 42%,#0b1313ec 78%,#0b1313 100%);
+  grid-template-columns: minmax(0,1fr) minmax(315px,32vw);
+  padding: clamp(22px,4vw,62px); min-height: 100vh;
+  background-image: var(--ravan-cover-tone), var(--rv-cover);
+  background-position: center, center 42%;
+  color: var(--rv-review-paper);
+}
+.rv-review .rv-title-frame {
+  top: 18px; right: 18px; bottom: 18px; left: 18px;
+  border: 1px solid #b99a678a; box-shadow: inset 0 0 0 4px #14191588;
+}
+.rv-review .rv-title-frame::after {
+  top: 6px; right: 6px; bottom: 6px; left: 6px; border: 1px solid #b99a672c;
+}
+.rv-review .rv-title-cover {justify-self: stretch; text-align: left; padding: 14px 10px 20px 24px;}
+.rv-review .rv-title-seal {margin: 0 0 22px 8px; border-color: #c59d68; background: #5a2821b8;}
+.rv-review .rv-title h1 {
+  margin: 0; color: #f0ddb5; text-shadow: 0 5px 28px #0b1212;
+  font: 400 clamp(68px,8vw,133px)/.86 Georgia, serif; letter-spacing: .11em;
+}
+.rv-review .rv-title-subtitle {
+  margin: 15px 0 25px; color: #dbbc87; letter-spacing: .15em; font-size: 13px;
+}
+.rv-review .rv-title-choices {
+  border-top: 1px solid var(--rv-review-line); padding-top: 15px; display: grid;
+  width: 100%; max-width: 350px; gap: 7px;
+}
+.rv-review .rv-title .rv-title-action {
+  border: 1px solid var(--rv-review-line); border-radius: 3px; text-align: left;
+  padding: 9px 15px; min-height: 43px; margin: 0; background: #18201cda; color: #f0dfc0;
+}
+.rv-review .rv-title .rv-title-primary {
+  background: linear-gradient(100deg,#d7b57f,#a77f4d);
+  border-color: #e8ca98; color: #181710; font-weight: bold;
+}
+.rv-review .rv-title-tools {justify-content: flex-start; padding-left: 24px;}
+
+.rv-review-map-dock {
+  position: fixed; right: 126px; bottom: 10px; left: 14px;
+  right: max(126px, calc((100vw - 1260px)/2)); left: max(14px, calc((100vw - 1260px)/2));
+  z-index: 8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  padding: 10px 13px; gap: 9px 14px; background: #111c19fa;
+  border: 1px solid var(--rv-review-metal); border-radius: 4px; box-shadow: 0 5px 25px #080e0cba;
+}
+.rv-review-map {padding-bottom: 115px;}
+.rv-review-map-status {display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere;}
+.rv-review-map-status strong {font: 20px/1.16 Georgia,serif; color: #f6dfb3;}
+.rv-review-map-status small {color: #d4cbb6; font: 13px/1.35 system-ui,sans-serif;}
+.rv-review-map-actions {display: flex; flex-wrap: wrap; gap: 6px;}
+.rv-review-map-actions button, .rv-review .rv-viewport-commands > button {
+  padding: 7px 10px; min-height: 37px; border: 1px solid var(--rv-review-line);
+  border-radius: 3px; background: #24342c; color: #f6e8cf; white-space: normal;
+}
+.rv-review-map-dock[data-encounter] {border-color: var(--rv-review-rust);}
+.rv-review-map-dock [data-review-action="ow-fight"] {
+  border-color: #f1b78f; background: #6c3527; color: #fff0df;
+}
+.rv-review-map-dock [data-review-action="ow-go"], .rv-review-map-dock [data-review-action="ow-inspect-trace"] {
+  border-color: #dec090; background: #d6b481; color: #151810; font-weight: 700;
+}
+.rv-review .rv19-map .rv19-stage {
+  height: clamp(260px,calc(100vh - 290px),680px); border-color: var(--rv-review-line);
+  border-radius: 4px; box-shadow: inset 0 0 24px #0b1214;
+}
+.rv-review .rv19-map .rv19-tools {flex-wrap: wrap;}
+.rv-review .rv-e8-expedition {background: #15251e; border-color: var(--rv-review-line);}
+.rv-review-turn {display: none;}
+.rv-review .rv-viewport {color: var(--rv-review-paper);}
+.rv-review .rv-viewport .battle-top {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto;
+  padding: 10px 14px; background: linear-gradient(#101716f5,#101716c9);
+  border-bottom: 1px solid var(--rv-review-line);
+}
+.rv-review .rv-viewport .battle-goal b {color: #f4dcb3; font: 19px/1.15 Georgia,serif;}
+.rv-review .rv-viewport .battle-top > span {display: none;}
+.rv-review .rv-review-turn {display: grid; grid-area: 1/2; justify-self: center; text-align: center; gap: 1px;}
+.rv-review .rv-review-turn strong {color: #f1d29c; font: 600 14px system-ui,sans-serif;}
+.rv-review .rv-review-turn small {color: #dfd5c3;}
+.rv-review .rv-review-turn[data-side="enemy"] strong {color: var(--rv-review-rust);}
+.rv-review .rv-viewport .battle-dock {
+  border: 1px solid var(--rv-review-metal); border-radius: 4px;
+  background: #111c19f5; box-shadow: 0 4px 22px #0b1110bf;
+}
+.rv-review .rv-viewport-commands > button:disabled {opacity: .55;}
+.rv-review .rv-viewport-commands > :is(button.selected,button[aria-pressed="true"]) {
+  border-color: #f1d29c; background: #d6b481; color: #151810;
+}
+@media(max-width:720px) {
+  .rv-review .rv-title {grid-template-columns: 1fr; background-position: center,36% center; padding: 24px;}
+  .rv-review .rv-title-cover {align-self: center; margin-top: 0; padding-left: 14px; max-width: 360px;}
+  .rv-review .rv-title h1 {font-size: clamp(58px,13vw,84px);}
+  .rv-review .rv-title-tools {padding-left: 14px;}
+  .rv-review .rv-viewport .battle-top {grid-template-columns: 1fr auto;}
+  .rv-review .rv-review-turn {grid-area: 2/1/-1/-1; justify-self: start; text-align: left;}
+  .rv-review-map-dock {right: 9px; bottom: 44px; left: 9px; max-height: 38vh; overflow: auto;}
+  .rv-review-map {padding-bottom: 175px;}
+}
