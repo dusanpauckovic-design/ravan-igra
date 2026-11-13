@@ -13,6 +13,12 @@ const options=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-
     // SwiftShader can take several seconds per frame. Drive the preview clock at
     // fixed frame increments while still rendering the actual scene and interactions.
     await page.addInitScript(()=>{
+      for(const name of ['drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced']){
+        const original=WebGL2RenderingContext.prototype[name];
+        WebGL2RenderingContext.prototype[name]=function(...args){
+          if(!window.qaSkipDraw)original.apply(this,args);
+        };
+      }
       const request=window.requestAnimationFrame.bind(window);
       let timestamp=0;
       window.requestAnimationFrame=callback=>request(now=>{
@@ -70,13 +76,15 @@ const options=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-
     await shot('RAVAN_Na_Gazu');
     await page.waitForTimeout(1400);
     check('The traveler and clock pause at the ford',(await state()).clock===approach.clock);
-    await press('#crossing-go');
+    await page.evaluate(()=>{window.qaSkipDraw=true;document.getElementById('crossing-go').click();});
     await wait(()=>window.ravanAudit().fog.bank===1);
     check('Crossing reveals the far bank from the traveler', (await state()).fog.bank===1);
-    await wait(()=>window.ravanAudit().origin==='marsh');
+    await wait(()=>window.ravanAudit().origin==='marsh').catch(async e=>{console.log(await state());throw e;});
+    await page.evaluate(()=>{window.qaSkipDraw=false;document.getElementById('center').click();});
     const arrived=await state();
     check('Wetlands arrival uses the estimated duration and records the newly discovered area',
       Math.abs(arrived.clock-departureClock-started.journeyDays)<.04&&arrived.fog.known.includes('marsh')&&Math.floor(arrived.clock)===2);
+    await page.waitForTimeout(1800);
     await shot('RAVAN_Mokre_Livade');
     await page.setViewportSize({width:390,height:844});
     await press('#center');
