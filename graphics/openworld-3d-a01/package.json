@@ -1,0 +1,6 @@
+{
+  "name":"ravan-openworld-3d-a01",
+  "private":true,
+  "type":"module",
+  "devDependencies":{"esbuild":"0.25.12","three":"0.172.0"}
+}

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAVAN · Prva dolina</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="map" aria-label="3D mapa Prve doline">
+  <canvas id="scene" aria-label="Prikaz doline iz 2.5D kamere"></canvas>
+  <div class="frame" aria-hidden="true"></div>
+  <header class="title"><div class="brand">R A V A N <span></span></div><h1>Prva dolina</h1></header>
+  <div class="view-controls" aria-label="Prikaz">
+    <button id="light" type="button" aria-pressed="false">Magla</button>
+    <button id="quality" type="button" aria-pressed="false">Detalji: puni</button>
+  </div>
+  <div id="pins" aria-label="Mesta u dolini"></div>
+  <div id="party" class="party" aria-hidden="true"></div>
+  <nav class="camera" aria-label="Kamera">
+    <button id="zoom-in" type="button" aria-label="Priblizi">+</button>
+    <button id="zoom-out" type="button" aria-label="Udalji">−</button>
+    <button id="overview" type="button" aria-label="Vrati pocetni kadar">◎</button>
+  </nav>
+  <section class="destination" aria-label="Izabrano mesto">
+    <select id="place-list" aria-label="Izaberi mesto"></select>
+    <span class="kind" id="kind"></span>
+    <h2 id="place-name"></h2>
+    <p id="description"></p>
+    <button type="button" id="travel">Kreni</button>
+  </section>
+  <footer><span class="prototype">ART PROTOTIP</span><span id="status" role="status">Ucitavanje terena i modela…</span></footer>
+  <div id="error" role="alert" hidden></div>
+</main>
+<script type="module" src="main.js"></script>
+</body>
+</html>
