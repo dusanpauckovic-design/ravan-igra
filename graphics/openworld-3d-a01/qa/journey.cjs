@@ -47,11 +47,12 @@ const options=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-
     await page.locator('[data-place="marsh"]').click();
     const eta=await page.locator('#eta').textContent();
     check('Wetlands route is presented as about two game days',eta.includes('2 dana'));
+    await press('#quality');
     await press('#travel');
     const started=await state();
     check('Distance is measured in days',Math.abs(started.journeyDays-2)<.22);
     await press('#light');
-    await wait(()=>window.ravanAudit().crossing!==null);
+    await wait(()=>window.ravanAudit().crossing!==null).catch(async e=>{console.log(await state());throw e;});
     const approach=await state();
     check('Ford encounter is discovered on arrival, before reaching the opposite bank',
       approach.crossing.kind==='tracks'&&approach.fog.bank===-1&&!approach.fog.known.includes('grove'));

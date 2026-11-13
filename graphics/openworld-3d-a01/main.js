@@ -164,7 +164,7 @@ function move(dt){
     const progress=target.progress+spent;
     const fraction=target.cost>0?Math.min(1,progress/target.cost):1;
     const x=T.MathUtils.lerp(target.start.x,target.point.x,fraction),z=T.MathUtils.lerp(target.start.y,target.point.y,fraction);
-    const side=riverSide(x,z);
+    const side=riverSide(x,z)||bank;
     if(!terrainPassable(x,z)){
       target=null;journey=[];showSelection();
       status.textContent='Duboka voda. Potrazi kameni gaz.';
@@ -189,7 +189,7 @@ function move(dt){
       for(let i=1;i<steps;i++)discover(T.MathUtils.lerp(party.x,x,i/steps),T.MathUtils.lerp(party.y,z,i/steps),true);
     }
     party.set(x,z);
-    if(fraction<1)break;
+    if(target.cost-progress>1e-9)break;
     if(target.arrival)origin=target.arrival;
     nextTarget();
   }
@@ -202,10 +202,10 @@ function draw(now) {
   if(target || invalidate || !reduceMotion.matches) {
     if(lastFrame&&frameSamples.length<60)frameSamples.push(elapsed);
     const dt=Math.min(elapsed/1000,.32);
-    move(Math.min(elapsed/1000,.9));
+    move(Math.min(elapsed/1000,2));
     setSightTime(clock);
     updateClock();
-    moveTraveler(party.x,party.y,heading,!!target,dt);
+    moveTraveler(party.x,party.y,heading,!!target&&!crossing,dt);
     if(follow)pan.set(party.x,party.y);
     updateCamera();
     updatePins();
@@ -337,6 +337,7 @@ async function init() {
   globalThis.ravanAudit=()=>({
     ...audit,origin,selected,party:party.toArray(),mist,low,span,pan:pan.toArray(),
     fog:explorationAudit(),bounds,heading,clock,journeyDays,remainingDays,crossing,
+    waypoint:target?.point.toArray(),
     points:Object.fromEntries(places.map(p=>[p.id,screen(p.x,height(p.x,p.z),p.z)])),
     nearby:screen(party.x+12,height(party.x+12,party.y+2),party.y+2),
     deep:screen(river(-31),height(river(-31),-31),-31),
