@@ -42,6 +42,7 @@ function screen(x,y,z) {
 function showSelection() {
   const place=places.find(p=>p.id===selected);
   element('place-list').value=selected;
+  element('mobile-place-name').textContent=place.title;
   element('kind').textContent=place.kind;
   element('place-name').textContent=place.title;
   element('description').textContent=place.info;

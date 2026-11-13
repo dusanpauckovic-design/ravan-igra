@@ -15,7 +15,7 @@
       "kind": "GLB",
       "sizeMeters": [
         144,
-        27,
+        29.11,
         126
       ],
       "bytes": 460992,
@@ -38,7 +38,7 @@
       "sizeMeters": [
         2,
         2,
-        0.195
+        0.2
       ],
       "bytes": 50776,
       "sha256": "d316e100680f324dd5de01756799334373f462fb9936f1c352bba2293350badb",
@@ -59,8 +59,8 @@
       },
       "sizeMeters": [
         2.7,
-        2.925,
-        2.736
+        2.92,
+        2.74
       ],
       "bytes": 168588,
       "sha256": "05ff0e1ca49042b135526c957288cf04728513891d0d79aa60dfdff72652a4c8",
@@ -80,9 +80,9 @@
         "url": "https://cdn.3dassets.dev/assets/23200/v1/model.glb"
       },
       "sizeMeters": [
-        3.191,
-        3.135,
-        2.153
+        3.19,
+        3.14,
+        2.15
       ],
       "bytes": 126924,
       "sha256": "8c229de3207d7a452d0d829ba2678026446ae80cb73bc990bf8812aa9bbca45c",
@@ -102,9 +102,9 @@
         "url": "https://cdn.3dassets.dev/assets/23202/v1/model.glb"
       },
       "sizeMeters": [
-        2.202,
-        2.925,
-        2.239
+        2.2,
+        2.92,
+        2.24
       ],
       "bytes": 254148,
       "sha256": "a9ad5594b7fda063dfb408920da1adcbb7de463f2d220c49fe035a6cf0a5307e",
@@ -175,7 +175,12 @@
       "simplify": false,
       "bytes": 1143580,
       "sha256": "7e4a4ff2f8b53f946968d824d5bc799ccbcc1bf30c766a8513e9e1d38486ce73",
-      "triangles": 6232
+      "triangles": 6232,
+      "sizeMeters": [
+        1.97,
+        0.43,
+        1.72
+      ]
     },
     {
       "path": "assets/rock_face_02.glb",
@@ -220,7 +225,12 @@
       "simplify": false,
       "bytes": 3527388,
       "sha256": "8071ac570d2c3c58fd41df3235a8d46b0a89fbcda6e01cd0a8451874c11f81e0",
-      "triangles": 29566
+      "triangles": 29566,
+      "sizeMeters": [
+        2.71,
+        2.47,
+        2.13
+      ]
     },
     {
       "path": "assets/rock_moss_set_01.glb",
@@ -264,7 +274,12 @@
       "simplify": false,
       "bytes": 1933008,
       "sha256": "451599a92e375059fda4c11fc9265e35dde547df6dbc65a6f0572b4d72ae9e88",
-      "triangles": 63127
+      "triangles": 63127,
+      "sizeMeters": [
+        8,
+        1.77,
+        6.95
+      ]
     },
     {
       "path": "assets/pine.glb",
@@ -324,7 +339,12 @@
       "simplify": true,
       "bytes": 5635376,
       "sha256": "117b4246db4ac056c6509f7cd639596e900c3ca5f309e02ba83882d8e82af37b",
-      "triangles": 9156
+      "triangles": 9156,
+      "sizeMeters": [
+        0.78,
+        1.3,
+        0.77
+      ]
     },
     {
       "path": "assets/forest-floor.webp",

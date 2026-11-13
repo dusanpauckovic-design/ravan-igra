@@ -25,5 +25,5 @@ footer{bottom:0;left:0;right:0;min-height:34px;display:flex;align-items:center;g
 #error{left:50%;top:50%;transform:translate(-50%,-50%);width:min(460px,88vw);background:#171d18;padding:18px;border:1px solid #d7b775}
 @media(max-width:600px){.title{left:14px;top:19px}.view-controls{top:82px;left:14px;right:auto}.view-controls button{font-size:11px;min-height:35px;padding:7px 10px}.camera{right:14px;bottom:65px}.camera button{width:43px;height:41px}.destination{left:14px;bottom:64px;width:min(238px,70vw);padding:10px 13px}.destination h2{font-size:21px}.destination p{font-size:11px}.pin span{font-size:11px;padding:5px 6px;white-space:normal;text-align:center;max-width:105px;min-width:65px}footer{padding:6px 14px;min-height:40px}}
 
-#place-list{display:none}
-@media(max-width:600px){#place-list{display:block;width:100%;height:32px;padding:3px 7px;margin:0 0 7px;background:#1c231c;color:var(--paper);border:1px solid var(--line);font:inherit;font-size:12px}}
+ .place-picker{display:none}
+@media(max-width:600px){.place-picker{position:relative;display:flex;align-items:center;height:34px;margin-bottom:7px;padding:0 22px 0 8px;background:#1c231c;border:1px solid var(--line);font-size:12px}.place-picker:after{content:'⌄';position:absolute;right:8px;pointer-events:none;color:#c8ad73}.place-picker select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.place-picker:focus-within{outline:2px solid #f9d68b}}
