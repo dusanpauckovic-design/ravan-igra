@@ -1,0 +1,73 @@
+{
+  "project": "RAVAN — open world 3D terrain demo A",
+  "license_notice": "3DAssets.dev assets listed here are licensed CC0 per source. Assets are not included in this package because the download environment could not retrieve their binary GLBs. Open the HTML with WebGL2 and internet for live download.",
+  "pack": "https://3dassets.dev/packs/prehistoric-survivor-settlement",
+  "origin": "Original terrain generated in project, model uses no external source assets.",
+  "models": [
+    {
+      "key": "hidehut",
+      "label": "Skloniste od koze",
+      "asset_id": 23199,
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-hide-roof-hut-frame-43217a62",
+      "glb_url": "https://cdn.3dassets.dev/assets/23199/v1/model.glb",
+      "local_name": "models/hidehut.glb"
+    },
+    {
+      "key": "longhouse",
+      "label": "Duga kuca",
+      "asset_id": 23200,
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-woven-longhouse-bay-284e712e",
+      "glb_url": "https://cdn.3dassets.dev/assets/23200/v1/model.glb",
+      "local_name": "models/longhouse.glb"
+    },
+    {
+      "key": "granary",
+      "label": "Podignuto skladiste",
+      "asset_id": 23202,
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-raised-granary-shell-0d0ce82c",
+      "glb_url": "https://cdn.3dassets.dev/assets/23202/v1/model.glb",
+      "local_name": "models/granary.glb"
+    },
+    {
+      "key": "hearth",
+      "label": "Zajednicko ognjiste",
+      "asset_id": 23206,
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-communal-fire-hearth-218c42d3",
+      "glb_url": "https://cdn.3dassets.dev/assets/23206/v1/model.glb",
+      "local_name": "models/hearth.glb"
+    },
+    {
+      "key": "palisade",
+      "label": "Palisada",
+      "asset_id": 23197,
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-pole-palisade-0d15f2d0",
+      "glb_url": "https://cdn.3dassets.dev/assets/23197/v1/model.glb",
+      "local_name": "models/palisade.glb"
+    },
+    {
+      "key": "cottage",
+      "label": "Srednjovekovna kuca",
+      "asset_id": 28762,
+      "page": "https://3dassets.dev/assets/medieval-mmo-starter-realm-thatched-cottage-3921d162",
+      "glb_url": "https://cdn.3dassets.dev/assets/28762/v1/model.glb",
+      "local_name": "models/cottage.glb"
+    },
+    {
+      "key": "mine",
+      "label": "Ulaz u rudnik",
+      "asset_id": 28767,
+      "page": "https://3dassets.dev/assets/medieval-mmo-starter-realm-mine-entrance-f884e898",
+      "glb_url": "https://cdn.3dassets.dev/assets/28767/v1/model.glb",
+      "local_name": "models/mine.glb"
+    },
+    {
+      "key": "tent",
+      "label": "Sator",
+      "asset_id": 28884,
+      "page": "https://3dassets.dev/assets/medieval-siege-and-castle-defence-bell-tent-9ace24d9",
+      "glb_url": "https://cdn.3dassets.dev/assets/28884/v1/model.glb",
+      "local_name": "models/tent.glb"
+    }
+  ],
+  "main_hero": "Temporary geometric placeholder, not a MakeHuman model or canonical Ravan character."
+}

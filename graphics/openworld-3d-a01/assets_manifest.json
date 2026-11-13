@@ -1,0 +1,451 @@
+{
+  "ticket": 135,
+  "verified": "2026-11-13",
+  "licenses": {
+    "3DAssets.dev": "https://3dassets.dev/packs/prehistoric-survivor-settlement",
+    "Poly Haven": "https://polyhaven.com/license",
+    "ambientCG": "https://docs.ambientcg.com/license/"
+  },
+  "assets": [
+    {
+      "path": "Ravan_Originalni_Teren_Dolina.glb",
+      "source": "RAVAN",
+      "author": "Bakijeva predaja",
+      "license": "Interni RAVAN asset",
+      "kind": "GLB",
+      "sizeMeters": [
+        144,
+        29.11,
+        126
+      ],
+      "bytes": 460992,
+      "sha256": "9c171f7c71802dd3d624e6535abc3ed1f6198590b714f462e029ae088f4018ff",
+      "triangles": 22680
+    },
+    {
+      "path": "assets/23197.glb",
+      "source": "3DAssets.dev",
+      "kind": "GLB",
+      "title": "Pole Palisade (Prehistoric Survivor Settlement)",
+      "author": "3D Assets",
+      "license": "CC0 1.0 Universal",
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-pole-palisade-0d15f2d0",
+      "version": "v1",
+      "publisher_ai_generated": true,
+      "download": {
+        "url": "https://cdn.3dassets.dev/assets/23197/v1/model.glb"
+      },
+      "sizeMeters": [
+        2,
+        2,
+        0.2
+      ],
+      "bytes": 50776,
+      "sha256": "d316e100680f324dd5de01756799334373f462fb9936f1c352bba2293350badb",
+      "triangles": 744
+    },
+    {
+      "path": "assets/23199.glb",
+      "source": "3DAssets.dev",
+      "kind": "GLB",
+      "title": "Hide Roof Hut Frame (Prehistoric Survivor Settlement)",
+      "author": "3D Assets",
+      "license": "CC0 1.0 Universal",
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-hide-roof-hut-frame-43217a62",
+      "version": "v1",
+      "publisher_ai_generated": true,
+      "download": {
+        "url": "https://cdn.3dassets.dev/assets/23199/v1/model.glb"
+      },
+      "sizeMeters": [
+        2.7,
+        2.92,
+        2.74
+      ],
+      "bytes": 168588,
+      "sha256": "05ff0e1ca49042b135526c957288cf04728513891d0d79aa60dfdff72652a4c8",
+      "triangles": 2832
+    },
+    {
+      "path": "assets/23200.glb",
+      "source": "3DAssets.dev",
+      "kind": "GLB",
+      "title": "Woven Longhouse Bay (Prehistoric Survivor Settlement)",
+      "author": "3D Assets",
+      "license": "CC0 1.0 Universal",
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-woven-longhouse-bay-284e712e",
+      "version": "v1",
+      "publisher_ai_generated": true,
+      "download": {
+        "url": "https://cdn.3dassets.dev/assets/23200/v1/model.glb"
+      },
+      "sizeMeters": [
+        3.19,
+        3.14,
+        2.15
+      ],
+      "bytes": 126924,
+      "sha256": "8c229de3207d7a452d0d829ba2678026446ae80cb73bc990bf8812aa9bbca45c",
+      "triangles": 2048
+    },
+    {
+      "path": "assets/23202.glb",
+      "source": "3DAssets.dev",
+      "kind": "GLB",
+      "title": "Raised Granary Shell (Prehistoric Survivor Settlement)",
+      "author": "3D Assets",
+      "license": "CC0 1.0 Universal",
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-raised-granary-shell-0d0ce82c",
+      "version": "v1",
+      "publisher_ai_generated": true,
+      "download": {
+        "url": "https://cdn.3dassets.dev/assets/23202/v1/model.glb"
+      },
+      "sizeMeters": [
+        2.2,
+        2.92,
+        2.24
+      ],
+      "bytes": 254148,
+      "sha256": "a9ad5594b7fda063dfb408920da1adcbb7de463f2d220c49fe035a6cf0a5307e",
+      "triangles": 4332
+    },
+    {
+      "path": "assets/23206.glb",
+      "source": "3DAssets.dev",
+      "kind": "GLB",
+      "title": "Communal Fire Hearth (Prehistoric Survivor Settlement)",
+      "author": "3D Assets",
+      "license": "CC0 1.0 Universal",
+      "page": "https://3dassets.dev/assets/prehistoric-survivor-settlement-communal-fire-hearth-218c42d3",
+      "version": "v1",
+      "publisher_ai_generated": true,
+      "download": {
+        "url": "https://cdn.3dassets.dev/assets/23206/v1/model.glb"
+      },
+      "sizeMeters": [
+        1.5,
+        0.95,
+        1.2
+      ],
+      "bytes": 28780,
+      "sha256": "e23023cbe0dc519615194c5cbc2fb2baefc94673524e2976f835e345e4457c9e",
+      "triangles": 532
+    },
+    {
+      "path": "assets/fern_02.glb",
+      "source": "Poly Haven",
+      "kind": "glTF",
+      "title": "fern_02",
+      "author": {
+        "Rob Tuytel": "scanning",
+        "Rico Cilliers": "modeling"
+      },
+      "license": "CC0 1.0 Universal",
+      "page": "https://polyhaven.com/a/fern_02",
+      "version": "1K glTF",
+      "source_name": "fern_02.gltf",
+      "download": {
+        "include": {
+          "textures/fern_02_arm_1k.jpg": {
+            "size": 280359,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_arm_1k.jpg",
+            "md5": "1bbb2b22951f450720d28e17d93a2987"
+          },
+          "textures/fern_02_diff_1k.jpg": {
+            "size": 315705,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_diff_1k.jpg",
+            "md5": "82c18a6cfd5ae91c37c0e078f591181c"
+          },
+          "textures/fern_02_nor_gl_1k.jpg": {
+            "size": 367222,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_nor_gl_1k.jpg",
+            "md5": "43aed63dff79554f6064627515afd9d7"
+          },
+          "fern_02.bin": {
+            "size": 176176,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/fern_02/fern_02.bin",
+            "md5": "c061e9255f7d36ae9ce0e92ef3e100b2"
+          }
+        },
+        "size": 6899,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fern_02/fern_02_1k.gltf",
+        "md5": "cf276874d37bfb73c299504a6b355b77"
+      },
+      "simplify": false,
+      "bytes": 1143580,
+      "sha256": "7e4a4ff2f8b53f946968d824d5bc799ccbcc1bf30c766a8513e9e1d38486ce73",
+      "triangles": 6232,
+      "sizeMeters": [
+        1.97,
+        0.43,
+        1.72
+      ]
+    },
+    {
+      "path": "assets/rock_face_02.glb",
+      "source": "Poly Haven",
+      "kind": "glTF",
+      "title": "rock_face_02",
+      "author": {
+        "Dario Barresi": "All",
+        "Rico Cilliers": "processing"
+      },
+      "license": "CC0 1.0 Universal",
+      "page": "https://polyhaven.com/a/rock_face_02",
+      "version": "1K glTF",
+      "source_name": "rock_face_02.gltf",
+      "download": {
+        "include": {
+          "textures/rock_face_02_nor_gl_1k.jpg": {
+            "size": 1082942,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_nor_gl_1k.jpg",
+            "md5": "af2e17bb469b499dc14765dc13ad30ae"
+          },
+          "textures/rock_face_02_arm_1k.jpg": {
+            "size": 820389,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_arm_1k.jpg",
+            "md5": "9e59b31d77e404500effa446e790f8fb"
+          },
+          "rock_face_02.bin": {
+            "size": 702068,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_face_02/rock_face_02.bin",
+            "md5": "add01c9b573fdddd688acb6378c78c3b"
+          },
+          "textures/rock_face_02_diff_1k.jpg": {
+            "size": 920193,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_diff_1k.jpg",
+            "md5": "8f3731e5c8e4e5c7f5de983353cf3ee3"
+          }
+        },
+        "size": 2794,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rock_face_02/rock_face_02_1k.gltf",
+        "md5": "f4c7eefa474143b14312409cad4fb4b8"
+      },
+      "simplify": false,
+      "bytes": 3527388,
+      "sha256": "8071ac570d2c3c58fd41df3235a8d46b0a89fbcda6e01cd0a8451874c11f81e0",
+      "triangles": 29566,
+      "sizeMeters": [
+        2.71,
+        2.47,
+        2.13
+      ]
+    },
+    {
+      "path": "assets/rock_moss_set_01.glb",
+      "source": "Poly Haven",
+      "kind": "glTF",
+      "title": "rock_moss_set_01",
+      "author": {
+        "Kless Gyzen": "All"
+      },
+      "license": "CC0 1.0 Universal",
+      "page": "https://polyhaven.com/a/rock_moss_set_01",
+      "version": "1K glTF",
+      "source_name": "rock_moss_set_01.gltf",
+      "download": {
+        "include": {
+          "textures/rock_moss_set_01_nor_gl_1k.jpg": {
+            "size": 209975,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_nor_gl_1k.jpg",
+            "md5": "eb7ebd31ad08e78d0497900652ff1568"
+          },
+          "rock_moss_set_01.bin": {
+            "size": 1466380,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_moss_set_01/rock_moss_set_01.bin",
+            "md5": "207a51c9f56d34732e9814bbf9cc07b1"
+          },
+          "textures/rock_moss_set_01_rough_1k.jpg": {
+            "size": 82624,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_rough_1k.jpg",
+            "md5": "ed9d8a2c863262f76f881346e8047c6a"
+          },
+          "textures/rock_moss_set_01_diff_1k.jpg": {
+            "size": 168099,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_moss_set_01/rock_moss_set_01_diff_1k.jpg",
+            "md5": "b8742301e6b4bc5683d2de712e83f772"
+          }
+        },
+        "size": 9987,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rock_moss_set_01/rock_moss_set_01_1k.gltf",
+        "md5": "75113cc1c21806cca5d8badad4737af7"
+      },
+      "simplify": false,
+      "bytes": 1933008,
+      "sha256": "451599a92e375059fda4c11fc9265e35dde547df6dbc65a6f0572b4d72ae9e88",
+      "triangles": 63127,
+      "sizeMeters": [
+        8,
+        1.77,
+        6.95
+      ]
+    },
+    {
+      "path": "assets/pine.glb",
+      "source": "Poly Haven",
+      "kind": "glTF",
+      "title": "pine_sapling_small",
+      "author": {
+        "Rob Tuytel": "photography",
+        "Rico Cilliers": "modeling"
+      },
+      "license": "CC0 1.0 Universal",
+      "page": "https://polyhaven.com/a/pine_sapling_small",
+      "version": "1K glTF",
+      "source_name": "pine_sapling_small.gltf",
+      "download": {
+        "include": {
+          "textures/pine_sapling_small_twig_arm_1k.jpg": {
+            "size": 394056,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_twig_arm_1k.jpg",
+            "md5": "b5062030fc42ec7bd12eb3f052054104"
+          },
+          "textures/pine_sapling_small_twig_diff_1k.jpg": {
+            "size": 477942,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_twig_diff_1k.jpg",
+            "md5": "dacc918bb421968e9ccc1956d78a2dbe"
+          },
+          "textures/pine_sapling_small_bark_nor_gl_1k.jpg": {
+            "size": 1016849,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_bark_nor_gl_1k.jpg",
+            "md5": "bb6e3a6eea777d992cef48fabfdc538c"
+          },
+          "pine_sapling_small.bin": {
+            "size": 17771796,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/pine_sapling_small/pine_sapling_small.bin",
+            "md5": "76dd1802d8de128c812f2e124a258b35"
+          },
+          "textures/pine_sapling_small_bark_diff_1k.jpg": {
+            "size": 725265,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_bark_diff_1k.jpg",
+            "md5": "7d3a558ed614c7e75594c7be3bf80311"
+          },
+          "textures/pine_sapling_small_bark_arm_1k.jpg": {
+            "size": 801278,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_bark_arm_1k.jpg",
+            "md5": "21d1abd15e40951825a4f3da110b20ea"
+          },
+          "textures/pine_sapling_small_twig_nor_gl_1k.jpg": {
+            "size": 692711,
+            "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/pine_sapling_small/pine_sapling_small_twig_nor_gl_1k.jpg",
+            "md5": "eebc5a81f8f6231d8e18ec4ad7292798"
+          }
+        },
+        "size": 11442,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/pine_sapling_small/pine_sapling_small_1k.gltf",
+        "md5": "237a7672645631550ae571743aa9f55b"
+      },
+      "simplify": true,
+      "bytes": 5635376,
+      "sha256": "117b4246db4ac056c6509f7cd639596e900c3ca5f309e02ba83882d8e82af37b",
+      "triangles": 9156,
+      "sizeMeters": [
+        0.78,
+        1.3,
+        0.77
+      ]
+    },
+    {
+      "path": "assets/forest-floor.webp",
+      "source": "Poly Haven",
+      "kind": "texture",
+      "author": "eye-candy.xyz",
+      "license": "CC0 1.0 Universal",
+      "page": "https://polyhaven.com/a/forest_floor",
+      "version": "1K JPG",
+      "quality": 82,
+      "resolution": [
+        1024,
+        1024
+      ],
+      "download": {
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forest_floor/forest_floor_diff_1k.jpg"
+      },
+      "bytes": 434242,
+      "sha256": "85c46204c72661a8b4aca26256f852f36cfba916a98cefd6ef212333bf429642"
+    },
+    {
+      "path": "assets/rock-ground.webp",
+      "source": "Poly Haven",
+      "kind": "texture",
+      "author": "Dimitrios Savva, Dario Barresi",
+      "license": "CC0 1.0 Universal",
+      "page": "https://polyhaven.com/a/rock_boulder_cracked",
+      "version": "1K JPG",
+      "quality": 82,
+      "resolution": [
+        1024,
+        1024
+      ],
+      "download": {
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_boulder_cracked/rock_boulder_cracked_diff_1k.jpg"
+      },
+      "bytes": 249122,
+      "sha256": "7bae8d5e53a82d96321f5ae55554537723617a55b8ff8fdff9bb613c5eaab3c3"
+    },
+    {
+      "source": "ambientCG",
+      "kind": "PBR",
+      "title": "Ground 003",
+      "author": "ambientCG",
+      "license": "CC0 1.0 Universal",
+      "page": "https://ambientcg.com/view?id=Ground003",
+      "version": "1K JPG",
+      "download": {
+        "url": "https://ambientcg.com/get?file=Ground003_1K-JPG.zip"
+      },
+      "outputs": [
+        {
+          "path": "assets/ground-color.webp",
+          "zip_member": "Ground003_1K-JPG_Color.jpg",
+          "quality": 86,
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 471578,
+          "sha256": "edd3d6e1193344f8e71bc5799aaf61e6023d630d8a2e974e27ba11cfcee3d0bc"
+        },
+        {
+          "path": "assets/ground-normal.webp",
+          "zip_member": "Ground003_1K-JPG_NormalGL.jpg",
+          "quality": 86,
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 540722,
+          "sha256": "bd312b5f558574aaaed4bbfa222d8b8aeaa3186e60fa4329eb1490afa8bdce87"
+        },
+        {
+          "path": "assets/ground-rough.webp",
+          "zip_member": "Ground003_1K-JPG_Roughness.jpg",
+          "quality": 86,
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 313792,
+          "sha256": "2f79169d6021591b56c6e070fa65011f8d1a535d26f1ed117f14ccef953389ea"
+        }
+      ]
+    },
+    {
+      "path": "assets/putnik.glb",
+      "source": "MakeHuman Community / RAVAN",
+      "author": "MakeHuman Community (body), RAVAN (costume and stride)",
+      "kind": "MakeHuman OBJ",
+      "license": "CC0 1.0 Universal (MakeHuman core mesh), RAVAN art (costume and animation)",
+      "page": "https://static.makehumancommunity.org/about/license.html",
+      "version": "3c701a8e52f09e69922e8b598d23be2d7dfc49e3",
+      "download": {
+        "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/3c701a8e52f09e69922e8b598d23be2d7dfc49e3/makehuman/data/3dobjs/base.obj",
+        "sha256": "8e761e6624b8f54536409135d1636da63b32486a90d4897f84e121d144f6fb4c"
+      },
+      "triangles": 30624,
+      "bytes": 1119204,
+      "sha256": "8eea7e97a55191d18a403898cd30b5275027fc835a27bfe35a7b00a74a9ebf30"
+    }
+  ]
+}

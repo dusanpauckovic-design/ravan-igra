@@ -1,0 +1,76 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+const {chromium}=require(process.env.RAVAN_PLAYWRIGHT || 'playwright');
+const [html,output]=process.argv.slice(2);
+const checks=[];
+const audit=page=>page.evaluate(()=>window.ravanAudit());
+const check=(name,test)=>{assert.ok(test,name);checks.push(name);};
+const flags=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--single-process','--no-zygote','--disable-gpu-sandbox'];
+(async()=>{
+  const browser=await chromium.launch({executablePath:process.env.RAVAN_CHROMIUM,args:flags});
+  const errors=[];
+  const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce',offline:true});
+  try {
+    page.on('pageerror',e=>errors.push(e.message));
+    page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+    await page.goto(pathToFileURL(path.resolve(html)).href);
+    await page.waitForFunction(()=>document.documentElement.dataset.ready==='true',undefined,{polling:200,timeout:45000});
+    const capture=async name=>{
+      const cdp=await page.context().newCDPSession(page);
+      const img=await cdp.send('Page.captureScreenshot',{format:'png',fromSurface:true});
+      await cdp.detach();
+      fs.writeFileSync(path.join(output,name+'.png'),Buffer.from(img.data,'base64'));
+    };
+    const full=await audit(page);
+    check('WebGL 2 renders offline',full.webgl2&&full.render.triangles>100000);
+    check('Original terrain and all nine external model files loaded',Object.keys(full.meshes).length===10);
+    check('Five imported settlement asset types placed', ['hut','house','granary','hearth','palisade'].every(x=>full.instances[x]>0));
+    check('Five desktop landmark controls visible',await page.locator('.pin:visible').count()===5);
+    await capture('RAVAN_Dolina_1440');
+    await page.locator('#light').click();
+    await page.waitForTimeout(1800);
+    const mist=await audit(page);
+    check('Mist retains the camera and mesh placements',mist.mist&&String(mist.pan)===String(full.pan)&&mist.span===full.span);
+    await capture('RAVAN_Dolina_Magla_1440');
+    await page.locator('#light').click();
+    await page.locator('#quality').click();
+    await page.waitForTimeout(1400);
+    const low=await audit(page);
+    check('Low detail reduces submitted triangles',low.low&&low.render.triangles<full.render.triangles);
+    const travel=page.locator('#travel');
+    for(const id of ['ford','grove','quarry','ridge']){
+      await page.locator(`[data-place="${id}"]`).click();
+      await travel.click();
+      await page.waitForFunction(id=>window.ravanAudit().origin===id,id,{polling:200});
+      check('Reduced-motion travel to '+id,(await audit(page)).origin===id);
+    }
+    await page.locator('#zoom-in').click();
+    check('Zoom changes framing',(await audit(page)).span<full.span);
+    await page.mouse.move(802,580);await page.mouse.down();await page.mouse.move(856,603,{steps:3});await page.mouse.up();
+    check('Drag pans camera',String((await audit(page)).pan)!==String(full.pan));
+    await page.locator('#overview').click();
+    check('Overview resets framing',String((await audit(page)).pan)===String(full.pan));
+    await page.locator('[data-place="camp"]').click();
+    await travel.click();
+    await page.setViewportSize({width:1280,height:800});
+    await page.waitForTimeout(1500);
+    await capture('RAVAN_Dolina_1280');
+    await page.setViewportSize({width:390,height:844});
+    await page.locator('#overview').click();
+    await page.waitForTimeout(1300);
+    check('Mobile keeps five reachable destinations',await page.locator('#place-list option').count()===5);
+    check('Mobile viewport has no page overflow',await page.evaluate(()=>document.documentElement.scrollWidth===innerWidth));
+    await page.locator('#place-list').selectOption('grove');
+    check('Mobile can choose a destination',await travel.isEnabled());
+    await capture('RAVAN_Dolina_Mobilni');
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    await travel.click();
+    await page.waitForFunction(()=>window.ravanAudit().origin==='grove',undefined,{polling:500,timeout:42000});
+    check('Animated trip reaches its destination across the ford',(await audit(page)).origin==='grove');
+    check('No JavaScript or WebGL errors',errors.length===0);
+    fs.writeFileSync(path.join(output,'browser.json'),JSON.stringify({browser:browser.version(),gpu:'SwiftShader software renderer',checks,full,low,errors},null,2));
+    console.log(checks.join('\n'));
+  }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exit(1);});
