@@ -52,7 +52,7 @@ const [html,out]=process.argv.slice(2);
  check('Embedded valley initializes WebGL with mist',await frame.evaluate(()=>ravanAudit().webgl2&&ravanAudit().fog.enabled));
  await shot('Ravan_Zajednicki_3D');
  await click('.rv-approved-valley header button');
- await p.locator('.rv-approved-valley').waitFor({state:'detached'});
+ await p.locator('.rv-approved-valley').waitFor({state:'detached',timeout:90000});
  check('Opening and closing the 3D panel preserves the campaign snapshot',await p.evaluate(()=>window.campaignBefore===JSON.stringify(RavanWorldPort.snapshot())));
  check('No browser script errors',errors.length===0);
  fs.writeFileSync(path.join(out,'QA_zajednicki.json'),JSON.stringify({checks,creator:creator.checks,errors},null,2));

@@ -17,7 +17,7 @@
       const back = document.createElement('button');
       back.type = 'button';
       back.textContent = '‹ Nazad na mapu kampanje';
-      back.addEventListener('click', () => panel.close());
+
       const label = document.createElement('span');
       label.textContent = '3D pregled doline';
       top.append(back, label);
@@ -26,13 +26,17 @@
       frame.setAttribute('sandbox', 'allow-scripts');
       frame.srcdoc = valleyHtml;
       panel.append(top, frame);
-      panel.addEventListener('close', () => {
+      function closePreview() {
+        if (dialog!==panel) return;
         panel.remove();
         dialog = null;
         const current = port.snapshot();
         if (pausedByPreview && current?.journey && current.paused && !current.encounter) pause(current);
         document.querySelector('.rv-open-approved-valley')?.focus();
-      }, {once:true});
+      }
+      back.addEventListener('click', closePreview);
+      panel.addEventListener('cancel', event => {event.preventDefault();closePreview();});
+      panel.addEventListener('close', closePreview, {once:true});
       document.body.append(panel);
       dialog = panel;
       panel.showModal();
