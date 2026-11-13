@@ -10,6 +10,16 @@ const options=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-
   const browser=await chromium.launch({executablePath:process.env.RAVAN_CHROMIUM,args:options});
   try{
     const page=await browser.newPage({viewport:{width:1280,height:800},offline:true,reducedMotion:'reduce'});
+    // SwiftShader can take several seconds per frame. Drive the preview clock at
+    // fixed frame increments while still rendering the actual scene and interactions.
+    await page.addInitScript(()=>{
+      const request=window.requestAnimationFrame.bind(window);
+      let timestamp=0;
+      window.requestAnimationFrame=callback=>request(now=>{
+        timestamp=Math.max(timestamp,now)+1800;
+        callback(timestamp);
+      });
+    });
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -48,10 +58,11 @@ const options=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-
     const eta=await page.locator('#eta').textContent();
     check('Wetlands route is presented as about two game days',eta.includes('2 dana'));
     await press('#quality');
-    await press('#travel');
+    await page.evaluate(()=>document.getElementById('travel').click());
     const started=await state();
+    const departureClock=step.clock;
     check('Distance is measured in days',Math.abs(started.journeyDays-2)<.22);
-    await press('#light');
+    await page.evaluate(()=>document.getElementById('light').click());
     await wait(()=>window.ravanAudit().crossing!==null).catch(async e=>{console.log(await state());throw e;});
     const approach=await state();
     check('Ford encounter is discovered on arrival, before reaching the opposite bank',
@@ -65,7 +76,7 @@ const options=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-
     await wait(()=>window.ravanAudit().origin==='marsh');
     const arrived=await state();
     check('Wetlands arrival uses the estimated duration and records the newly discovered area',
-      Math.abs(arrived.clock-started.clock-started.journeyDays)<.04&&arrived.fog.known.includes('marsh')&&Math.floor(arrived.clock)===2);
+      Math.abs(arrived.clock-departureClock-started.journeyDays)<.04&&arrived.fog.known.includes('marsh')&&Math.floor(arrived.clock)===2);
     await shot('RAVAN_Mokre_Livade');
     await page.setViewportSize({width:390,height:844});
     await press('#center');
