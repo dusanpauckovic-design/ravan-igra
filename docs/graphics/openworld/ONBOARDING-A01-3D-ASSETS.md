@@ -3,7 +3,7 @@
 **Projekat:** RAVAN (zasebna fantasy RPG igra, ne Basketball Manager)  
 **Uloga:** dizajn / art direction / 3D asset integration / UI scene presentation  
 **Vlasnik odluka:** Dule  
-**Status:** ODOBREN vizuelni smer A; implementacija ovog paketa NIJE jos integrisana u glavnu igru.  
+**Status:** ODOBREN vizuelni smer A; najnovija odluka: jedna kvalitetna oblast u jednoj epohi, bez 4 paralelna sveta. Implementacija paketa NIJE jos integrisana u glavnu igru.  
 **Pravila:** radi u izolovanom art modulu i grani; bez podagenata ako radis kao zaseban dizajn model. Precizno prijavi sta zaista radi.
 
 ## 1. Cilj i vizuelni identitet
@@ -14,10 +14,12 @@ Art direction: ozbiljna, zemljana, prirodna fantasy atmosfera. Tamna maslinasta,
 
 ## 2. Odobren tehnicki izbor A
 
+**SCOPE FREEZE (13.11.2026):** Za A01 samo **jedna mapa / jedna vremenska verzija prve Ravni**, sa dovoljno razradjenim reljefom, prirodom, naseljem i putovanjem. Buduce tri epohe su backlog. Ne koristiti vreme na 4 varijante dok Dule ne odobri kvalitet jedne. Dizajner se bavi samo open world-om; glavni humanoidi/MakeHuman/rigovanje i borbene animacije su paralelan nezavisan tok.
+
 - **Stvarna 3D geometrija terena + kamera iskosa**, opcionalno ortografska ili daleka perspektiva, unutar postojece HTML/browser tehnologije; Three.js je prihvatljiv ako je opravdan.
 - Mapa je slobodna (nije heksagonalna u overworld-u). Putanje, prelazi i logicki ciljevi moraju odgovarati prohodnosti. Hex/takticka polja ostaju na zasebnom bojistu.
 - Tri prepoznatljiva prirodna karaktera jedne povezane oblasti: **dolina/reka, suma, kameniti prevoj**. Put, obala, prelaz, kamp i orijentir moraju biti citljivi pri normalnom zumu.
-- Ista osnovna geografija ima **cetiri promenljiva vremenska stanja**: I divljina, II prva naselja, III razvijeno podrucje, IV ostaci/zaraslost. Ovo su RADNI vizuelni nazivi, ne tvrdjenje o kanonu ili vremenskom putovanju. Cuvaj iste koordinate i landmark ID-jeve, menjaj overlay objekata, vegetaciju, objekte i stanje puteva. Ne pravi cetiri nevezane mape.
+- **BUDUCE FAZE, ne A01:** ista osnovna geografija ce jednom imati jos tri vremenska stanja. U A01 samo sacuvaj konzistentne koordinate i landmark ID-jeve, a napravi jednu prvobitnu Ravan (prva epoha). Nema rendera niti implementacije ostale tri epohe do Duleovog posebnog odobrenja.
 - Pocni sa **jednom odlicno uradjenom dolinom**, ne sa ogromnim praznim kontinentom. Dugorocno skala u vise regija.
 
 ## 3. Postojeci materijal (prvo procitati i koristiti)
@@ -51,9 +53,9 @@ Pre ukljucivanja svakog preuzetog asseta potvrdi tekucu licencu, atribuciju/redi
 
 **A02 — Jedna lepa povezana dolina:** prirodna obala, nepravilna reka, cistina, grupe vegetacije, slojevita kamenita padina, prednji/srednji/daleki plan, prirodna svetlost i kontaktne senke. Minimum 5 mesta na mapi sa jasnom kompozicijom. Umereni PBR materijali, bez repetitivnih plocica ili uniformno posadjenog drveca. Prvo uradi jedan dobar referentni kadar sa 2 stanja svetla, pa primeni isti jezik na ostale delove.
 
-**A03 — Cetiri epohe iste doline:** jedan osnovni terrain seed / geografija / landmark identitet. Menjaju se objekti, vegetacija, naselja i stanja puta/mosta. Uporedni screenshots iz **identicne kamere** za I/II/III/IV. Objekti su interaktivni samo ako je stvarno predvidjeno i povezano na odgovarajuci snapshot/komandu; ne crtaj laznu prohodnost.
+**A03 — Zavrsni art pass iste doline (umesto cetiri epohe):** jedna vremenska verzija, jedan teren seed/geografija/landmark identitet, detaljno sredjene obale, stene, raznovrsna vegetacija, naselje, prirodni putevi, prelazi i svetlo. Daj pre/posle iz identicne kamere, bez laznog prikaza prohodnosti. U posebnoj kratkoj napomeni opisi kako ce kasnije isti landmark ID-jevi podrzati preostala tri vremenska stanja — bez njihove implementacije.
 
-**A04 — Lik i animaciona osnova:** test humanoid iz MakeHuman/MPFB sa uverljivim proporcijama i osnovnom walk/idle animacijom. Nastaviti ka tacnom glavnom putniku/putnici iz nasih odobrenih HD referenci. **Ako MakeHuman i kanonsko lice jos nisu uskladjeni, jasno oznaci da je privremeni lik**. Ne koristiti pljosnatu 2D ilustraciju kao „3D model“.
+**A04 — Druzina kao marker i citljivo kretanje:** u okviru open-world-a samo jednostavan, pravilno skaliran marker druzine, prikaz putanje i uskladjen kadar tokom kretanja. MakeHuman/MPFB, rigovanje, kanonsko lice putnika i putnice i sve borbene animacije vodi drugi timski tok, van ovog tiketa.
 
 **A05 — Predaja sa stvarnim radnim HTML-om:** jedna klikabilna mapa sa kamerom (pan/zoom, centriranje), putovanjem ka min. 3 lokacije, promenom epohe, oznacenom druzinom i kontekstualnim informacijama; mobile responsive. Iskoristi postojeci world API/snapshot kada je dostupan. Gde je fixture, jasno ga obelezi i predaj dokumentovan adapter. Ne menjaj battle engine.
 
@@ -69,9 +71,9 @@ Pre ukljucivanja svakog preuzetog asseta potvrdi tekucu licencu, atribuciju/redi
 
 - Stvarni 3D modeli dokazano ucitani **lokalno**, ne samo oznaceni u HTML-u ili pokusani preko CDN-a.
 - Jedna dolina iz tri prepoznatljiva bioma izgleda realno-stilizovano, ne low-poly igracka, bez varanja koncept slikama.
-- Cetiri vremenska stanja koriste istu geometriju, koordinate i orijentire; promene su ocigledne.
+- Jedan kvalitetno zavrsen svet/epoha sa istim stabilnim landmark ID-jevima i koordinatama za buduce epohe. Ostale tri epohe se ne zahtevaju u A01.
 - Kamera i izabrana meta ne „beze“ pri zoom/resize; put i recni prelaz imaju logicnu prohodnost.
-- Stvarni screenshot iz browsera za 1280x800 i 1440x900, provera na 390x844; bar 2 epohe iz istog kadra. Ako WebGL u okruzenju ne radi, prijavi i ne predstavljaj fallback kao final.
+- Stvarni screenshot iz browsera za 1280x800 i 1440x900, provera na 390x844; **najmanje dva uporediva kadra iste epohe pre i posle poboljsanja**, bez mockupa. Ako WebGL u okruzenju ne radi, prijavi i ne predstavljaj fallback kao final.
 - Osnovni pregled performansi: FPS ili vreme frejma, broj draw callova/poligona i low-quality preset za slabiji uredjaj.
 - Predaja: GitHub grana i commit/SHA, izvorni fajlovi, asset manifest + licence, HTML/preview link, screenshotovi, kratko uputstvo, test log i **lista sta je stvarno integrisano / sta je samo placeholder**.
 - Dule vizuelno odobrava rezultat. **Nema automatskog merge-a** samo na osnovu tehnickog uspeha.
