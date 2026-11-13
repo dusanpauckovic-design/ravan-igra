@@ -13,6 +13,7 @@
   <header class="title"><div class="brand">R A V A N <span></span></div><h1>Prva dolina</h1></header>
   <div class="view-controls" aria-label="Prikaz">
     <button id="light" type="button" aria-pressed="false">Magla istrazivanja</button>
+    <span id="clock" aria-label="Vreme u dolini"></span>
     <button id="quality" type="button" aria-pressed="false">Detalji: puni</button>
   </div>
   <div id="pins" aria-label="Mesta u dolini"></div>
@@ -28,9 +29,16 @@
     <span class="kind" id="kind"></span>
     <h2 id="place-name"></h2>
     <p id="description"></p>
+    <p id="eta"></p>
     <button type="button" id="travel">Kreni</button>
   </section>
   <footer><span class="prototype">ART PROTOTIP</span><span id="status" role="status">Ucitavanje terena i modela…</span></footer>
+  <section id="crossing" class="encounter" aria-labelledby="crossing-title" hidden>
+    <h2 id="crossing-title">Na gazu</h2>
+    <p id="crossing-text"></p>
+    <button id="crossing-go" type="button">Predji</button>
+    <button id="crossing-back" type="button">Zastani</button>
+  </section>
   <div id="error" role="alert" hidden></div>
 </main>
 <script type="module" src="main.js"></script>

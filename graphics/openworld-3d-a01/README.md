@@ -43,3 +43,13 @@ Ista mapa sada pokriva oko 401 × 353 jedinice umesto 144 × 126, odnosno 7,8 pu
 - 3D Putnik koristi MakeHuman osnovu, prilagodjen plast, krzno, opremu i dvotaktnu animaciju koraka. Ovo je prvi model za mapu. Lice i oziljak iz HD reference jos nisu modelovani. Model Putnice pripada sledecem radu na likovima.
 
 Provera prosirenja se pokrece kao `node qa/expanded.cjs RAVAN_Dolina_Prosirena.html qa`. Evidencija je u `qa/expanded.json`. Ovo je izdvojeni art prototip i koristi lokalne staze.
+
+## Putovanje i magla uz teren
+
+Magla je ukljucena pri otvaranju. Putnik otkriva kratak, nepravilan vidokrug. Grebeni i recna obala zaustavljaju pogled; vec otkriveni teren ostaje prigusen kad Putnik ode. Pogled se suzava tokom noci. Iskljucivanje magle daje pregled doline za vizuelnu proveru.
+
+Putovanje koristi lokalni sat prototipa. Trosak puta zavisi od rastojanja, nagiba, gaza i mokrog tla. Direktan put od logora do Mokrih livada traje oko dva dana u igri. Duboka voda je neprohodna. Na gazu Putnik zastaje i prikazuje lokalni dogadjaj koji se otkriva tek pri dolasku. Dogadjaji su dva unapred definisana prototipska primera. Sat i otkrivenost traju tokom otvorene sesije.
+
+Grebene cine nizi, razdvojeni masivi. Izlozene stene prate padine. Staze do Severne straze i Mokrih livada idu preko medjutacaka i izbegavaju duboku vodu.
+
+`node qa/journey.cjs RAVAN_Dolina_Putovanje.html qa` pokrece offline browser proveru.

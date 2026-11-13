@@ -1,8 +1,8 @@
 import * as T from 'three';
 import {camera, height, loadScene, renderer, render, setLight, setQuality, waterLevel, moveTraveler} from './scene.js';
-import {places, river, width, routeBetween, bounds} from './world.js';
+import {places, river, width, routeBetween, bounds, travelDays, terrainPassable, inFord, inChannel, riverSide} from './world.js';
 
-import {discover, explorationAudit, isKnown, sight} from './exploration.js';
+import {discover, explorationAudit, isKnown, sight, setSightTime} from './exploration.js';
 
 const element=id=>document.getElementById(id);
 const canvas=element('scene'), status=element('status');
@@ -20,7 +20,46 @@ const party=new T.Vector2(-19,-8);
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let origin='camp', selected='camp', journey=[], target=null, heading=Math.PI*.95, follow=false;
 let offRoad=[new T.Vector2(places[0].x,places[0].z)];
-let ready=false, lastFrame=0, low=false, mist=false, frameSamples=[];
+let ready=false, lastFrame=0, low=false, mist=true, frameSamples=[];
+const daySeconds=23;
+let clock=8/24, journeyDays=0, remainingDays=0, crossing=null, bank=riverSide(party.x,party.y);
+let crossingCount=0;
+const coords=point=>point.toArray();
+
+function timeLabel(days){
+  const hours=Math.round(days*24);
+  const whole=Math.floor(hours/24), remainder=hours%24;
+  return [whole?whole+' '+(whole===1?'dan':'dana'):'',remainder?remainder+' h':''].filter(Boolean).join(' ')||'< 1 h';
+}
+function updateClock(){
+  const hour=Math.floor(clock*24)%24;
+  element('clock').textContent='Dan '+(Math.floor(clock)+1)+' · '+String(hour).padStart(2,'0')+':00';
+  if(target||crossing)element('eta').textContent='Preostalo · '+timeLabel(remainingDays);
+}
+function plan(id){
+  const steps=routeBetween(origin,id).flatMap(({next,points})=>points.map(([x,z],i)=>({
+    point:new T.Vector2(x,z),arrival:i===points.length-1?next:null
+  })));
+  steps.unshift(...offRoad.map(point=>({point,arrival:null})).reverse());
+  return steps;
+}
+function estimate(steps){
+  let start=party;
+  let days=0;
+  for(const step of steps){
+    days+=travelDays(coords(start),coords(step.point));
+    start=step.point;
+  }
+  return days;
+}
+function begin(steps){
+  journey=steps;
+  journeyDays=remainingDays=estimate(steps);
+  follow=true;
+  nextTarget();
+  showSelection();
+}
+
 let span=92, drag=null, needsResize=true, invalidate=true;
 
 function home() {
@@ -62,7 +101,9 @@ function showSelection() {
   element('place-name').textContent=place.title;
   element('description').textContent=place.info;
   const travel=element('travel');
-  const moving=!!target||journey.length>0;
+  const moving=!!target||journey.length>0||!!crossing;
+  const days=moving?remainingDays:estimate(plan(selected));
+  element('eta').textContent=days>.025?(moving?'Preostalo · ':'Peske · ')+timeLabel(days):'';
   travel.disabled=!ready||moving||(mist&&!isKnown(selected))||(origin===selected&&Math.hypot(party.x-place.x,party.y-place.z)<.4);
   travel.textContent=moving?'Na putu':travel.disabled&&origin===selected?'Ovde si':'Kreni';
   for(const [id,pin] of pins)pin.setAttribute('aria-pressed',String(id===selected));
@@ -89,61 +130,66 @@ function updatePins() {
 function nextTarget() {
   while(journey.length){
     const waypoint=journey.shift();
-    if(party.distanceTo(waypoint.point)>.005){target=waypoint;return;}
+    if(party.distanceTo(waypoint.point)>.005){
+      target=waypoint;
+      target.start=party.clone();
+      target.cost=travelDays(coords(party),coords(target.point));
+      target.progress=0;
+      return;
+    }
     if(waypoint.arrival)origin=waypoint.arrival;
   }
   target=null;
+  remainingDays=0;
   status.textContent='Putnik je stigao';
   showSelection();
 }
-function travel() {
-  if(target||!ready||(mist&&!isKnown(selected)))return;
-  journey=routeBetween(origin,selected).flatMap(({next,points})=>points.map(([x,z],i)=>({
-    point:new T.Vector2(x,z),arrival:i===points.length-1?next:null
-  })));
-  if(offRoad.length){
-    journey.unshift(...offRoad.map(point=>({point,arrival:null})).reverse());
-    offRoad=[];
+function travel(){
+  if(target||crossing||!ready||(mist&&!isKnown(selected)))return;
+  const steps=plan(selected);
+  offRoad=[];
+  if(steps.length){
+    begin(steps);
+    status.textContent='Putnik je na putu';
   }
-  if(!journey.length){const p=places.find(p=>p.id===selected);journey=[{point:new T.Vector2(p.x,p.z),arrival:p.id}];}
-  if(reduceMotion.matches){
-    const place=places.find(p=>p.id===selected);
-    for(const step of journey){
-      const from=party.clone();
-      for(let offset=0;offset<from.distanceTo(step.point);offset+=5){
-        const sample=from.clone().lerp(step.point,offset/from.distanceTo(step.point));
-        moveTraveler(sample.x,sample.y,heading,false,0);
-      }
-      party.copy(step.point);
-    }
-    party.set(place.x,place.z);invalidate=true;
-    origin=selected;journey=[];nextTarget();
-  }else if(journey.length){
-    follow=true;nextTarget();showSelection();
-    status.textContent='Na putu ka · '+places.find(p=>p.id===selected).title;
-  }
-}
-function revealSegment(x,z){
-  const distance=Math.hypot(x-party.x,z-party.y);
-  const count=Math.ceil(distance/8);
-  for(let i=1;i<count;i++)discover(T.MathUtils.lerp(party.x,x,i/count),T.MathUtils.lerp(party.y,z,i/count));
 }
 
-function move(dt) {
-  let remaining=dt*22;
-  while(target && remaining>0){
+function move(dt){
+  let budget=dt/daySeconds;
+  while(target && budget>0 && !crossing){
     position.set(target.point.x-party.x,0,target.point.y-party.y);
     const distance=position.length();
     if(distance>.01)heading=Math.atan2(position.x,position.z);
-    if(distance>remaining){
-      revealSegment(party.x+position.x*remaining/distance,party.y+position.z*remaining/distance);
-      party.x+=position.x*remaining/distance;
-      party.y+=position.z*remaining/distance;
-      break;
+    const spent=Math.min(budget,target.cost-target.progress);
+    const progress=target.progress+spent;
+    const fraction=target.cost>0?Math.min(1,progress/target.cost):1;
+    const x=T.MathUtils.lerp(target.start.x,target.point.x,fraction),z=T.MathUtils.lerp(target.start.y,target.point.y,fraction);
+    const side=riverSide(x,z);
+    if(!terrainPassable(x,z)){
+      target=null;journey=[];showSelection();
+      status.textContent='Duboka voda. Potrazi kameni gaz.';
+      return;
     }
-    revealSegment(target.point.x,target.point.y);
-    party.copy(target.point);
-    remaining-=distance;
+    if(side!==bank && inFord(z) && target.crossingApproved!==true){
+      crossing={side,kind:crossingCount%2?'water':'tracks'};
+      element('crossing').hidden=false;
+      element('crossing-text').textContent=crossing.kind==='tracks'
+        ?'Na drugoj strani se vide svezi tragovi u mulju. Prelaz je plitak.'
+        :'Voda je porasla preko kamenja. Polako preko gaza, uz obalu.';
+      status.textContent='Putnik zastaje na gazu';
+      return;
+    }
+    if(side!==bank)bank=side;
+    target.progress=progress;
+    clock+=spent;
+    remainingDays=Math.max(0,remainingDays-spent);
+    budget-=spent;
+    if(Math.hypot(x-party.x,z-party.y)>4){
+      const steps=Math.ceil(Math.hypot(x-party.x,z-party.y)/3.5);
+      for(let i=1;i<steps;i++)discover(T.MathUtils.lerp(party.x,x,i/steps),T.MathUtils.lerp(party.y,z,i/steps),true);
+    }
+    party.set(x,z);
+    if(fraction<1)break;
     if(target.arrival)origin=target.arrival;
     nextTarget();
   }
@@ -156,7 +202,9 @@ function draw(now) {
   if(target || invalidate || !reduceMotion.matches) {
     if(lastFrame&&frameSamples.length<60)frameSamples.push(elapsed);
     const dt=Math.min(elapsed/1000,.32);
-    move(Math.min(elapsed/1000,2));
+    move(Math.min(elapsed/1000,.9));
+    setSightTime(clock);
+    updateClock();
     moveTraveler(party.x,party.y,heading,!!target,dt);
     if(follow)pan.set(party.x,party.y);
     updateCamera();
@@ -194,7 +242,7 @@ function initControls(){
   element('light').onclick=()=>{
     mist=!mist;setLight(mist);invalidate=true;
     if(mist&&!isKnown(selected))selected=origin;
-    status.textContent=mist?'Klikni na teren blizu Putnika da istrazis':'Izaberi oznaku na mapi';
+    if(!target)status.textContent=mist?'Klikni na teren blizu Putnika da istrazis':'Pregled doline';
     showSelection();
     element('light').setAttribute('aria-pressed',String(mist));
   };
@@ -205,6 +253,21 @@ function initControls(){
     frameSamples=[];
   };
   element('travel').onclick=travel;
+  element('crossing-go').onclick=()=>{
+    if(!crossing)return;
+    target.crossingApproved=true;
+    crossing=null;crossingCount++;
+    element('crossing').hidden=true;
+    status.textContent='Putnik prelazi gaz';
+  };
+  element('crossing-back').onclick=()=>{
+    if(!crossing)return;
+    crossing=null;target=null;journey=[];remainingDays=0;
+    offRoad.push(new T.Vector2(river(4)+bank*(width(4)+.7),4));
+    element('crossing').hidden=true;
+    status.textContent='Putnik je zastao na prelazu';
+    showSelection();
+  };
   canvas.addEventListener('wheel',event=>{event.preventDefault();zoom(Math.exp(Math.sign(event.deltaY)*.16));},{passive:false});
   canvas.addEventListener('pointerdown',event=>{
     if(drag||event.button!==0)return;
@@ -224,7 +287,7 @@ function initControls(){
     drag.x=event.clientX;drag.y=event.clientY;invalidate=true;
   });
   canvas.addEventListener('pointerup',event=>{
-    if(drag?.id===event.pointerId&&!drag.moved&&mist&&!target)exploreAt(event.offsetX,event.offsetY);
+    if(drag?.id===event.pointerId&&!drag.moved&&!target&&!crossing)exploreAt(event.offsetX,event.offsetY);
   });
   canvas.addEventListener('lostpointercapture',()=>{drag=null;});
   window.addEventListener('resize',()=>{needsResize=true;invalidate=true;});
@@ -239,19 +302,14 @@ function exploreAt(px,py){
     if(Math.abs(contact.x)>bounds.x||Math.abs(contact.z)>bounds.z)return;
     const destination=new T.Vector2(contact.x,contact.z);
     const length=party.distanceTo(destination);
-    if(length<1||length>sight*.88)return;
+    if(length<1||length>(mist?sight*.95:48)){status.textContent='Izaberi blizi korak.';return;}
     const sample=new T.Vector2();
     for(let offset=1;offset<=Math.ceil(length);offset++){
       sample.copy(party).lerp(destination,Math.min(1,offset/length));
-      if(Math.abs(sample.x-river(sample.y))<width(sample.y)&&Math.abs(sample.y-4)>2.6)return;
+      if(!terrainPassable(sample.x,sample.y)){status.textContent='Duboka voda. Potrazi kameni gaz.';return;}
     }
     offRoad.push(party.clone());
-    if(reduceMotion.matches){
-      party.copy(destination);moveTraveler(party.x,party.y,heading,false,0);invalidate=true;
-    }else{
-      target={point:destination,arrival:null};
-      follow=true;
-    }
+    begin([{point:destination,arrival:null}]);
     status.textContent='Putnik istrazuje okolinu';
     showSelection();
     return;
@@ -270,14 +328,18 @@ async function init() {
   const audit=await loadScene();
   setQuality(false);
   home();
+  setLight(true);
+  element('light').setAttribute('aria-pressed','true');
   ready=true;
   initControls();
   showSelection();
-  status.textContent='Izaberi oznaku na mapi';
+  status.textContent='Klikni na teren blizu Putnika da istrazis';
   globalThis.ravanAudit=()=>({
     ...audit,origin,selected,party:party.toArray(),mist,low,span,pan:pan.toArray(),
-    fog:explorationAudit(),bounds,heading,
+    fog:explorationAudit(),bounds,heading,clock,journeyDays,remainingDays,crossing,
+    points:Object.fromEntries(places.map(p=>[p.id,screen(p.x,height(p.x,p.z),p.z)])),
     nearby:screen(party.x+12,height(party.x+12,party.y+2),party.y+2),
+    deep:screen(river(-31),height(river(-31),-31),-31),
     renderer:renderer.getContext().getParameter(renderer.getContext().RENDERER),
     webgl2:renderer.capabilities.isWebGL2,
     render:{...renderer.info.render},
