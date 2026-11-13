@@ -12,7 +12,7 @@ Baza igrivog kandidata je E8 `fc158d7cb3d88c5ecc1d6cbd1e44434953aafaa4`. Izvor t
 ## Povezivanje koje integrator treba da zavrsi
 
 - Vezati 3D scenu za autoritativni WorldPort: ID lokacije i koordinata, izbor/preview putanje, vreme, otkrivenost, susreti, gaz i serijalizacija. Dugme u ovom buildu služi za odobreni vizuelni pregled.
-- Deluxe V4 ima odobren koncept gradje, sest atributa i zasebnih stabala. Kandidat prenosi odvajanje identiteta i izgleda. Produkciono racunanje dodatnih atributa i stabala zahteva mapiranje pravila i save-a. Prototip je [Deluxe V4](https://chatgpt.com/library?file_id=libfile_d6e015638660819199f4771f38f2cc83&account_id=personal).
+- Za integraciju kreatora Dule trazi prototip iz drugog chata, sa novim vizualima, manjim brojem izbora i rasporedom po uzoru na Baldur’s Gate 3. Tacan HTML jos nije potvrdjen. Deluxe V4 iz arhive i kreator sa 108 HD modela iz zajednickog kandidata su prethodni materijali.
 - Tri alternativna pravca za bojiste, kamp i mapu iz [vizuelnog poredjenja](https://chatgpt.com/library?file_id=libfile_a5f843d436c88191bc89f8cc501d49c1&account_id=personal) imaju status predloga. Potvrdjeni kadar Zapadne kapije vec je u kandidatu. BG3 tema pripada licnoj verziji.
 
 ## Gradnja
