@@ -470,14 +470,14 @@ export function moveTraveler(x,z,heading,moving,dt){
 
 export function setLight(mist) {
   setExploration(mist);
-  sun.intensity=mist?1.8:2.15;
-  sun.color.set(mist?'#c1d4dc':'#fff0d2');
-  ambient.intensity=mist?1.89:1.76;
-  ambient.color.set(mist?'#9cb1ba':'#a4b6c0');
-  scene.fog.color.set(mist?'#788d91':'#889a97');
+  sun.intensity=mist?1.96:2.15;
+  sun.color.set(mist?'#e8e8dc':'#fff0d2');
+  ambient.intensity=mist?1.85:1.76;
+  ambient.color.set(mist?'#acbfbe':'#a4b6c0');
+  scene.fog.color.set(mist?'#a0aeac':'#889a97');
 
   scene.background.copy(scene.fog.color);
-  renderer.toneMappingExposure=mist?.97:1.06;
+  renderer.toneMappingExposure=mist?1.04:1.06;
   waterUniforms.dusk.value=mist?1:0;
 }
 export function setQuality(low) {

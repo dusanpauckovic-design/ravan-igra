@@ -17,6 +17,7 @@ for(const tex of [map,live]){
 const point=new T.Vector2();
 const last=new T.Vector2(Infinity,Infinity);
 const enabled={value:1};
+const fogRange={value:sight};
 const rim=new Float32Array(sectors);
 let bank=0;
 let visibleCells=[];
@@ -24,6 +25,7 @@ let timeOfDay=0;
 
 export function setSightTime(days){
   timeOfDay=days%1;
+  fogRange.value=sight*(1-.33*Math.max(0,Math.cos(timeOfDay*Math.PI*2)));
 }
 function worldToCell(x,z){
   return [(x+bounds.x)/(bounds.x*2)*size-.5,(z+bounds.z)/(bounds.z*2)*size-.5];
@@ -31,7 +33,7 @@ function worldToCell(x,z){
 function reveal(x,z,recordOnly=false){
   if(!bank||!inChannel(x,z))bank=riverSide(x,z);
   const side=bank;
-  const maxSight=sight*(1-.33*Math.max(0,Math.cos(timeOfDay*Math.PI*2)));
+  const maxSight=fogRange.value;
   const base=heightProfile(x,z)+2.55;
   for(let i=0;i<sectors;i++){
     const angle=i*2*Math.PI/sectors;
@@ -100,6 +102,8 @@ export function veil(material){
     shader.uniforms.exploredMap={value:map};
     shader.uniforms.currentSight={value:live};
     shader.uniforms.explorationOn=enabled;
+    shader.uniforms.fogOrigin={value:point};
+    shader.uniforms.fogRange=fogRange;
     shader.vertexShader='varying vec2 vExplore;\n'+shader.vertexShader.replace('#include <project_vertex>',`
       vec4 explorationVertex=vec4(transformed,1.);
       #ifdef USE_INSTANCING
@@ -111,14 +115,22 @@ export function veil(material){
       uniform sampler2D exploredMap;
       uniform sampler2D currentSight;
       uniform float explorationOn;
+      uniform vec2 fogOrigin;
+      uniform float fogRange;
     `+shader.fragmentShader.replace('#include <fog_fragment>',`#include <fog_fragment>
       if(explorationOn>.5){
         vec2 uv=vExplore/vec2(${(bounds.x*2).toFixed(3)},${(bounds.z*2).toFixed(3)})+.5;
         float memory=texture2D(exploredMap,uv).r;
         float sight=texture2D(currentSight,uv).r;
-        float haze=.5+.5*sin(vExplore.x*.11+sin(vExplore.y*.19)*1.4);
-        vec3 cover=mix(vec3(.064,.088,.092),vec3(.235,.258,.248),memory);
-        gl_FragColor.rgb=mix(gl_FragColor.rgb,cover,mix(.987,.67,memory)*(1.-sight)*(1.-haze*.035));
+        float distanceFromTraveler=length(vExplore-fogOrigin);
+        float airDistance=max(0.,distanceFromTraveler-fogRange*.35);
+        float wisps=sin(vExplore.x*.10+sin(vExplore.y*.073)*1.8)*
+                    cos(vExplore.y*.12+sin(vExplore.x*.062));
+        float density=mix(.023,.017,memory)*mix(1.18,1.,fogRange/19.)*(1.+wisps*.12);
+        float haze=1.-exp(-airDistance*density);
+        float obstruction=(1.-sight)*smoothstep(3.,fogRange,distanceFromTraveler)*.10;
+        vec3 mist=mix(vec3(.60,.66,.65),vec3(.63,.69,.68),wisps*.5+.5);
+        gl_FragColor.rgb=mix(gl_FragColor.rgb,mist,min(.98,haze+obstruction*(1.-haze)));
       }`);
   };
 }

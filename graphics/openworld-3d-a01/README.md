@@ -46,10 +46,12 @@ Provera prosirenja se pokrece kao `node qa/expanded.cjs RAVAN_Dolina_Prosirena.h
 
 ## Putovanje i magla uz teren
 
-Magla je ukljucena pri otvaranju. Putnik otkriva kratak, nepravilan vidokrug. Grebeni i recna obala zaustavljaju pogled; vec otkriveni teren ostaje prigusen kad Putnik ode. Pogled se suzava tokom noci. Iskljucivanje magle daje pregled doline za vizuelnu proveru.
+Magla je ukljucena pri otvaranju. Putnik otkriva kratak, nepravilan vidokrug. Grebeni i recna obala zaustavljaju pogled; vec otkriveni teren ostaje nesto jasniji kad Putnik ode. Pogled se suzava tokom noci. Iskljucivanje magle daje pregled doline za vizuelnu proveru.
 
 Putovanje koristi lokalni sat prototipa. Trosak puta zavisi od rastojanja, nagiba, gaza i mokrog tla. Direktan put od logora do Mokrih livada traje oko dva dana u igri. Duboka voda je neprohodna. Na gazu Putnik zastaje i prikazuje lokalni dogadjaj koji se otkriva tek pri dolasku. Dogadjaji su dva unapred definisana prototipska primera. Sat i otkrivenost traju tokom otvorene sesije.
 
 Grebene cine nizi, razdvojeni masivi. Izlozene stene prate padine. Staze do Severne straze i Mokrih livada idu preko medjutacaka i izbegavaju duboku vodu.
 
 `node qa/journey.cjs RAVAN_Dolina_Putovanje.html qa` pokrece offline browser proveru.
+
+Magla je svetla i atmosferska. Gustina raste sa udaljenoscu od Putnika, uz blage promene u slojevima. Vidljivost terena i dalje moze da posluzi za orijentaciju, dok se oznake odredista otkrivaju po pravilima istrazivanja.
