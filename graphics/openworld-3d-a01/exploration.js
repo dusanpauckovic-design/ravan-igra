@@ -127,7 +127,9 @@ export function veil(material){
         float wisps=sin(vExplore.x*.10+sin(vExplore.y*.073)*1.8)*
                     cos(vExplore.y*.12+sin(vExplore.x*.062));
         float density=mix(.023,.017,memory)*mix(1.18,1.,fogRange/19.)*(1.+wisps*.12);
-        float haze=1.-exp(-airDistance*density);
+        // Distant terrain fades into denser air while the local sight gradient stays soft.
+        float outerHaze=smoothstep(38.,126.,distanceFromTraveler);
+        float haze=1.-exp(-airDistance*density*(1.+outerHaze*.86));
         float obstruction=(1.-sight)*smoothstep(3.,fogRange,distanceFromTraveler)*.10;
         vec3 mist=mix(vec3(.60,.66,.65),vec3(.63,.69,.68),wisps*.5+.5);
         gl_FragColor.rgb=mix(gl_FragColor.rgb,mist,min(.98,haze+obstruction*(1.-haze)));
