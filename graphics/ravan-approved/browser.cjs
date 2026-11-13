@@ -7,7 +7,7 @@ const [html,out]=process.argv.slice(2);
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.RAVAN_CHROMIUM,args:['--no-sandbox','--disable-dev-shm-usage','--use-angle=swiftshader','--enable-unsafe-swiftshader','--single-process','--no-zygote','--disable-gpu-sandbox']});
  try {
- const p=await browser.newPage({viewport:{width:1280,height:800},offline:true});
+ const p=await browser.newPage({viewport:{width:1280,height:800},offline:true,reducedMotion:'reduce'});
  const errors=[],checks=[];
  p.on('pageerror',e=>errors.push(e.message));
  const cdp=await p.context().newCDPSession(p);
