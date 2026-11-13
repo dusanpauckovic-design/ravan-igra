@@ -15,6 +15,8 @@ def fetch(spec, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["curl", "--fail", "--location", "--silent", "--show-error",
                     "--retry", "1", "--max-time", "90", spec["url"], "-o", str(path)], check=True)
+    if spec.get("sha256"):
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == spec["sha256"], path
     if spec.get("md5"):
         assert hashlib.md5(path.read_bytes()).hexdigest() == spec["md5"], path
 
@@ -62,6 +64,11 @@ with tempfile.TemporaryDirectory() as temporary:
         output.parent.mkdir(parents=True, exist_ok=True)
         if entry["kind"] == "GLB":
             fetch(entry["download"], output)
+        elif entry["kind"] == "MakeHuman OBJ":
+            source = work / "makehuman-base.obj"
+            fetch(entry["download"], source)
+            subprocess.run(["blender", "-b", "-t", "3", "--python", str(root / "make_traveler.py"),
+                            "--", str(source), str(output)], check=True)
         elif entry["kind"] == "texture":
             source = work / (output.stem + ".jpg")
             fetch(entry["download"], source)

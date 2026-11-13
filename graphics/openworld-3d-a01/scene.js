@@ -1,6 +1,9 @@
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {places, tracks, river, width, noise, random, distanceToPath, mix} from './world.js';
+import {places, tracks, river, width, noise, random, distanceToPath, mix, bounds, heightProfile, channelGLSL} from './world.js';
+
+import {valleyExtension} from './terrain.js';
+import {veil, discover, setExploration} from './exploration.js';
 
 const root = new T.Box3();
 const vector = new T.Vector3();
@@ -11,7 +14,9 @@ const riverHeights = new Map();
 const ambientAssets = {};
 const instances = {};
 let shadowRevision = true;
-let ground;
+let ground, traveler;
+let clothGrain;
+let stride=0;
 export const meshStats = {};
 export const scene = new T.Scene();
 export const camera = new T.OrthographicCamera();
@@ -27,7 +32,7 @@ renderer.shadowMap.autoUpdate=false;
 
 const sun=new T.DirectionalLight('#fff0d2',2.15);
 const ambient=new T.HemisphereLight('#a4b6c0','#594731',1.76);
-sun.position.set(-57,72,-36);
+sun.position.set(-61,87,-65);
 sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-72,right:72,top:67,bottom:-68,near:1,far:185});
@@ -36,7 +41,7 @@ sun.shadow.bias=-.00038;
 sun.shadow.normalBias=.105;
 sun.shadow.radius=2;
 scene.add(sun,ambient);
-scene.fog=new T.FogExp2('#889a97',.0045);
+scene.fog=new T.FogExp2('#889a97',.0031);
 scene.background=scene.fog.color.clone();
 
 const shaderPreamble = `
@@ -47,8 +52,8 @@ float cells(vec2 p) {
   return mix(mix(hash21(i),hash21(i+vec2(1,0)),f.x),
              mix(hash21(i+vec2(0,1)),hash21(i+vec2(1,1)),f.x),f.y);
 }
-float channel(float z) { return 4.*sin(z*.07)+3.5*sin(z*.025+1.8); }
-float bankWidth(float z) { return 3.35+.75*sin(z*.088+1.)+.42*sin(z*.24); }
+float channel(float z) { return ${channelGLSL}; }
+float bankWidth(float z) { return 3.35+.75*sin(z*.088+1.)+.42*sin(z*.24)+2.7*smoothstep(65.,135.,abs(z)); }
 `;
 
 function getAsset(file) {
@@ -92,12 +97,13 @@ async function texture(file,color=true) {
 }
 
 export function height(x,z) {
-  surface.ray.origin.set(x,32,z);
+  if(Math.abs(x)>=72||Math.abs(z)>=63)return heightProfile(x,z);
+  surface.ray.origin.set(x,40,z);
   return surface.intersectObject(ground,false)[0]?.point.y??-1;
 }
 
 function groundMaterial([grass,normal,roughness,forest,rock]) {
-  const material = new T.MeshStandardMaterial({color:0xffffff,map:grass,normalMap:normal,roughnessMap:roughness,roughness:1,normalScale:new T.Vector2(.50,.50)});
+  const material = new T.MeshStandardMaterial({color:0xffffff,map:grass,normalMap:normal,roughnessMap:roughness,roughness:1,normalScale:new T.Vector2(.67,.67)});
   material.onBeforeCompile=s=>{
     s.uniforms.forestMap={value:forest};
     s.uniforms.rockMap={value:rock};
@@ -113,7 +119,8 @@ function groundMaterial([grass,normal,roughness,forest,rock]) {
       float slope=1.-abs(normalize(vSlope).y);
       float cliffs=smoothstep(.025,.29,slope+fields*.12+max(vLand.y-3.,0.)*.017);
       float clearing=smoothstep(.31,.72,fields+.10*sin(p.x*.18));
-      vec3 greens=mix(meadow*vec3(.69,.79,.50),forest*vec3(.50,.61,.49),clearing*.80);
+      float damp=cells(p*.044+7.);
+      vec3 greens=mix(meadow*mix(vec3(.76,.85,.51),vec3(.45,.64,.45),damp),forest*vec3(.52,.64,.51),clearing*.72);
       greens*=.64+fields*.59+fine*.14;
       vec3 stone=mix(rock*vec3(.65,.68,.59),rock*vec3(.75,.79,.75),fields);
       diffuseColor.rgb*=mix(mix(greens,stone,cliffs*.92),mix(stone,forest*.57,.35),beach*.82);
@@ -173,14 +180,14 @@ function addWater() {
         float r=cells(vec2(p.x*3.4,p.y*1.2-time*.9));
         float q=cells(vec2(p.x*1.6,p.y*3.+time*.6));
         float waves=.5+.5*sin(p.y*6.2+sin(p.x*2.1+r*4.)*1.9+q*2.7-time*1.8);
-        vec3 deep=vec3(.056,.12,.122), shallow=vec3(.15,.235,.197);
+        vec3 deep=vec3(.033,.082,.093), shallow=vec3(.126,.198,.173);
         float glint=pow(waves,8.)*(.17+.83*r)*.075;
         float seam=pow(waves,4.)*smoothstep(.67,.98,edge)*.075;
         diffuseColor.rgb=mix(deep,shallow,smoothstep(.36,.97,edge))+
-          vec3(.74,.86,.81)*(glint+seam);
+          vec3(.66,.77,.74)*(glint+seam)+vec3(.19,.25,.21)*smoothstep(.87,.99,edge)*r*.23;
         diffuseColor.rgb*=1.-dusk*.19;`);
   };
-  const samples=Array.from({length:251},(_,i)=>{const z=-62.85+i*125.7/250;return [river(z),z]});
+  const samples=Array.from({length:541},(_,i)=>{const z=-bounds.z+.12+i*(2*bounds.z-.24)/540;return [river(z),z]});
   strip(samples,z=>width(z)*1.045,(x,z,i)=>waterLevel(samples[i][1]),mat);
 }
 
@@ -208,6 +215,28 @@ function addRoads(dirt) {
   }
 }
 
+function weatherMaterial(material){
+  if(material.userData.ravanWeathered)return;
+  material.userData.ravanWeathered=true;
+  material.roughness=.95;
+  material.metalness=0;
+  material.onBeforeCompile=shader=>{
+    shader.uniforms.clothGrain={value:clothGrain};
+    shader.vertexShader='varying vec3 vBuilding;\n'+shader.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\nvBuilding=(modelMatrix*vec4(position,1.)).xyz;');
+    shader.fragmentShader='varying vec3 vBuilding; uniform sampler2D clothGrain;\n'+shaderPreamble+
+      shader.fragmentShader.replace('#include <roughnessmap_fragment>',`
+        #include <roughnessmap_fragment>
+        vec3 textureGrain=texture2D(clothGrain,vec2(vBuilding.x+vBuilding.y*.71,vBuilding.z-vBuilding.y*.46)*.84).rgb;
+        float stains=cells(vBuilding.xz*.81+vBuilding.y*.4);
+        float damp=smoothstep(.12,.69,stains);
+        float luminance=dot(textureGrain,vec3(.299,.587,.114));
+        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(dot(diffuseColor.rgb,vec3(.299,.587,.114))),.31);
+        diffuseColor.rgb*=vec3(.77,.69,.54)*(.64+luminance*.55+damp*.38);
+      `);
+  };
+}
+
 function addModel(key,x,z,scale,yaw,lift=0,squash=1) {
   const source=ambientAssets[key];
   const object=source.clone(true);
@@ -226,7 +255,8 @@ function addModel(key,x,z,scale,yaw,lift=0,squash=1) {
     if(!piece.isMesh) return;
     piece.castShadow=true;
     piece.receiveShadow=true;
-    if(key==='rock') piece.material.side=T.DoubleSide;
+    if(key==='rock')piece.material.side=T.DoubleSide;
+    else weatherMaterial(piece.material);
   });
   scene.add(object);
   instances[key]=(instances[key]??0)+1;
@@ -291,6 +321,35 @@ function fordStones() {
   instances.stones=variants.length;
 }
 
+function extendNature(){
+  const groves=[[-112,-82,30,26],[-91,87,26,35],[108,73,32,29],[137,-18,26,29],
+    [84,-87,32,27],[-123,13,30,28],[-85,-138,27,24],[53,136,25,27],[111,125,27,23],
+    [-43,117,22,25],[54,-118,24,24],[-140,104,26,32],[-141,-115,28,26],[142,112,27,32]];
+  const variant=new T.Group();
+  variant.add(ambientAssets.pine.children[0].clone(true));
+  for(const [gx,gz,rx,rz] of groves){
+    const group=[];
+    for(let i=0;i<31;i++){
+      const angle=random(gx+i,gz)*Math.PI*2,r=Math.sqrt(random(gz+i,gx));
+      const x=gx+Math.cos(angle)*r*rx,z=gz+Math.sin(angle)*r*rz;
+      if(Math.abs(x-river(z))<width(z)+3||distanceToPath(x,z)<2.6||places.some(p=>Math.hypot(x-p.x,z-p.z)<6))continue;
+      group.push([x,z,3.6+random(i,gx)*6.5,angle,.66+random(i,gz)*.30]);
+    }
+    if(group.length)scatter('pine',group,variant);
+  }
+  for(const [x,z,scale,yaw] of [[-105,91,5,.5],[-113,96,8,.9],[-120,101,8,1.2],
+    [111,87,4,2],[117,98,7,1.3],[119,112,9,1.4],[55,140,5,.8],[62,146,8,1.8],
+    [-138,-61,8,.7],[-142,-73,11,1.4],[-128,-57,6,.9],[106,-81,8,1.1],
+    [97,-99,7,1.1],[-79,-135,4,3],[51,-112,5,1.2],[-73,71,4,.9]]){
+    addModel('rock',x,z,scale,yaw,-scale*.42,1.15);
+  }
+  addModel('hut',108,74,1.65,.55,-.14);
+  addModel('house',104,78,1.80,.72,-.15);
+  addModel('granary',101,74,1.32,.25,-.14);
+  addModel('hearth',105,73,1.12,1,-.09);
+  addModel('hut',-99,93,1.4,2,-.16);
+}
+
 function buildNature() {
   for(const [x,z,scale,rot,lift,flatten] of [
     [-42,24,3.1,.6,-1.15,1.45],[-43,31,3.3,1.3,-1.7,1.55],[-35,37,3.5,2.1,-1.8,1.5],
@@ -322,8 +381,8 @@ function buildNature() {
       pine.push([x,z,scale,a,.67+random(seed,4)*.31]);
     }
   }
-  for(let i=0;i<95;i++){
-    const z=-53+random(i,7)*105;
+  for(let i=0;i<138;i++){
+    const z=-55+random(i,7)*117;
     const x=river(z)+(i%2?-1:1)*(width(z)+.65+random(i,8)*7.5);
     if(distanceToPath(x,z)<1.15)continue;
     fern.push([x,z,.45+random(i,12)*1.26,random(i,4)*6.28,.62+random(i,3)*.35]);
@@ -347,7 +406,7 @@ function buildNature() {
 
 export async function loadScene() {
   const inputs={
-    terrain:'Ravan_Originalni_Teren_Dolina.glb',hut:'assets/23199.glb',house:'assets/23200.glb',
+    terrain:'Ravan_Originalni_Teren_Dolina.glb',traveler:'assets/putnik.glb',hut:'assets/23199.glb',house:'assets/23200.glb',
     granary:'assets/23202.glb',hearth:'assets/23206.glb',palisade:'assets/23197.glb',
     rock:'assets/rock_face_02.glb',stones:'assets/rock_moss_set_01.glb',pine:'assets/pine.glb',fern:'assets/fern_02.glb'
   };
@@ -355,6 +414,7 @@ export async function loadScene() {
     Promise.all(Object.entries(inputs).map(async ([key,url])=>{ambientAssets[key]=await model(url);})),
     Promise.all([texture('ground-color'),texture('ground-normal',false),texture('ground-rough',false),texture('forest-floor'),texture('rock-ground')])
   ]);
+  clothGrain=maps[3];
   ground=ambientAssets.terrain.getObjectByName('Ravan_Dolina_Original_Terrain');
   if(!ground?.isMesh) throw Error('Originalni teren nije pronadjen u GLB-u.');
   ground.geometry.computeVertexNormals();
@@ -365,24 +425,59 @@ export async function loadScene() {
   ground.receiveShadow=true;
   const originalRiver=ambientAssets.terrain.getObjectByName('Ravan_Reka_Original');
   originalRiver.visible=false;
-  scene.add(ambientAssets.terrain);
+  scene.add(ambientAssets.terrain,valleyExtension(ground.material));
   addWater();
   addRoads(maps[3]);
   buildNature();
   fordStones();
   buildCamp();
+  extendNature();
+  const seen=new Set();
+  scene.traverse(object=>{
+    if(!object.isMesh||!object.material||seen.has(object.material))return;
+    seen.add(object.material);
+    veil(object.material);
+  });
+  traveler=ambientAssets.traveler;
+  traveler.scale.setScalar(2.75);
+  traveler.rotation.y=Math.PI*.95;
+  traveler.traverse(object=>{
+    if(object.isMesh)object.receiveShadow=true;
+  });
+  const footShadow=new T.Mesh(new T.CircleGeometry(.34,28),new T.MeshBasicMaterial({color:0x1c1b13,transparent:true,opacity:.42,depthWrite:false}));
+  footShadow.rotation.x=-Math.PI/2;
+  footShadow.position.y=.013;
+  traveler.add(footShadow);
+  scene.add(traveler);
   return {meshes:meshStats,instances};
 }
 
+export function moveTraveler(x,z,heading,moving,dt){
+  discover(x,z);
+  const wet=Math.abs(x-river(z))<width(z);
+  traveler.position.set(x,Math.max(height(x,z),wet?waterLevel(z)-.18:-100),z);
+  traveler.rotation.y=heading;
+  stride+=moving?dt*9:0;
+  const phase=moving?Math.sin(stride):0;
+  traveler.position.y+=moving?Math.abs(phase)*.075:0;
+  traveler.rotation.z=phase*.035;
+  traveler.traverse(object=>{
+    if(!object.morphTargetInfluences)return;
+    object.morphTargetInfluences[0]=Math.max(0,phase);
+    object.morphTargetInfluences[1]=Math.max(0,-phase);
+  });
+}
+
 export function setLight(mist) {
-  sun.intensity=mist?1.13:2.15;
+  setExploration(mist);
+  sun.intensity=mist?1.8:2.15;
   sun.color.set(mist?'#c1d4dc':'#fff0d2');
   ambient.intensity=mist?1.89:1.76;
   ambient.color.set(mist?'#9cb1ba':'#a4b6c0');
   scene.fog.color.set(mist?'#788d91':'#889a97');
-  scene.fog.density=mist?.0105:.0045;
+
   scene.background.copy(scene.fog.color);
-  renderer.toneMappingExposure=mist?.89:1.06;
+  renderer.toneMappingExposure=mist?.97:1.06;
   waterUniforms.dusk.value=mist?1:0;
 }
 export function setQuality(low) {
@@ -394,5 +489,6 @@ export function setQuality(low) {
 export function render(time) {
   if(shadowRevision){renderer.shadowMap.needsUpdate=true;shadowRevision=false;}
   waterUniforms.time.value=time;
+  scene.fog.density=.0030/Math.max(1,camera.position.y/64);
   renderer.render(scene,camera);
 }

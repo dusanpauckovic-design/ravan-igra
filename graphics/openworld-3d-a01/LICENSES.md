@@ -8,3 +8,4 @@
 - `assets_manifest.json` daje originalne URL-ove, verzije, autore, brojeve poligona, velicine, SHA-256 i postupak pripreme.
 
 CC0 dozvoljava upotrebu, modifikaciju i redistribuciju. Atribucije su ovde evidentirane radi porekla.
+- Osnova 3D Putnika je MakeHuman core mesh, CC0. RAVAN kostim, polozaj i animacija izvedeni su u `make_traveler.py`. Poreklo, pin i SHA-256 su u manifestu. [MakeHuman licenca](https://static.makehumancommunity.org/about/license.html).

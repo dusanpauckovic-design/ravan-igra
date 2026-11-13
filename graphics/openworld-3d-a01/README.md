@@ -32,3 +32,14 @@ node qa/browser.cjs RAVAN_Prva_Dolina.html qa
 - #130. Test ove doline vodi se odvojeno od zajednicke E8 provere.
 
 Ideja za kasniju odluku je rucno teksturisanje arhitekture logora po odobrenim RAVAN referencama. U ovoj verziji koristimo objavljeni komplet za naselja.
+
+## Prosirena dolina · Putnik i istrazivanje
+
+Ista mapa sada pokriva oko 401 × 353 jedinice umesto 144 × 126, odnosno 7,8 puta vecu povrsinu. Originalni GLB ostaje srediste. Novi teren naleze na njegovu mrezu, a 6 novih mesta povezuju staze sa starom dolinom. Dodati su novi zavoj reke, grebeni, borovi i istocni zaseok. Gradjevine dobijaju matirane, vremenski istrosene materijale.
+
+- Dugme ◇ prikazuje celu dolinu. Dugme ◎ centrirа i prati Putnika.
+- Ukljuci **Magla istrazivanja** i klikni na teren blizu Putnika. Oko njega se otvara cist krug. Ranije poseceni delovi ostaju pod tanjom maglom, a neotkrivena odredista su skrivena. Klik van dohvata ili na drugi kraj reke mimo gaza ne pokrece kretanje.
+- Kad putujes ka poznatoj oznaci posle skretanja sa staze, Putnik se najpre vraca istim putem do poslednje staze. Otkrivenost traje tokom otvorene sesije.
+- 3D Putnik koristi MakeHuman osnovu, prilagodjen plast, krzno, opremu i dvotaktnu animaciju koraka. Ovo je prvi model za mapu. Lice i oziljak iz HD reference jos nisu modelovani. Model Putnice pripada sledecem radu na likovima.
+
+Provera prosirenja se pokrece kao `node qa/expanded.cjs RAVAN_Dolina_Prosirena.html qa`. Evidencija je u `qa/expanded.json`. Ovo je izdvojeni art prototip i koristi lokalne staze.

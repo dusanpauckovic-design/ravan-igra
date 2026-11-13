@@ -1,13 +1,24 @@
 // Terrain, river and landmark IDs are inherited from Demo A.
 // Anchor the ford marker over the centre of the existing channel.
-export const river = z => 4*Math.sin(z*.07)+3.5*Math.sin(z*.025+1.8);
+export const bounds={x:156*144/112,z:140*126/100};
+const clamp=(value,a,b)=>Math.min(b,Math.max(a,value));
+const smooth=t=>t*t*(3-2*t);
+export const river = z => 4*Math.sin(z*.07)+3.5*Math.sin(z*.025+1.8)+
+  smooth(clamp((Math.abs(z)-63)/60,0,1))*(20*Math.sin(z*.032)+10*Math.sin(z*.067));
+export const channelGLSL='4.*sin(z*.07)+3.5*sin(z*.025+1.8)+smoothstep(63.,123.,abs(z))*(20.*sin(z*.032)+10.*sin(z*.067))';
 function riverAtFord() { return river(4); }
 export const places = [
   {id:'camp', title:'Stari logor', kind:'Zaklon', x:-26, z:-12, info:'Ognjiste pod stenama i zaklon za putnike.'},
   {id:'ford', title:'Recni prelaz', kind:'Gaz', x:riverAtFord(), z:4, info:'Plitak prelaz spaja dve obale. Staza ga prati iz logora.'},
   {id:'grove', title:'Sumsko svetiliste', kind:'Suma', x:30, z:-19, info:'Staza kroz borove vodi do mirne cistine iznad reke.'},
   {id:'ridge', title:'Kameni prevoj', kind:'Visija', x:-29, z:29, info:'Prolaz izmedju stena otvara pogled niz dolinu.'},
-  {id:'quarry', title:'Zaboravljena pecina', kind:'Orijentir', x:35, z:30, info:'U senci kamenog zida zavrsava se staza s istocne obale.'}
+  {id:'quarry', title:'Zaboravljena pecina', kind:'Orijentir', x:35, z:30, info:'U senci kamenog zida zavrsava se staza s istocne obale.'},
+  {id:'watch',title:'Severna straza',kind:'Vidikovac',x:-99,z:91,info:'Sa kamenog grebena vidi se put kroz severni kraj doline.'},
+  {id:'marsh',title:'Mokre livade',kind:'Obala',x:33,z:-111,info:'Trska i niska obala prate veliki zavoj reke.'},
+  {id:'east',title:'Istocni zaseok',kind:'Naselje',x:104,z:75,info:'Nekoliko kuca sklonjeno je iza sumovitog brda.'},
+  {id:'wood',title:'Stara suma',kind:'Suma',x:-107,z:-82,info:'Zapadna staza se gubi izmedju starih borova.'},
+  {id:'spring',title:'Hladni izvor',kind:'Izvor',x:48,z:136,info:'Pod stenom izbija hladna voda iz visokog dela doline.'},
+  {id:'pasture',title:'Juzni pasnjak',kind:'Cistina',x:-56,z:-140,info:'Otvorena livada na zapadnoj obali.'}
 ];
 
 export const mix = (a,b,t) => a+(b-a)*t;
@@ -19,7 +30,19 @@ export function noise(x,z) {
   const u=smooth(x-a),v=smooth(z-b);
   return mix(mix(random(a,b),random(a+1,b),u),mix(random(a,b+1),random(a+1,b+1),u),v);
 }
-export const width = z => 3.35 + .75*Math.sin(z*.088+1) + .42*Math.sin(z*.24);
+export const width = z => 3.35+.75*Math.sin(z*.088+1)+.42*Math.sin(z*.24)+2.7*smooth(clamp((Math.abs(z)-65)/70,0,1));
+export function heightProfile(x,z){
+  const noiseFloor=(noise(x*.065,z*.065)-.5)*2.15+(noise(x*.13+17,z*.13+25)-.5)*.8;
+  const oldRidge=clamp((z-16)/48,0,1)**1.35*15.5+clamp((-x-39)/28,0,1)**1.65*10;
+  const edge=smooth(clamp(Math.max((Math.abs(x)-72)/36,(Math.abs(z)-63)/37),0,1));
+  const farBank=Math.abs(x-river(z));
+  const hills=(noise(x*.022+18,z*.021)*.7+noise(x*.012,z*.013+11)*.3)**1.6;
+  const ridgeLine=32*Math.exp(-(((x+117+.23*z)/34)**2))+28*Math.exp(-(((x-131+.12*z)/39)**2));
+  const heights=edge*(hills*22+ridgeLine-9)*smooth(clamp((farBank-8)/44,0,1));
+  const old=oldRidge*(1-edge*.8);
+  const cut=(2.6+edge*3.7)*Math.exp(-((farBank/(6.7+edge*4))**2));
+  return noiseFloor+old+heights-cut-1.2;
+}
 const fordZ=places[1].z;
 const point=(x,z)=>[x,z];
 const cross=offset=>point(river(fordZ)+offset,fordZ);
@@ -29,7 +52,13 @@ export const tracks = [
   ['ford','grove',[cross(0),cross(4),point(14,3),point(20,-1),point(23,-10),point(30,-19)]],
   ['camp','ridge',[point(-26,-12),point(-30,-5),point(-34,1),point(-32,11),point(-35,18),point(-33,24),point(-29,29)]],
   ['ford','quarry',[cross(0),cross(4),point(13,7),point(18,13),point(21,22),point(28,25),point(35,30)]],
-  ['grove','quarry',[point(30,-19),point(35,-10),point(34,2),point(30,10),point(30,21),point(35,30)]]
+  ['grove','quarry',[point(30,-19),point(35,-10),point(34,2),point(30,10),point(30,21),point(35,30)]],
+  ['ridge','watch',[point(-29,29),point(-39,37),point(-49,46),point(-66,55),point(-72,68),point(-91,79),point(-99,91)]],
+  ['camp','wood',[point(-26,-12),point(-36,-16),point(-50,-26),point(-63,-34),point(-72,-46),point(-86,-57),point(-94,-68),point(-107,-82)]],
+  ['wood','pasture',[point(-107,-82),point(-105,-95),point(-95,-106),point(-84,-121),point(-70,-131),point(-56,-140)]],
+  ['grove','marsh',[point(30,-19),point(31,-36),point(24,-52),point(20,-65),point(25,-82),point(32,-95),point(33,-111)]],
+  ['quarry','east',[point(35,30),point(43,42),point(54,48),point(66,51),point(78,59),point(89,70),point(104,75)]],
+  ['east','spring',[point(104,75),point(97,90),point(87,101),point(79,112),point(66,120),point(55,129),point(48,136)]]
 ];
 
 export function distanceToPath(x,z) {

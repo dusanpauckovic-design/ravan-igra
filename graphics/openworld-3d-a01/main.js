@@ -1,6 +1,8 @@
 import * as T from 'three';
-import {camera, height, loadScene, renderer, render, setLight, setQuality, waterLevel} from './scene.js';
-import {places, river, width, routeBetween} from './world.js';
+import {camera, height, loadScene, renderer, render, setLight, setQuality, waterLevel, moveTraveler} from './scene.js';
+import {places, river, width, routeBetween, bounds} from './world.js';
+
+import {discover, explorationAudit, isKnown, sight} from './exploration.js';
 
 const element=id=>document.getElementById(id);
 const canvas=element('scene'), status=element('status');
@@ -8,27 +10,40 @@ const pins=new Map();
 const pinHeights=new Map();
 const viewport=new T.Vector3();
 const position=new T.Vector3();
+const ray=new T.Raycaster();
+const pointer=new T.Vector2();
+const contact=new T.Vector3();
 const right=new T.Vector3(),forward=new T.Vector3();
 const lookAt=new T.Vector3();
 const pan=new T.Vector2();
-const party=new T.Vector2(places[0].x,places[0].z);
+const party=new T.Vector2(-19,-8);
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
-let origin='camp', selected='camp', journey=[], target=null;
+let origin='camp', selected='camp', journey=[], target=null, heading=Math.PI*.95, follow=false;
+let offRoad=[new T.Vector2(places[0].x,places[0].z)];
 let ready=false, lastFrame=0, low=false, mist=false, frameSamples=[];
 let span=92, drag=null, needsResize=true, invalidate=true;
 
-function overview() {
+function home() {
+  follow=false;
   const portrait=canvas.clientWidth/canvas.clientHeight<.86;
   pan.set(0,5);
   span=portrait?Math.min(178,80/(canvas.clientWidth/canvas.clientHeight)):64;
+  invalidate=true;
+}
+function overview(){
+  follow=false;
+  pan.set(0,8);
+  const aspect=canvas.clientWidth/Math.max(1,canvas.clientHeight);
+  span=Math.max(280,405/aspect);
   invalidate=true;
 }
 function updateCamera() {
   const ratio=canvas.clientWidth/Math.max(1,canvas.clientHeight);
   camera.left=-span*ratio/2;camera.right=span*ratio/2;
   camera.top=span/2;camera.bottom=-span/2;
-  camera.near=1;camera.far=275;
-  camera.position.set(pan.x-37,62,pan.y-110);
+  camera.near=1;camera.far=1000;
+  const distance=Math.max(1,span/116);
+  camera.position.set(pan.x-37*distance,62*distance,pan.y-110*distance);
   lookAt.set(pan.x,2,pan.y);
   camera.lookAt(lookAt);
   camera.updateProjectionMatrix();
@@ -48,15 +63,17 @@ function showSelection() {
   element('description').textContent=place.info;
   const travel=element('travel');
   const moving=!!target||journey.length>0;
-  travel.disabled=!ready||moving||origin===selected;
-  travel.textContent=moving?'Na putu':origin===selected?'Ovde si':'Kreni';
+  travel.disabled=!ready||moving||(mist&&!isKnown(selected))||(origin===selected&&Math.hypot(party.x-place.x,party.y-place.z)<.4);
+  travel.textContent=moving?'Na putu':travel.disabled&&origin===selected?'Ovde si':'Kreni';
   for(const [id,pin] of pins)pin.setAttribute('aria-pressed',String(id===selected));
 }
-function select(id) { selected=id;showSelection(); }
+function select(id) { if(mist&&!isKnown(id))return;selected=id;showSelection(); }
 function updatePins() {
   for(const place of places) {
     const pin=pins.get(place.id), p=screen(place.x,pinHeights.get(place.id),place.z);
-    pin.hidden=!p.visible;
+    const option=[...element('place-list').options].find(x=>x.value===place.id);
+    option.hidden=mist&&!isKnown(place.id);
+    pin.hidden=!p.visible||option.hidden;
     if(!p.visible)continue;
     pin.style.left=T.MathUtils.clamp(p.x,55,canvas.clientWidth-55)+'px';
     pin.style.top=p.y+'px';
@@ -76,47 +93,72 @@ function nextTarget() {
     if(waypoint.arrival)origin=waypoint.arrival;
   }
   target=null;
-  status.textContent='Druzina je stigla · '+places.find(p=>p.id===origin).title;
+  status.textContent='Putnik je stigao';
   showSelection();
 }
 function travel() {
-  if(origin===selected||target||!ready)return;
+  if(target||!ready||(mist&&!isKnown(selected)))return;
   journey=routeBetween(origin,selected).flatMap(({next,points})=>points.map(([x,z],i)=>({
     point:new T.Vector2(x,z),arrival:i===points.length-1?next:null
   })));
+  if(offRoad.length){
+    journey.unshift(...offRoad.map(point=>({point,arrival:null})).reverse());
+    offRoad=[];
+  }
+  if(!journey.length){const p=places.find(p=>p.id===selected);journey=[{point:new T.Vector2(p.x,p.z),arrival:p.id}];}
   if(reduceMotion.matches){
     const place=places.find(p=>p.id===selected);
+    for(const step of journey){
+      const from=party.clone();
+      for(let offset=0;offset<from.distanceTo(step.point);offset+=5){
+        const sample=from.clone().lerp(step.point,offset/from.distanceTo(step.point));
+        moveTraveler(sample.x,sample.y,heading,false,0);
+      }
+      party.copy(step.point);
+    }
     party.set(place.x,place.z);invalidate=true;
     origin=selected;journey=[];nextTarget();
   }else if(journey.length){
-    nextTarget();showSelection();
+    follow=true;nextTarget();showSelection();
     status.textContent='Na putu ka · '+places.find(p=>p.id===selected).title;
   }
 }
+function revealSegment(x,z){
+  const distance=Math.hypot(x-party.x,z-party.y);
+  const count=Math.ceil(distance/8);
+  for(let i=1;i<count;i++)discover(T.MathUtils.lerp(party.x,x,i/count),T.MathUtils.lerp(party.y,z,i/count));
+}
+
 function move(dt) {
-  let remaining=dt*14;
+  let remaining=dt*22;
   while(target && remaining>0){
     position.set(target.point.x-party.x,0,target.point.y-party.y);
     const distance=position.length();
+    if(distance>.01)heading=Math.atan2(position.x,position.z);
     if(distance>remaining){
+      revealSegment(party.x+position.x*remaining/distance,party.y+position.z*remaining/distance);
       party.x+=position.x*remaining/distance;
       party.y+=position.z*remaining/distance;
       break;
     }
+    revealSegment(target.point.x,target.point.y);
     party.copy(target.point);
     remaining-=distance;
     if(target.arrival)origin=target.arrival;
     nextTarget();
   }
 }
-function zoom(factor) { span=T.MathUtils.clamp(span*factor,25,178);invalidate=true; }
+function zoom(factor) { span=T.MathUtils.clamp(span*factor,16,980);invalidate=true; }
 function draw(now) {
   const elapsed=lastFrame?Math.max(0,now-lastFrame):16;
   
   lastFrame=now;
   if(target || invalidate || !reduceMotion.matches) {
     if(lastFrame&&frameSamples.length<60)frameSamples.push(elapsed);
+    const dt=Math.min(elapsed/1000,.32);
     move(Math.min(elapsed/1000,2));
+    moveTraveler(party.x,party.y,heading,!!target,dt);
+    if(follow)pan.set(party.x,party.y);
     updateCamera();
     updatePins();
     render(reduceMotion.matches?0:now/1000);
@@ -144,8 +186,16 @@ function initControls(){
   element('zoom-in').onclick=()=>zoom(.8);
   element('zoom-out').onclick=()=>zoom(1.25);
   element('overview').onclick=overview;
+  element('center').onclick=()=>{
+    follow=true;
+    span=canvas.clientWidth/canvas.clientHeight<.86?79:48;
+    invalidate=true;
+  };
   element('light').onclick=()=>{
     mist=!mist;setLight(mist);invalidate=true;
+    if(mist&&!isKnown(selected))selected=origin;
+    status.textContent=mist?'Klikni na teren blizu Putnika da istrazis':'Izaberi oznaku na mapi';
+    showSelection();
     element('light').setAttribute('aria-pressed',String(mist));
   };
   element('quality').onclick=()=>{
@@ -158,21 +208,54 @@ function initControls(){
   canvas.addEventListener('wheel',event=>{event.preventDefault();zoom(Math.exp(Math.sign(event.deltaY)*.16));},{passive:false});
   canvas.addEventListener('pointerdown',event=>{
     if(drag||event.button!==0)return;
-    drag={id:event.pointerId,x:event.clientX,y:event.clientY};
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,moved:false};
     canvas.setPointerCapture(event.pointerId);
   });
   canvas.addEventListener('pointermove',event=>{
     if(drag?.id!==event.pointerId)return;
+    if(!drag.moved&&Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)<5)return;
+    drag.moved=true;follow=false;
     const units=span/canvas.clientHeight;
     right.setFromMatrixColumn(camera.matrixWorld,0);
     forward.setFromMatrixColumn(camera.matrixWorld,2).setY(0).normalize();
     const dx=(event.clientX-drag.x)*units,dy=(event.clientY-drag.y)*units*1.35;
-    pan.x=T.MathUtils.clamp(pan.x-right.x*dx-forward.x*dy,-49,49);
-    pan.y=T.MathUtils.clamp(pan.y-right.z*dx-forward.z*dy,-46,46);
+    pan.x=T.MathUtils.clamp(pan.x-right.x*dx-forward.x*dy,-bounds.x,bounds.x);
+    pan.y=T.MathUtils.clamp(pan.y-right.z*dx-forward.z*dy,-bounds.z,bounds.z);
     drag.x=event.clientX;drag.y=event.clientY;invalidate=true;
+  });
+  canvas.addEventListener('pointerup',event=>{
+    if(drag?.id===event.pointerId&&!drag.moved&&mist&&!target)exploreAt(event.offsetX,event.offsetY);
   });
   canvas.addEventListener('lostpointercapture',()=>{drag=null;});
   window.addEventListener('resize',()=>{needsResize=true;invalidate=true;});
+}
+
+function exploreAt(px,py){
+  pointer.set(px/canvas.clientWidth*2-1,1-py/canvas.clientHeight*2);
+  ray.setFromCamera(pointer,camera);
+  for(let t=0;t<620;t+=.55){
+    ray.ray.at(t,contact);
+    if(contact.y>height(contact.x,contact.z))continue;
+    if(Math.abs(contact.x)>bounds.x||Math.abs(contact.z)>bounds.z)return;
+    const destination=new T.Vector2(contact.x,contact.z);
+    const length=party.distanceTo(destination);
+    if(length<1||length>sight*.88)return;
+    const sample=new T.Vector2();
+    for(let offset=1;offset<=Math.ceil(length);offset++){
+      sample.copy(party).lerp(destination,Math.min(1,offset/length));
+      if(Math.abs(sample.x-river(sample.y))<width(sample.y)&&Math.abs(sample.y-4)>2.6)return;
+    }
+    offRoad.push(party.clone());
+    if(reduceMotion.matches){
+      party.copy(destination);moveTraveler(party.x,party.y,heading,false,0);invalidate=true;
+    }else{
+      target={point:destination,arrival:null};
+      follow=true;
+    }
+    status.textContent='Putnik istrazuje okolinu';
+    showSelection();
+    return;
+  }
 }
 
 function reportError(error){
@@ -186,13 +269,15 @@ function reportError(error){
 async function init() {
   const audit=await loadScene();
   setQuality(false);
-  overview();
+  home();
   ready=true;
   initControls();
   showSelection();
   status.textContent='Izaberi oznaku na mapi';
   globalThis.ravanAudit=()=>({
     ...audit,origin,selected,party:party.toArray(),mist,low,span,pan:pan.toArray(),
+    fog:explorationAudit(),bounds,heading,
+    nearby:screen(party.x+12,height(party.x+12,party.y+2),party.y+2),
     renderer:renderer.getContext().getParameter(renderer.getContext().RENDERER),
     webgl2:renderer.capabilities.isWebGL2,
     render:{...renderer.info.render},
